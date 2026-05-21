@@ -8,6 +8,8 @@ import VerifyEmail     from './pages/auth/VerifyEmail';
 import ForgotPassword  from './pages/auth/ForgotPassword';
 import ResetPassword   from './pages/auth/ResetPassword';
 import HomePage        from './pages/home/HomePage';
+import ProfilePage     from './pages/profile/ProfilePage';
+import ProtectedRoute  from './components/ProtectedRoute';
 import './App.css';
 
 function AppRoutes() {
@@ -23,6 +25,15 @@ function AppRoutes() {
       {/* Password reset */}
       <Route path="/auth/forgot-password"    element={<ForgotPassword />} />
       <Route path="/auth/reset-password"     element={<ResetPassword />} />
+      {/* Protected routes */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
       {/* Redirects shorthand */}
       <Route path="/login"    element={<Navigate to="/auth/login"    replace />} />
       <Route path="/register" element={<Navigate to="/auth/register" replace />} />
@@ -39,3 +50,4 @@ function App() {
 }
 
 export default App;
+
