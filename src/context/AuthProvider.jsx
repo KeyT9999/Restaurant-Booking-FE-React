@@ -75,6 +75,13 @@ export function AuthProvider({ children }) {
     register: (data) => authApi.register(data),
     registerRestaurantOwner: (data) => authApi.registerRestaurantOwner(data),
     isAuthenticated: !loading && Boolean(user),
+    /** Cập nhật user state sau khi edit profile thành công */
+    updateUser: (updatedUser) => {
+      setUser(updatedUser);
+      if (updatedUser) {
+        localStorage.setItem('bookeat_user', JSON.stringify(updatedUser));
+      }
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
