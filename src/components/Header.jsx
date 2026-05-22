@@ -43,27 +43,29 @@ export default function Header() {
           )}
 
           {!loading && isAuthenticated && (
-            <div className="header-user">
-              <div
-                className="user-avatar"
-                role="button"
-                tabIndex={0}
-                aria-label="Menu người dùng"
-                onClick={() => setMenuOpen((o) => !o)}
-                onKeyDown={(e) => e.key === 'Enter' && setMenuOpen((o) => !o)}
-              >
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.fullName} className="avatar-img" />
-                ) : (
-                  <span className="avatar-initials">
-                    {(user?.fullName || user?.username || '?')[0].toUpperCase()}
-                  </span>
-                )}
-                <span className="user-name">{user?.fullName || user?.username}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
+            <>
+              {user?.role === 'admin' && (
+                <Link to="/admin/dashboard" className="hbtn-register" style={{ padding: '8px 12px', fontSize: '13px' }}>
+                  ⚙️ Trang Quản trị
+                </Link>
+              )}
+              <div className="header-user">
+                <div
+                  className="user-avatar"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Menu người dùng"
+                  onClick={() => setMenuOpen((o) => !o)}
+                  onKeyDown={(e) => e.key === 'Enter' && setMenuOpen((o) => !o)}
+                >
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} className="avatar-img" />
+                  ) : (
+                    <span className="avatar-initials">
+                      {(user?.fullName || user?.username || '?')[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
 
               {menuOpen && (
                 <div className="user-dropdown" role="menu">
@@ -86,6 +88,7 @@ export default function Header() {
                 </div>
               )}
             </div>
+            </>
           )}
         </div>
       </div>

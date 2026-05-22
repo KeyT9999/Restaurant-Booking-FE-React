@@ -129,23 +129,14 @@
 .user-avatar {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
-  padding: var(--spacing-8) var(--spacing-12);
-  border: 1px solid rgba(216, 203, 184, 0.3);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  justify-content: center;
   cursor: pointer;
-  color: var(--color-aged-parchment);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: -0.011em;
-  transition: border-color 0.2s, background 0.2s;
+  transition: transform 0.2s;
   user-select: none;
 }
 
 .user-avatar:hover {
-  border-color: var(--color-amber-glow);
-  background: rgba(212, 150, 83, 0.06);
+  transform: scale(1.05);
 }
 
 .avatar-img {

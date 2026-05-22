@@ -10,6 +10,14 @@ import ResetPassword   from './pages/auth/ResetPassword';
 import HomePage        from './pages/home/HomePage';
 import ProfilePage     from './pages/profile/ProfilePage';
 import ProtectedRoute  from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminUserForm from './pages/admin/AdminUserForm';
+import AdminRestaurants from './pages/admin/AdminRestaurants';
+import AdminRestaurantDetail from './pages/admin/AdminRestaurantDetail';
+import AdminBookings from './pages/admin/AdminBookings';
+import AdminBookingDetail from './pages/admin/AdminBookingDetail';
 import './App.css';
 
 function AppRoutes() {
@@ -34,6 +42,27 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      
+      {/* Admin routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <AdminProtectedRoute>
+            <Routes>
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="users/create" element={<AdminUserForm />} />
+              <Route path="users/:id/edit" element={<AdminUserForm />} />
+              <Route path="restaurants" element={<AdminRestaurants />} />
+              <Route path="restaurants/:id" element={<AdminRestaurantDetail />} />
+              <Route path="bookings" element={<AdminBookings />} />
+              <Route path="bookings/:id" element={<AdminBookingDetail />} />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
+            </Routes>
+          </AdminProtectedRoute>
+        }
+      />
+
       {/* Redirects shorthand */}
       <Route path="/login"    element={<Navigate to="/auth/login"    replace />} />
       <Route path="/register" element={<Navigate to="/auth/register" replace />} />
