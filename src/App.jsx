@@ -18,6 +18,9 @@ import AdminRestaurants from './pages/admin/AdminRestaurants';
 import AdminRestaurantDetail from './pages/admin/AdminRestaurantDetail';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminBookingDetail from './pages/admin/AdminBookingDetail';
+import OwnerProtectedRoute from './components/owner/OwnerProtectedRoute';
+import OwnerRestaurants from './pages/owner/OwnerRestaurants';
+import CreateRestaurantPage from './pages/owner/CreateRestaurantPage';
 import './App.css';
 
 function AppRoutes() {
@@ -40,6 +43,20 @@ function AppRoutes() {
           <ProtectedRoute>
             <ProfilePage />
           </ProtectedRoute>
+        }
+      />
+
+      {/* Owner routes */}
+      <Route
+        path="/owner/*"
+        element={
+          <OwnerProtectedRoute>
+            <Routes>
+              <Route path="restaurants" element={<OwnerRestaurants />} />
+              <Route path="restaurants/create" element={<CreateRestaurantPage />} />
+              <Route path="*" element={<Navigate to="restaurants" replace />} />
+            </Routes>
+          </OwnerProtectedRoute>
         }
       />
       
