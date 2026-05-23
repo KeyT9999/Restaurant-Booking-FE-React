@@ -1,23 +1,24 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import {
   LayoutDashboard, Users, ShieldCheck, LogOut, Menu, X,
-  ChevronLeft, Settings, Store, CalendarDays,
+  ChevronLeft, Store, CalendarDays, MessageCircle,
 } from 'lucide-react';
 import './AdminLayout.css';
+import Header from '../Header';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/users',     icon: Users,           label: 'Quản lý Users' },
   { to: '/admin/restaurants', icon: Store,         label: 'Nhà hàng' },
   { to: '/admin/bookings',    icon: CalendarDays,  label: 'Đặt bàn' },
+  { to: '/admin/chat',        icon: MessageCircle, label: 'Tin nhắn' },
 ];
 
 export default function AdminLayout({ children, title, subtitle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = async () => {
@@ -38,7 +39,9 @@ export default function AdminLayout({ children, title, subtitle }) {
   }
 
   return (
-    <div className={`admin-layout ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
+    <>
+      <Header />
+      <div className={`admin-layout ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
       {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="sidebar-header">
@@ -120,6 +123,7 @@ export default function AdminLayout({ children, title, subtitle }) {
       {sidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
       )}
-    </div>
+      </div>
+    </>
   );
 }

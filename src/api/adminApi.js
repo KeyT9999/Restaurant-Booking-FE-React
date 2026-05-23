@@ -51,12 +51,18 @@ export const adminApi = {
   },
 
   // ─── Restaurants Management ───
-  async getRestaurants({ page = 1, limit = 20, search = '', approvalStatus = '' } = {}) {
+  async getRestaurants({ page = 1, limit = 20, search = '', approvalStatus = '', ownerId = '', city = '', featured = '', deleted = '', sortBy = '', sortOrder = '' } = {}) {
     const params = new URLSearchParams();
     params.set('page', page);
     params.set('limit', limit);
     if (search) params.set('search', search);
     if (approvalStatus) params.set('approvalStatus', approvalStatus);
+    if (ownerId) params.set('ownerId', ownerId);
+    if (city) params.set('city', city);
+    if (featured !== '') params.set('featured', featured);
+    if (deleted !== '') params.set('deleted', deleted);
+    if (sortBy) params.set('sortBy', sortBy);
+    if (sortOrder) params.set('sortOrder', sortOrder);
     return axiosInstance.get(`/admin/restaurants?${params.toString()}`);
   },
 
@@ -74,6 +80,29 @@ export const adminApi = {
 
   async suspendRestaurant(id, reason) {
     return axiosInstance.put(`/admin/restaurants/${id}/suspend`, { reason });
+  },
+
+  async unsuspendRestaurant(id) {
+    return axiosInstance.put(`/admin/restaurants/${id}/unsuspend`);
+  },
+
+  async deleteRestaurant(id, reason) {
+    return axiosInstance.delete(`/admin/restaurants/${id}`, { data: { reason } });
+  },
+
+  async restoreRestaurant(id) {
+    return axiosInstance.put(`/admin/restaurants/${id}/restore`);
+  },
+
+  async updateRestaurant(id, data) {
+    return axiosInstance.patch(`/admin/restaurants/${id}`, data);
+  },
+
+  async getActivityLogs(id, { page = 1, limit = 20 } = {}) {
+    const params = new URLSearchParams();
+    params.set('page', page);
+    params.set('limit', limit);
+    return axiosInstance.get(`/admin/restaurants/${id}/activity-logs?${params.toString()}`);
   },
 
   // ─── Bookings Management ───

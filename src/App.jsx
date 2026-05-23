@@ -8,6 +8,7 @@ import VerifyEmail     from './pages/auth/VerifyEmail';
 import ForgotPassword  from './pages/auth/ForgotPassword';
 import ResetPassword   from './pages/auth/ResetPassword';
 import HomePage        from './pages/home/HomePage';
+import RestaurantsPage from './pages/restaurants/RestaurantsPage';
 import ProfilePage     from './pages/profile/ProfilePage';
 import ProtectedRoute  from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -18,15 +19,28 @@ import AdminRestaurants from './pages/admin/AdminRestaurants';
 import AdminRestaurantDetail from './pages/admin/AdminRestaurantDetail';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminBookingDetail from './pages/admin/AdminBookingDetail';
+import AdminChatPage from './pages/admin/AdminChatPage';
 import OwnerProtectedRoute from './components/owner/OwnerProtectedRoute';
+import { ChatWidgetProvider } from './context/ChatWidgetProvider';
+import MiniChatWidget from './components/chat-widget/MiniChatWidget';
+import { RestaurantProvider } from './context/RestaurantProvider';
+import OwnerDashboard from './pages/owner/OwnerDashboard';
+import OwnerChatPage from './pages/owner/OwnerChatPage';
 import OwnerRestaurants from './pages/owner/OwnerRestaurants';
 import CreateRestaurantPage from './pages/owner/CreateRestaurantPage';
+import EditRestaurantPage from './pages/owner/EditRestaurantPage';
+import MenuPage from './pages/owner/MenuPage';
+import TablePage from './pages/owner/TablePage';
+import RestaurantDetailPage from './pages/restaurants/RestaurantDetailPage';
+import CustomerChatPage from './pages/chat/CustomerChatPage';
 import './App.css';
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/"                        element={<HomePage />} />
+      <Route path="/restaurants"             element={<RestaurantsPage />} />
+      <Route path="/restaurants/:id"         element={<RestaurantDetailPage />} />
       <Route path="/auth/login"              element={<Login />} />
       <Route path="/auth/register"           element={<Register />} />
       <Route path="/auth/register-success"   element={<RegisterSuccess />} />
@@ -51,11 +65,18 @@ function AppRoutes() {
         path="/owner/*"
         element={
           <OwnerProtectedRoute>
-            <Routes>
-              <Route path="restaurants" element={<OwnerRestaurants />} />
-              <Route path="restaurants/create" element={<CreateRestaurantPage />} />
-              <Route path="*" element={<Navigate to="restaurants" replace />} />
-            </Routes>
+            <RestaurantProvider>
+              <Routes>
+                <Route path="dashboard" element={<OwnerDashboard />} />
+                <Route path="chat" element={<OwnerChatPage />} />
+                <Route path="restaurants" element={<OwnerRestaurants />} />
+                <Route path="restaurants/create" element={<CreateRestaurantPage />} />
+                <Route path="restaurants/:id/edit" element={<EditRestaurantPage />} />
+                <Route path="menu" element={<MenuPage />} />
+                <Route path="tables" element={<TablePage />} />
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
+              </Routes>
+            </RestaurantProvider>
           </OwnerProtectedRoute>
         }
       />
@@ -74,9 +95,19 @@ function AppRoutes() {
               <Route path="restaurants/:id" element={<AdminRestaurantDetail />} />
               <Route path="bookings" element={<AdminBookings />} />
               <Route path="bookings/:id" element={<AdminBookingDetail />} />
+              <Route path="chat" element={<AdminChatPage />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </AdminProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <CustomerChatPage />
+          </ProtectedRoute>
         }
       />
 
@@ -90,10 +121,12 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ChatWidgetProvider>
+        <AppRoutes />
+        <MiniChatWidget />
+      </ChatWidgetProvider>
     </AuthProvider>
   );
 }
 
 export default App;
-

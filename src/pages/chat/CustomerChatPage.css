@@ -1,0 +1,67 @@
+/* ═══════════════════════════════════════════
+   CustomerChatPage — Amrit Palace Design
+   ═══════════════════════════════════════════ */
+
+.customer-chat-page {
+  min-height: 100vh;
+  background: var(--surface-0);
+  padding-top: 72px;
+}
+
+.customer-chat-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-42) var(--spacing-42);
+}
+
+/* ── Section Header (Eyebrow + Title pattern) ── */
+.customer-chat-eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-amber-glow);
+  margin-bottom: var(--spacing-12);
+  display: block;
+}
+
+.customer-chat-heading h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--color-aged-parchment);
+}
+
+.customer-chat-heading p {
+  margin: var(--spacing-10) 0 0;
+  color: var(--color-faded-stone);
+  font-size: var(--text-body-lg);
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+  max-width: 480px;
+}
+
+.customer-chat-heading {
+  margin-bottom: var(--spacing-32);
+}
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+  .customer-chat-main {
+    padding: var(--spacing-28) var(--spacing-24);
+  }
+}
+
+@media (max-width: 600px) {
+  .customer-chat-main {
+    padding: var(--spacing-20) var(--spacing-16);
+  }
+
+  .customer-chat-heading {
+    margin-bottom: var(--spacing-20);
+  }
+}

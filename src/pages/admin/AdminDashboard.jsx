@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi';
 import AdminLayout from '../../components/admin/AdminLayout';
+import RestaurantStatsCards from '../../components/admin/RestaurantStatsCards';
 import {
   Users, UserCheck, UserX, ShieldCheck, TrendingUp,
   MailCheck, RefreshCw,
@@ -93,6 +94,10 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Restaurant Stats */}
+          <h3 className="stats-title" style={{ marginTop: '28px', marginBottom: '16px' }}>Thống kê nhà hàng</h3>
+          <RestaurantStatsCards stats={data.restaurantStats} />
 
           {/* Role Distribution */}
           <div className="stats-grid">

@@ -267,6 +267,42 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
           rows={3}
         />
       </div>
+
+      {/* Cấu hình hoàn thiện */}
+      <div className="form-section-divider" style={{ marginTop: '24px', borderTop: '1px solid rgba(216, 203, 184, 0.08)', paddingTop: '20px' }}>
+        <span>⚙️ Hoàn thiện cấu hình nhà hàng</span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            id="has-menu-chk"
+            type="checkbox"
+            checked={data.hasMenu || false}
+            onChange={(e) => handleChange('hasMenu', e.target.checked)}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+          />
+          <label htmlFor="has-menu-chk" style={{ fontSize: '13px', cursor: 'pointer', color: 'var(--color-soft-linen)' }}>
+            Tôi đã hoàn thành thiết lập <strong>Thực đơn (Menu)</strong> cho nhà hàng
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            id="has-table-layout-chk"
+            type="checkbox"
+            checked={data.hasTableLayout || false}
+            onChange={(e) => handleChange('hasTableLayout', e.target.checked)}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+          />
+          <label htmlFor="has-table-layout-chk" style={{ fontSize: '13px', cursor: 'pointer', color: 'var(--color-soft-linen)' }}>
+            Tôi đã hoàn thành thiết lập <strong>Sơ đồ bàn (Table layout)</strong> cho nhà hàng
+          </label>
+        </div>
+        <p style={{ fontSize: '11px', color: 'var(--color-faded-stone)', marginTop: '4px', fontStyle: 'italic', lineHeight: 1.4 }}>
+          Lưu ý: Sau khi được Ban quản trị phê duyệt, bạn bắt buộc phải xác nhận hoàn thành cấu hình hai mục này để nhà hàng có thể xuất hiện công khai trên trang khám phá.
+        </p>
+      </div>
     </div>
   );
 }
