@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════
+   OwnerDashboard — Amrit Palace Design System
+   ═══════════════════════════════════════════ */
+
+.owner-panel {
+  background: rgba(30, 26, 22, 0.9);
+  border: 1px solid rgba(216, 203, 184, 0.15);
+  border-radius: var(--radius-card); /* 0px */
+  padding: var(--spacing-24);
+  color: var(--color-aged-parchment);
+}
+
+.owner-panel.error {
+  border: 1px solid rgba(200, 114, 114, 0.3);
+  background: rgba(200, 114, 114, 0.08);
+  color: #c87272;
+  border-radius: var(--radius-sm); /* 3px */
+}
+
+.empty-context h2 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 24px;
+  margin: 0 0 var(--spacing-12);
+  color: var(--color-aged-parchment);
+}
+
+.empty-context p {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-faded-stone);
+}
+
+.active-restaurant-strip {
+  background: rgba(212, 150, 83, 0.05);
+  border: 1px solid rgba(212, 150, 83, 0.2);
+  border-radius: var(--radius-card); /* 0px */
+  padding: var(--spacing-16) var(--spacing-20);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-24);
+}
+
+.active-restaurant-strip span {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-amber-glow);
+  display: block;
+}
+
+.active-restaurant-strip strong {
+  display: block;
+  margin-top: var(--spacing-6);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 22px;
+  color: var(--color-aged-parchment);
+  letter-spacing: -0.01em;
+}
+
+.active-restaurant-strip small {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-faded-stone);
+  opacity: 0.8;
+}
+
+.owner-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-16);
+}
+
+.owner-stat-card {
+  background: rgba(30, 26, 22, 0.85);
+  border: 1px solid rgba(216, 203, 184, 0.12);
+  border-radius: var(--radius-card); /* 0px */
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 130px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.owner-stat-card:hover {
+  background: rgba(212, 150, 83, 0.04);
+  border-color: rgba(212, 150, 83, 0.3);
+}
+
+.owner-stat-card svg {
+  color: var(--color-amber-glow);
+  margin-bottom: var(--spacing-4);
+}
+
+.owner-stat-card span {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-faded-stone);
+}
+
+.owner-stat-card strong {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 28px;
+  color: var(--color-aged-parchment);
+  margin-top: auto;
+}
+
+@media (max-width: 960px) {
+  .owner-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .owner-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}

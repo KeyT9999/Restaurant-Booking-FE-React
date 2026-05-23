@@ -64,7 +64,7 @@ function InfoRow({ label, value }) {
   );
 }
 
-export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting }) {
+export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEdit }) {
   const [confirmed, setConfirmed] = useState(false);
 
   const address = data.address || {};
@@ -81,7 +81,9 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting }) {
         <span className="step-icon">✅</span>
         Xác nhận thông tin
       </h2>
-      <p className="step-desc">Kiểm tra lại toàn bộ thông tin trước khi tạo nhà hàng.</p>
+      <p className="step-desc">
+        {isEdit ? 'Kiểm tra lại toàn bộ thông tin trước khi cập nhật nhà hàng.' : 'Kiểm tra lại toàn bộ thông tin trước khi tạo nhà hàng.'}
+      </p>
 
       {/* Section 1: Basic Info */}
       <SectionCard title="📋 Thông tin cơ bản" stepNum={1} onEdit={onEdit}>
@@ -148,6 +150,8 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting }) {
         <InfoRow label="Tiện ích" value={data.amenities} />
         <InfoRow label="Quy định" value={data.policyRules} />
         <InfoRow label="Lưu ý đặt bàn" value={data.bookingNotes} />
+        <InfoRow label="Thiết lập Thực đơn" value={data.hasMenu ? '✅ Đã hoàn thành' : '❌ Chưa hoàn thành'} />
+        <InfoRow label="Thiết lập Sơ đồ bàn" value={data.hasTableLayout ? '✅ Đã hoàn thành' : '❌ Chưa hoàn thành'} />
       </SectionCard>
 
       {/* Confirmation checkbox */}
@@ -178,10 +182,10 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting }) {
           {isSubmitting ? (
             <>
               <span className="btn-spinner" />
-              Đang tạo...
+              {isEdit ? 'Đang cập nhật...' : 'Đang tạo...'}
             </>
           ) : (
-            '🏗️ Tạo nhà hàng'
+            isEdit ? '💾 Cập nhật nhà hàng' : '🏗️ Tạo nhà hàng'
           )}
         </button>
       </div>

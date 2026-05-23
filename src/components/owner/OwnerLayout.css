@@ -1,0 +1,337 @@
+/* ═══════════════════════════════════════════
+   OwnerLayout — Amrit Palace Design System
+   ═══════════════════════════════════════════ */
+
+/* ── Shell (below 72px Header) ── */
+.owner-shell {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: row;
+  background: var(--surface-0);
+  color: var(--color-aged-parchment);
+  padding-top: 72px;
+}
+
+/* ── Sidebar ── */
+.owner-sidebar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  height: calc(100vh - 72px);
+  width: 260px;
+  padding: var(--spacing-20) var(--spacing-16);
+  background: #1e1a16;
+  color: var(--color-aged-parchment);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  border-right: 1px solid rgba(216, 203, 184, 0.08);
+  z-index: 90;
+  overflow-y: auto;
+}
+
+/* ── Brand ── */
+.owner-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-10);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.owner-brand:hover {
+  opacity: 0.85;
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-amber-glow);
+  color: #1e1a16;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/* ── Restaurant Switcher ── */
+.restaurant-switcher {
+  position: relative;
+}
+
+.restaurant-switcher.loading,
+.restaurant-switcher.empty {
+  padding: var(--spacing-12);
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  border-radius: var(--radius-sm);
+  color: var(--color-faded-stone);
+  font-size: var(--text-body-sm);
+}
+
+.switcher-trigger,
+.switcher-item {
+  width: 100%;
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-aged-parchment);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-10);
+  padding: var(--spacing-10);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.switcher-trigger:hover,
+.switcher-item:hover,
+.switcher-item.active {
+  border-color: rgba(212, 150, 83, 0.4);
+  background: rgba(212, 150, 83, 0.08);
+}
+
+.switcher-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(44, 44, 44, 0.8);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.switcher-avatar.small {
+  width: 30px;
+  height: 30px;
+}
+
+.switcher-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.switcher-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.switcher-label,
+.switcher-item small {
+  color: var(--color-faded-stone);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}
+
+.switcher-name,
+.switcher-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-body-sm);
+}
+
+.switcher-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: var(--spacing-6);
+  background: #1e1a16;
+  border: 1px solid rgba(216, 203, 184, 0.15);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.switcher-item span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Navigation ── */
+.owner-nav {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.owner-nav-link,
+.owner-create-link,
+.owner-logout {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-10);
+  padding: var(--spacing-10) var(--spacing-12);
+  border-radius: var(--radius-sm);
+  color: var(--color-faded-stone);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.011em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.owner-nav-link:hover,
+.owner-nav-link.active {
+  background: rgba(212, 150, 83, 0.1);
+  color: var(--color-aged-parchment);
+}
+
+.owner-nav-link.active {
+  color: var(--color-amber-glow);
+  background: rgba(212, 150, 83, 0.15);
+}
+
+.owner-create-link {
+  border: 1px solid rgba(212, 150, 83, 0.3);
+  color: var(--color-amber-glow);
+  font-weight: var(--font-weight-medium);
+  transition: background 0.2s, color 0.2s;
+}
+
+.owner-create-link:hover {
+  background: rgba(212, 150, 83, 0.1);
+  color: var(--color-amber-glow);
+}
+
+.owner-logout:hover {
+  background: rgba(200, 114, 114, 0.1);
+  color: #c87272;
+}
+
+/* ── Sidebar Footer ── */
+.owner-sidebar-footer {
+  margin-top: auto;
+  display: grid;
+  gap: var(--spacing-8);
+}
+
+.owner-user {
+  display: flex;
+  gap: var(--spacing-10);
+  align-items: center;
+  padding: var(--spacing-10);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.owner-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--color-amber-glow), #c4803d);
+  color: #1e1a16;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-body-sm);
+  flex-shrink: 0;
+}
+
+.owner-user strong,
+.owner-user small {
+  display: block;
+}
+
+.owner-user strong {
+  font-size: var(--text-body-sm);
+  color: var(--color-aged-parchment);
+}
+
+.owner-user small {
+  color: var(--color-faded-stone);
+  font-size: 11px;
+}
+
+/* ── Main Content ── */
+.owner-main {
+  flex: 1;
+  padding: var(--spacing-32);
+  min-width: 0;
+  margin-left: 260px;
+}
+
+/* ── Page Heading ── */
+.owner-page-heading {
+  margin-bottom: var(--spacing-24);
+}
+
+.owner-page-heading h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--color-aged-parchment);
+}
+
+.owner-page-heading p {
+  margin: var(--spacing-6) 0 0;
+  color: var(--color-faded-stone);
+  font-size: var(--text-body-sm);
+  letter-spacing: -0.01em;
+}
+
+/* ── Panel (shared) ── */
+.owner-panel {
+  background: rgba(30, 26, 22, 0.9);
+  border: 1px solid rgba(216, 203, 184, 0.12);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-20);
+  color: var(--color-faded-stone);
+  font-size: var(--text-body);
+}
+
+.owner-panel.error {
+  color: #c87272;
+  border-color: rgba(200, 114, 114, 0.3);
+  background: rgba(200, 114, 114, 0.08);
+}
+
+.empty-context h2 {
+  margin: 0 0 var(--spacing-8);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 20px;
+  color: var(--color-aged-parchment);
+}
+
+.empty-context p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 860px) {
+  .owner-shell {
+    flex-direction: column;
+  }
+
+  .owner-sidebar {
+    position: relative;
+    top: 0;
+    height: auto;
+    width: 100%;
+  }
+
+  .owner-main {
+    margin-left: 0;
+    padding: var(--spacing-20);
+  }
+}

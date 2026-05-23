@@ -50,7 +50,7 @@ export default function Header() {
                 </Link>
               )}
               {user?.role === 'restaurant_owner' && (
-                <Link to="/owner/restaurants" className="hbtn-register" style={{ padding: '8px 12px', fontSize: '13px' }}>
+                <Link to="/owner/dashboard" className="hbtn-register" style={{ padding: '8px 12px', fontSize: '13px' }}>
                   🍽️ Quản lý nhà hàng
                 </Link>
               )}

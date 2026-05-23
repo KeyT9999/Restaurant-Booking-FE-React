@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '../../components/Header';
+import { Link, useNavigate } from 'react-router-dom';
+import OwnerLayout from '../../components/owner/OwnerLayout';
 import { getMyRestaurants } from '../../api/restaurantApi';
+import { useRestaurantContext } from '../../context/useRestaurantContext';
 import './OwnerRestaurants.css';
 
 const STATUS_CONFIG = {
@@ -12,6 +13,8 @@ const STATUS_CONFIG = {
 };
 
 export default function OwnerRestaurants() {
+  const navigate = useNavigate();
+  const { setSelectedRestaurantId } = useRestaurantContext();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,13 +39,14 @@ export default function OwnerRestaurants() {
   };
 
   useEffect(() => {
-    fetchRestaurants();
+    const timeoutId = window.setTimeout(() => {
+      fetchRestaurants();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   return (
-    <div className="owner-restaurants-page">
-      <Header />
-      <main className="owner-restaurants-main">
+    <OwnerLayout title="Nhà hàng của tôi" subtitle="Chọn nhà hàng đang hoạt động để quản lý bảng điều khiển theo mô hình fanpage.">
         <div className="owner-restaurants-container">
           {/* Header */}
           <div className="owner-page-header">
@@ -139,6 +143,91 @@ export default function OwnerRestaurants() {
                       <div className="rcard-date">
                         Tạo ngày {new Date(r.createdAt).toLocaleDateString('vi-VN')}
                       </div>
+
+                      {r.approvalStatus === 'rejected' && r.rejectionReason && (
+                        <div className="rcard-reason-alert reject" style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          borderLeft: '3px solid #ef4444',
+                          padding: '8px 10px',
+                          margin: '8px 0',
+                          borderRadius: '0 4px 4px 0',
+                          fontSize: '11px',
+                          color: '#fca5a5',
+                          textAlign: 'left'
+                        }}>
+                          <strong>Lý do từ chối:</strong> {r.rejectionReason}
+                        </div>
+                      )}
+                      
+                      {r.approvalStatus === 'suspended' && r.suspensionReason && (
+                        <div className="rcard-reason-alert suspend" style={{
+                          background: 'rgba(251, 146, 60, 0.1)',
+                          borderLeft: '3px solid #fb923c',
+                          padding: '8px 10px',
+                          margin: '8px 0',
+                          borderRadius: '0 4px 4px 0',
+                          fontSize: '11px',
+                          color: '#fed7aa',
+                          textAlign: 'left'
+                        }}>
+                          <strong>Lý do tạm ngưng:</strong> {r.suspensionReason}
+                        </div>
+                      )}
+
+                      {r.approvalStatus === 'approved' && (!r.hasMenu || !r.hasTableLayout) && (
+                        <div className="rcard-reason-alert suspend" style={{
+                          background: 'rgba(251, 146, 60, 0.1)',
+                          borderLeft: '3px solid #fb923c',
+                          padding: '8px 10px',
+                          margin: '8px 0',
+                          borderRadius: '0 4px 4px 0',
+                          fontSize: '11px',
+                          color: '#fed7aa',
+                          textAlign: 'left'
+                        }}>
+                          <strong>Chưa hiển thị:</strong> Nhà hàng đã được duyệt nhưng chưa hiển thị công khai. Vui lòng bấm <strong>Chỉnh sửa</strong> để hoàn thành:
+                          <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
+                            {!r.hasMenu && <li>Thiếu thông tin Thực đơn (Menu)</li>}
+                            {!r.hasTableLayout && <li>Thiếu thông tin Sơ đồ bàn (Table layout)</li>}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="rcard-actions" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                        {r.approvalStatus === 'approved' && (
+                          <button
+                            type="button"
+                            className="btn-manage-restaurant"
+                            style={{ flex: 1, margin: 0 }}
+                            onClick={() => {
+                              setSelectedRestaurantId(r.id);
+                              navigate('/owner/dashboard');
+                            }}
+                          >
+                            Quản lý
+                          </button>
+                        )}
+                        {(r.approvalStatus === 'approved' || r.approvalStatus === 'rejected') && (
+                          <button
+                            type="button"
+                            className="btn-edit-restaurant"
+                            style={{ 
+                              flex: 1, 
+                              padding: '8px 12px', 
+                              background: 'rgba(216, 203, 184, 0.05)', 
+                              border: '1px solid rgba(216, 203, 184, 0.15)',
+                              borderRadius: '6px',
+                              color: 'var(--color-aged-parchment)',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => navigate(`/owner/restaurants/${r.id}/edit`)}
+                          >
+                            {r.approvalStatus === 'rejected' ? 'Sửa & Nộp lại' : 'Chỉnh sửa'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -161,7 +250,6 @@ export default function OwnerRestaurants() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </OwnerLayout>
   );
 }

@@ -46,6 +46,9 @@
   --spacing-62:  62px;  /* section gap */
   --spacing-92:  92px;
 
+  /* Layout */
+  --header-height: 72px;
+
   /* Border radius — 0px for cards, 3px for interactive */
   --radius-card: 0px;
   --radius-sm:   3px;

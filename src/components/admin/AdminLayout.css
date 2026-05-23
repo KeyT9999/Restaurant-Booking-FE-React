@@ -5,8 +5,9 @@
 /* ── Layout Grid ── */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - 72px);
   background: var(--surface-0);
+  padding-top: 72px;
 }
 
 /* ── Sidebar ── */
@@ -17,10 +18,10 @@
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
+  top: 72px;
   left: 0;
-  height: 100vh;
-  z-index: 100;
+  height: calc(100vh - 72px);
+  z-index: 90;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
