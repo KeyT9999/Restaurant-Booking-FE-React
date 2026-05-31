@@ -461,7 +461,7 @@ export default function RestaurantDetailPage() {
               <p className="widget-desc">Đảm bảo chỗ ngồi lý tưởng của bạn tại {restaurant.name} chỉ trong vài thao tác.</p>
               
               <Link 
-                to={`/bookings/create?restaurantId=${restaurant.id}`} 
+                to={`/restaurants/${restaurant.id}/booking`} 
                 className="btn-widget-book"
               >
                 <CalendarDays size={18} /> Đặt bàn online

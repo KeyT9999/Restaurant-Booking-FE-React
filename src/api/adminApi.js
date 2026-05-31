@@ -117,6 +117,10 @@ export const adminApi = {
     return axiosInstance.get(`/admin/bookings?${params.toString()}`);
   },
 
+  async getBookingStats() {
+    return axiosInstance.get('/admin/bookings/stats');
+  },
+
   async getBookingById(id) {
     return axiosInstance.get(`/admin/bookings/${id}`);
   },

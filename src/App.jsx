@@ -33,9 +33,15 @@ import MenuPage from './pages/owner/MenuPage';
 import TablePage from './pages/owner/TablePage';
 import RestaurantDetailPage from './pages/restaurants/RestaurantDetailPage';
 import CustomerChatPage from './pages/chat/CustomerChatPage';
+import BookingFormPage from './pages/booking/BookingFormPage';
+import MyBookingsPage from './pages/booking/MyBookingsPage';
+import BookingDetailPage from './pages/booking/BookingDetailPage';
+import OwnerBookingsPage from './pages/owner/OwnerBookingsPage';
+import useBookingNotifications from './hooks/useBookingNotifications';
 import './App.css';
 
 function AppRoutes() {
+  useBookingNotifications();
   return (
     <Routes>
       <Route path="/"                        element={<HomePage />} />
@@ -59,6 +65,30 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/restaurants/:id/booking"
+        element={
+          <ProtectedRoute>
+            <BookingFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <ProtectedRoute>
+            <MyBookingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/bookings/:id"
+        element={
+          <ProtectedRoute>
+            <BookingDetailPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Owner routes */}
       <Route
@@ -74,6 +104,7 @@ function AppRoutes() {
                 <Route path="restaurants/:id/edit" element={<EditRestaurantPage />} />
                 <Route path="menu" element={<MenuPage />} />
                 <Route path="tables" element={<TablePage />} />
+                <Route path="bookings" element={<OwnerBookingsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </RestaurantProvider>
