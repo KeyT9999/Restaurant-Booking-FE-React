@@ -77,7 +77,7 @@ export default function Header() {
                   <Link to="/profile" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
                     👤 Tài khoản
                   </Link>
-                  <Link to="/bookings" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+                  <Link to="/my-bookings" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
                     📅 Đặt bàn của tôi
                   </Link>
                   <div className="dropdown-divider" />

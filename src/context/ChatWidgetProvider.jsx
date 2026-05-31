@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { adminApi } from '../api/adminApi';
 import { chatApi } from '../api/chatApi';
 import { getMyRestaurants } from '../api/restaurantApi';
@@ -202,6 +203,21 @@ export function ChatWidgetProvider({ children }) {
     setMessages((current) => mergeReactionUpdate(current, payload));
   }, []);
 
+  const handleBookingEvent = useCallback((eventName, payload) => {
+    const messageByEvent = {
+      'booking:created': 'Co yeu cau dat ban moi',
+      'booking:confirmed': 'Dat ban da duoc xac nhan',
+      'booking:cancelled': 'Dat ban da bi huy',
+      'booking:completed': 'Dat ban da hoan thanh',
+      'booking:no_show': 'Dat ban duoc danh dau no-show',
+    };
+
+    toast(messageByEvent[eventName] || 'Booking da duoc cap nhat');
+    window.dispatchEvent(new CustomEvent('bookeat:booking-event', {
+      detail: { eventName, payload },
+    }));
+  }, []);
+
   const socket = useChatSocket({
     enabled: isAuthenticated,
     onMessage: handleSocketMessage,
@@ -209,6 +225,7 @@ export function ChatWidgetProvider({ children }) {
     onTyping: handleTyping,
     onMessageRead: handleMessageRead,
     onReactionUpdated: handleReactionUpdated,
+    onBookingEvent: handleBookingEvent,
   });
 
   useEffect(() => {

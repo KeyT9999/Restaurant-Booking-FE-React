@@ -16,7 +16,9 @@ export default function TableForm({ table, statusOptions, onSubmit, onClose }) {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (table) {
+    if (!table) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
       setFormData({
         tableNumber: table.tableNumber || '',
         capacity: table.capacity || 4,
@@ -25,7 +27,9 @@ export default function TableForm({ table, statusOptions, onSubmit, onClose }) {
         depositAmount: table.depositAmount || 0,
         note: table.note || ''
       });
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [table]);
 
   const validate = () => {
@@ -53,7 +57,7 @@ export default function TableForm({ table, statusOptions, onSubmit, onClose }) {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     let finalValue = value;
     
     if (type === 'number') {

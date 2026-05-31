@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-23T09:18:00Z",
+  "title": "Design System: BookEat",
+  "extensions": {
+    "colorMeta": {
+      "mahogany": { "role": "neutral", "displayName": "Mahogany", "canonical": "#2c2c2c", "tonalRamp": ["#1e1a16", "#2c2c2c", "#3a3a3a", "#4a4a4a", "#5a5a5a", "#6a6a6a", "#7a7a7a", "#8a8a8a"] },
+      "aged-parchment": { "role": "primary", "displayName": "Aged Parchment", "canonical": "#d8cbb8", "tonalRamp": ["#b5a590", "#c6b6a2", "#d8cbb8", "#e3d8c8", "#eee5d7", "#f5eee4", "#faf6f0", "#fdfcf9"] },
+      "amber-glow": { "role": "accent", "displayName": "Amber Glow", "canonical": "#d49653", "tonalRamp": ["#a46c31", "#bd8243", "#d49653", "#e0ab71", "#ebc191", "#f4d7b2", "#fbedd3", "#fdf6e9"] },
+      "soft-linen": { "role": "neutral", "displayName": "Soft Linen", "canonical": "#dfdad5", "tonalRamp": ["#b2ada8", "#c8c3bd", "#dfdad5", "#e7e3de", "#eeebe8", "#f4f3f0", "#faf9f8", "#fdfcfb"] },
+      "faded-stone": { "role": "neutral", "displayName": "Faded Stone", "canonical": "#b6ab9c", "tonalRamp": ["#8e8374", "#a29788", "#b6ab9c", "#c6beb1", "#d4cec3", "#e2ded5", "#efece7", "#f9f8f6"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Tiêu đề hero/h1 và section h2." },
+      "body": { "displayName": "Body", "purpose": "Văn bản thông thường và navigation." },
+      "label": { "displayName": "Eyebrow Label", "purpose": "Nhãn in hoa cho section." },
+      "button": { "displayName": "Button Text", "purpose": "Chữ in đậm trên nút bấm." }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nút bấm hành động chính của dự án, thiết kế vuông vức cổ điển.",
+      "html": "<button class=\"ds-btn-primary\">GET STARTED</button>",
+      "css": ".ds-btn-primary { background: #d8cbb8; color: #2c2c2c; padding: 20px 32px; letter-spacing: -0.012em; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; border: none; border-radius: 0; transition: background 0.2s, color 0.2s; cursor: pointer; } .ds-btn-primary:hover { background: #dfdad5; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Nút bấm phụ với viền mỏng trong suốt.",
+      "html": "<button class=\"ds-btn-outline\">LEARN MORE</button>",
+      "css": ".ds-btn-outline { background: transparent; color: #d8cbb8; border: 1px solid #d8cbb8; padding: 20px 28px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; border-radius: 0; transition: background 0.2s, color 0.2s; cursor: pointer; } .ds-btn-outline:hover { background: #d8cbb8; color: #2c2c2c; }"
+    },
+    {
+      "name": "Form Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Trường nhập dữ liệu với nền tối mờ và góc bo nhẹ 3px.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Email address\" />",
+      "css": ".ds-input { background: rgba(44, 44, 44, 0.6); border: 1px solid rgba(216, 203, 184, 0.2); border-radius: 3px; color: #d8cbb8; padding: 16px; font-size: 15px; width: 100%; transition: border-color 0.18s, background 0.18s; } .ds-input:focus { border-color: #d49653; background: rgba(44, 44, 44, 0.9); outline: none; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Amrit Palace — Opulent Old-World Canvas",
+    "overview": "BookEat dùng design system Amrit Palace — gợi lên trải nghiệm ẩm thực cao cấp, hoài cổ, sang trọng. Thiết kế tuân theo triết lý tối giản về màu sắc với nền canvas tối, sử dụng điểm nhấn màu vàng amber một cách có chủ đích. Hình khối góc cạnh (0px border-radius) mang lại cảm giác cổ điển, trang trọng, kết hợp với typography tương phản mạnh giữa nét mảnh của Playfair Display và nét đều của Inter.",
+    "keyCharacteristics": [
+      "Nền tối làm canvas chính, làm nổi bật nội dung.",
+      "Không sử dụng các màu rực rỡ (đỏ, xanh lam, tím...).",
+      "Không có shadow nặng — dùng border mỏng + background shift để tạo độ sâu.",
+      "Các chi tiết tương tác (input, badge) có góc bo nhẹ (3px) để báo hiệu khả năng click."
+    ],
+    "rules": [
+      {
+        "name": "Quy tắc Amber Glow",
+        "body": "Màu #d49653 chỉ được dùng cho điểm nhấn. Không bao giờ dùng làm màu nền cho các khối lớn hay dùng tràn lan.",
+        "section": "colors"
+      },
+      {
+        "name": "Quy tắc Không Shadow",
+        "body": "Thiết kế hoàn toàn không dùng shadow nặng. Sự nổi lên (elevation) được thể hiện bằng 1px border mờ rgba(216, 203, 184, 0.2) và trạng thái hover bằng cách đổi nhẹ opacity hoặc dịch chuyển phần tử.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do dùng var(--token) cho tất cả màu sắc, khoảng cách, và font chữ trong CSS.",
+      "Do sử dụng Playfair Display với font-weight 300 cho tất cả heading lớn (≥ 26px).",
+      "Do dùng transition nhẹ 0.18s ~ 0.2s cho mọi thay đổi trạng thái (hover, focus)."
+    ],
+    "donts": [
+      "Don't hardcode màu sắc trực tiếp trong CSS hay inline styles (ví dụ color: #d49653).",
+      "Don't dùng màu rực rỡ ngoài bảng màu chính (tránh tuyệt đối đỏ chót, xanh lam, tím).",
+      "Don't dùng các góc bo tròn lớn (8px, 12px, 50%) cho card và button."
+    ]
+  }
+}

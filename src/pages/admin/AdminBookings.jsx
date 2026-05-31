@@ -4,7 +4,7 @@ import { adminApi } from '../../api/adminApi';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
 import {
-  Search, Eye, RefreshCw, ChevronLeft, ChevronRight,
+  Search, Eye, ChevronLeft, ChevronRight,
   CalendarDays, Filter,
 } from 'lucide-react';
 import './AdminBookings.css';
@@ -21,6 +21,7 @@ const STATUSES = [
 export default function AdminBookings() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   
@@ -49,9 +50,23 @@ export default function AdminBookings() {
     }
   }, [filters]);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await adminApi.getBookingStats();
+      setStats(res.data);
+    } catch (err) {
+      console.error('Cannot load booking stats:', err);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchBookings(1);
-  }, [fetchBookings]);
+    const timeoutId = window.setTimeout(() => {
+      fetchBookings(1);
+      fetchStats();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchBookings, fetchStats]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -126,6 +141,31 @@ export default function AdminBookings() {
         </div>
       </div>
 
+      {stats && (
+        <div className="admin-booking-stats-grid">
+          <div className="admin-booking-stat-card">
+            <span className="stat-value">{stats.totalBookings}</span>
+            <span className="stat-label">Tong booking</span>
+          </div>
+          <div className="admin-booking-stat-card pending">
+            <span className="stat-value">{stats.pending}</span>
+            <span className="stat-label">Cho xac nhan</span>
+          </div>
+          <div className="admin-booking-stat-card confirmed">
+            <span className="stat-value">{stats.confirmed}</span>
+            <span className="stat-label">Da xac nhan</span>
+          </div>
+          <div className="admin-booking-stat-card completed">
+            <span className="stat-value">{stats.completed}</span>
+            <span className="stat-label">Hoan thanh</span>
+          </div>
+          <div className="admin-booking-stat-card cancelled">
+            <span className="stat-value">{stats.cancelled}</span>
+            <span className="stat-label">Da huy</span>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       {loading ? (
         <div className="admin-loading">
@@ -154,18 +194,18 @@ export default function AdminBookings() {
               <tbody>
                 {bookings.map((booking) => (
                   <tr key={booking.id}>
-                    <td>
+                    <td data-label="Khach hang">
                       <div className="customer-cell">
                         <div className="customer-name">{booking.customerName}</div>
                         <div className="customer-phone">{booking.customerPhone}</div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Nha hang">
                       <div className="restaurant-cell">
                         {booking.restaurantId?.name || 'N/A'}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Thoi gian">
                       <div className="time-cell">
                         <div className="booking-date">
                           {new Date(booking.bookingDate).toLocaleDateString('vi-VN')}
@@ -173,13 +213,13 @@ export default function AdminBookings() {
                         <div className="booking-hour">{booking.bookingTime}</div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="So khach">
                       <div className="guest-cell">
                         {booking.numberOfGuests} người
                       </div>
                     </td>
-                    <td>{getStatusBadge(booking.status)}</td>
-                    <td>
+                    <td data-label="Trang thai">{getStatusBadge(booking.status)}</td>
+                    <td data-label="Thao tac">
                       <button
                         className="action-btn view"
                         title="Xem chi tiết"

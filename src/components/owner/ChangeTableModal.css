@@ -1,0 +1,283 @@
+/* ═══════════════════════════════════════════
+   ChangeTableModal — Amrit Palace Design System
+   ═══════════════════════════════════════════ */
+
+/* ── Modal Overlay ── */
+.owner-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 9, 7, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100; /* High overlay stack level */
+  backdrop-filter: blur(8px);
+  padding: var(--spacing-20);
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Modal Card ── */
+.owner-modal--change-table {
+  background: var(--surface-section);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card); /* 0px */
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-16) var(--spacing-24);
+  border-bottom: 1px solid var(--border-dimmed);
+  flex-shrink: 0;
+  background: rgba(30, 26, 22, 0.95);
+}
+
+.modal-header h4 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-light);
+  font-size: 18px;
+  color: var(--color-aged-parchment);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-faded-stone);
+  padding: var(--spacing-6);
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.close-btn:hover {
+  color: var(--color-amber-glow);
+  background: rgba(216, 203, 184, 0.05);
+}
+
+/* ── Body ── */
+.modal-body {
+  padding: var(--spacing-24);
+  background: #151311;
+  color: var(--color-aged-parchment);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.current-tables-desc {
+  font-size: var(--text-body);
+  color: var(--color-faded-stone);
+  margin: 0 0 var(--spacing-20) 0;
+  padding-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--border-dimmed);
+}
+
+.current-tables-desc strong {
+  color: var(--color-amber-glow);
+}
+
+/* ── Table Selection Grid ── */
+.available-tables-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-12);
+}
+
+.selectable-table-option-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-dimmed);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-12) var(--spacing-16);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.selectable-table-option-card:hover {
+  border-color: var(--border-accent);
+  background: var(--surface-card-hover);
+}
+
+.selectable-table-option-card.active {
+  background: rgba(212, 150, 83, 0.06);
+  border-color: var(--color-amber-glow);
+  box-shadow: 0 0 0 1px var(--color-amber-glow);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectable-table-option-card .table-name {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-aged-parchment);
+}
+
+.selectable-table-option-card.active .table-name {
+  color: var(--color-amber-glow);
+}
+
+.checked-icon {
+  color: var(--color-amber-glow);
+  flex-shrink: 0;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.capacity-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--color-faded-stone);
+}
+
+.zone-badge {
+  background: rgba(216, 203, 184, 0.05);
+  padding: 2px var(--spacing-6);
+  border-radius: 2px;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Modal States ── */
+.modal-loading-state,
+.modal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-42) 0;
+  text-align: center;
+  color: var(--color-faded-stone);
+  gap: var(--spacing-12);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(212, 150, 83, 0.1);
+  border-top-color: var(--color-amber-glow);
+  border-radius: 50%;
+  animation: modalSpinnerSpin 0.8s linear infinite;
+}
+
+/* ── Footer ── */
+.modal-footer {
+  padding: var(--spacing-16) var(--spacing-24);
+  background: rgba(44, 44, 44, 0.2);
+  border-top: 1px solid var(--border-dimmed);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-12);
+  flex-shrink: 0;
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-body-sm);
+  padding: var(--spacing-10) var(--spacing-20);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+.btn-primary-blue {
+  background: var(--color-amber-glow);
+  color: var(--color-mahogany);
+  border: 1px solid transparent;
+}
+
+.btn-primary-blue:hover:not(:disabled) {
+  background: #c28543;
+}
+
+.btn-primary-blue:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--color-aged-parchment);
+}
+
+.btn-outline:hover {
+  background: rgba(216, 203, 184, 0.06);
+  border-color: var(--color-amber-glow);
+  color: var(--color-amber-glow);
+}
+
+/* ── Keyframes ── */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes modalSpinnerSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive Viewports ── */
+@media (max-width: 580px) {
+  .owner-modal--change-table {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .available-tables-selection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: var(--spacing-8);
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}

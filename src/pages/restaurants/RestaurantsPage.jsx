@@ -13,12 +13,12 @@ export default function RestaurantsPage() {
   const { isAuthenticated, user } = useAuth();
   const { openCustomerRestaurantChat } = useChatWidget();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // States
   const [restaurants, setRestaurants] = useState([]);
   const [cuisineTypes, setCuisineTypes] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filter states
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [cuisineType, setCuisineType] = useState(searchParams.get('cuisineType') || '');
@@ -55,7 +55,7 @@ export default function RestaurantsPage() {
         sortBy,
         sortDir,
       };
-      
+
       const res = await getPublicRestaurants(params);
       if (res && res.success) {
         setRestaurants(res.data.restaurants || []);
@@ -81,12 +81,12 @@ export default function RestaurantsPage() {
   const updateURLParams = (newParams) => {
     const currentParams = Object.fromEntries(searchParams.entries());
     const combined = { ...currentParams, ...newParams };
-    
+
     // Clean empty values
     Object.keys(combined).forEach(key => {
       if (!combined[key]) delete combined[key];
     });
-    
+
     setSearchParams(combined);
   };
 
@@ -172,10 +172,10 @@ export default function RestaurantsPage() {
   return (
     <div className="public-res-page">
       <Header />
-      
+
       <main className="public-res-main">
         <div className="public-res-container">
-          
+
           {/* Header section */}
           <div className="public-res-header">
             <h1 className="public-res-title">Khám phá nhà hàng</h1>
@@ -306,7 +306,7 @@ export default function RestaurantsPage() {
                           <span>🍽️</span>
                         </div>
                       )}
-                      
+
                       {res.featured && (
                         <span className="res-featured-badge">
                           ★ NỔI BẬT
@@ -318,7 +318,7 @@ export default function RestaurantsPage() {
                     <div className="res-card-body">
                       <div className="res-card-header">
                         <h2 className="res-name" title={res.name}>{res.name}</h2>
-                        
+
                         <div className="res-rating-wrap">
                           {renderStars(res.averageRating)}
                           <span className="res-rating-number">
@@ -339,8 +339,8 @@ export default function RestaurantsPage() {
                           <span className="meta-cuisine">{res.cuisineType}</span>
                           <span className="meta-dot">•</span>
                           <span className="meta-price">
-                            {res.averagePrice 
-                              ? `~ ${res.averagePrice.toLocaleString('vi-VN')} đ` 
+                            {res.averagePrice
+                              ? `~ ${res.averagePrice.toLocaleString('vi-VN')} đ`
                               : 'Giá liên hệ'}
                           </span>
                         </div>
@@ -358,7 +358,7 @@ export default function RestaurantsPage() {
                           <MessageCircle size={14} />
                           Chat
                         </button>
-                        <Link to={`/bookings/create?restaurantId=${res.id}`} className="btn-res-book">
+                        <Link to={`/restaurants/${res.id}/booking`} className="btn-res-book">
                           Đặt bàn ngay
                         </Link>
                       </div>

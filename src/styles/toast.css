@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════
+   Toast Notifications — Amrit Palace Design System
+   ═══════════════════════════════════════════ */
+
+/* Override react-hot-toast defaults */
+[data-sonner-toaster],
+div[role="status"][aria-live="polite"] > div {
+  --toast-bg: var(--surface-card) !important;
+  --toast-border: var(--border-subtle) !important;
+  --toast-color: var(--color-aged-parchment) !important;
+}
+
+/* Custom toast container styling */
+.toast-amrit {
+  font-family: var(--font-body) !important;
+  font-size: var(--text-body) !important;
+  background: var(--surface-card) !important;
+  color: var(--color-aged-parchment) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4) !important;
+  padding: var(--spacing-12) var(--spacing-16) !important;
+  backdrop-filter: blur(12px);
+  animation: toast-slide-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Success toast */
+.toast-amrit[data-type="success"],
+.toast-success {
+  border-left: 3px solid var(--color-success) !important;
+}
+
+/* Error toast */
+.toast-amrit[data-type="error"],
+.toast-error {
+  border-left: 3px solid var(--color-error) !important;
+}
+
+/* Info toast */
+.toast-amrit[data-type="info"],
+.toast-info {
+  border-left: 3px solid var(--color-info) !important;
+}
+
+/* Warning toast */
+.toast-amrit[data-type="warning"],
+.toast-warning {
+  border-left: 3px solid var(--color-warning) !important;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

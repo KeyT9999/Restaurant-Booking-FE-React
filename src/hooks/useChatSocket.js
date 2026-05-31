@@ -14,6 +14,7 @@ export function useChatSocket({
   onTyping,
   onMessageRead,
   onReactionUpdated,
+  onBookingEvent,
 } = {}) {
   const socketRef = useRef(null);
   const handlersRef = useRef({
@@ -22,12 +23,13 @@ export function useChatSocket({
     onTyping,
     onMessageRead,
     onReactionUpdated,
+    onBookingEvent,
   });
   const [status, setStatus] = useState('disconnected');
 
   useEffect(() => {
-    handlersRef.current = { onMessage, onConversationUpdated, onTyping, onMessageRead, onReactionUpdated };
-  }, [onConversationUpdated, onMessage, onMessageRead, onReactionUpdated, onTyping]);
+    handlersRef.current = { onMessage, onConversationUpdated, onTyping, onMessageRead, onReactionUpdated, onBookingEvent };
+  }, [onBookingEvent, onConversationUpdated, onMessage, onMessageRead, onReactionUpdated, onTyping]);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -53,6 +55,9 @@ export function useChatSocket({
     socket.on('typing_stop', (payload) => handlersRef.current.onTyping?.('stop', payload));
     socket.on('message_read', (payload) => handlersRef.current.onMessageRead?.(payload));
     socket.on('message_reaction_updated', (payload) => handlersRef.current.onReactionUpdated?.(payload));
+    ['booking:created', 'booking:confirmed', 'booking:cancelled', 'booking:completed', 'booking:no_show'].forEach((eventName) => {
+      socket.on(eventName, (payload) => handlersRef.current.onBookingEvent?.(eventName, payload));
+    });
 
     return () => {
       window.clearTimeout(statusTimeoutId);
