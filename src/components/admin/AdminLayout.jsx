@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import {
   LayoutDashboard, Users, ShieldCheck, LogOut, Menu, X,
-  ChevronLeft, Store, CalendarDays, MessageCircle,
+  ChevronLeft, Store, CalendarDays, ClipboardList, MessageCircle, TrendingUp, RefreshCcw,
 } from 'lucide-react';
 import './AdminLayout.css';
 import Header from '../Header';
@@ -13,6 +13,9 @@ const NAV_ITEMS = [
   { to: '/admin/users',     icon: Users,           label: 'Quản lý Users' },
   { to: '/admin/restaurants', icon: Store,         label: 'Nhà hàng' },
   { to: '/admin/bookings',    icon: CalendarDays,  label: 'Đặt bàn' },
+  { to: '/admin/waitlists',   icon: ClipboardList, label: 'Waitlist' },
+  { to: '/admin/revenue',     icon: TrendingUp,    label: 'Doanh thu' },
+  { to: '/admin/refunds',     icon: RefreshCcw,    label: 'Hoàn tiền' },
   { to: '/admin/chat',        icon: MessageCircle, label: 'Tin nhắn' },
 ];
 

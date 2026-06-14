@@ -6,6 +6,7 @@ import { checkAvailability, createBooking } from '../../api/bookingApi';
 import { useAuth } from '../../context/useAuth';
 import BookingSummaryCard from '../../components/booking/BookingSummaryCard';
 import TableSelectionModal from '../../components/tables/TableSelectionModal';
+import ApplyVoucher from '../../components/booking/ApplyVoucher';
 import toast from 'react-hot-toast';
 import './BookingFormPage.css';
 
@@ -29,6 +30,7 @@ export default function BookingFormPage() {
   const [suggestedTables, setSuggestedTables] = useState([]);
   const [selectedTables, setSelectedTables] = useState([]);
   const [checkingTables, setCheckingTables] = useState(false);
+  const [tablesUnavailable, setTablesUnavailable] = useState(false);
 
   // Additional info states
   const [customerName, setCustomerName] = useState(user?.fullName || '');
@@ -163,6 +165,7 @@ export default function BookingFormPage() {
     }
     setFieldErrors({});
     setCheckingTables(true);
+    setTablesUnavailable(false);
     try {
       const res = await checkAvailability({
         restaurantId,
@@ -172,10 +175,15 @@ export default function BookingFormPage() {
       });
 
       if (res.success) {
-        setAvailableTables(res.data.availableTables || []);
-        setSuggestedTables(res.data.suggestedTables || []);
+        const availability = res.data || {};
+        setAvailableTables(availability.availableTables || []);
+        setSuggestedTables(availability.suggestedTables || []);
         // Auto select suggested tables as default
-        setSelectedTables(res.data.suggestedTables || []);
+        setSelectedTables(availability.suggestedTables || []);
+        setTablesUnavailable(!availability.available);
+        if (!availability.available) {
+          toast('Khung gio nay da het ban phu hop. Ban co the tham gia danh sach cho.');
+        }
         setCurrentStep(2);
       } else {
         toast.error(res.message || 'Lỗi khi kiểm tra bàn trống');
@@ -188,26 +196,15 @@ export default function BookingFormPage() {
     }
   };
 
-  const handleApplyVoucher = () => {
-    if (!voucherCode.trim()) {
-      toast.error('Vui lòng nhập mã giảm giá');
-      return;
-    }
-    // Mock voucher application
-    if (voucherCode.trim().toUpperCase() === 'DISCOUNT10') {
-      setAppliedVoucher('DISCOUNT10');
-      setDiscountAmount(50000);
-      toast.success('Áp dụng mã giảm giá DISCOUNT10 thành công! Giảm 50.000đ');
-    } else {
-      toast.error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
-    }
+  const handleApplySuccess = ({ voucherCode, discountAmount }) => {
+    setAppliedVoucher(voucherCode);
+    setDiscountAmount(discountAmount);
   };
 
   const handleRemoveVoucher = () => {
     setAppliedVoucher(null);
     setDiscountAmount(0);
     setVoucherCode('');
-    toast.success('Đã hủy áp dụng mã giảm giá');
   };
 
   const handleContactContinue = () => {
@@ -217,6 +214,20 @@ export default function BookingFormPage() {
     }
     setFieldErrors({});
     setCurrentStep(4);
+  };
+
+  const goToWaitlist = () => {
+    navigate(`/restaurants/${restaurantId}/waitlist`, {
+      state: {
+        bookingDate,
+        bookingTime,
+        numberOfGuests,
+        customerName,
+        customerPhone,
+        customerEmail,
+        specialRequests,
+      },
+    });
   };
 
   const handleSubmitBooking = async () => {
@@ -478,6 +489,18 @@ export default function BookingFormPage() {
               Bạn có thể tự chọn một hoặc nhiều bàn ăn trống theo danh sách bên dưới, hoặc bỏ qua để nhà hàng tự động xếp bàn tối ưu nhất cho bạn.
             </p>
 
+            {tablesUnavailable && (
+              <div className="booking-waitlist-cta" role="status">
+                <div>
+                  <strong>Khung gio nay hien da het ban phu hop.</strong>
+                  <span>Tham gia danh sach cho de nha hang thong bao khi co ban trong, kem mon va dich vu chon truoc.</span>
+                </div>
+                <button type="button" className="btn btn-primary" onClick={goToWaitlist}>
+                  Tham gia waitlist
+                </button>
+              </div>
+            )}
+
             <div className="selected-tables-preview">
               <div className="preview-header-info">
                 <span>Số khách cần phục vụ: <strong>{numberOfGuests} người</strong></span>
@@ -517,7 +540,7 @@ export default function BookingFormPage() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => setCurrentStep(3)}
-                disabled={selectedTables.length > 0 && selectedTables.reduce((sum, t) => sum + t.capacity, 0) < numberOfGuests}
+                disabled={tablesUnavailable || (selectedTables.length > 0 && selectedTables.reduce((sum, t) => sum + t.capacity, 0) < numberOfGuests)}
               >
                 Nhập thông tin liên hệ <ArrowRight size={16} />
               </button>
@@ -625,28 +648,12 @@ export default function BookingFormPage() {
               </div>
 
               {/* Voucher section */}
-              <div className="form-input-group">
-                <label className="input-label">Mã giảm giá (nhập DISCOUNT10 thử nghiệm)</label>
-                <div className="voucher-input-wrapper">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Mã giảm giá"
-                    value={voucherCode}
-                    onChange={(e) => setVoucherCode(e.target.value)}
-                    disabled={appliedVoucher !== null}
-                  />
-                  {appliedVoucher ? (
-                    <button type="button" className="btn btn-danger" onClick={handleRemoveVoucher}>
-                      Hủy bỏ
-                    </button>
-                  ) : (
-                    <button type="button" className="btn btn-outline" onClick={handleApplyVoucher}>
-                      Áp dụng
-                    </button>
-                  )}
-                </div>
-              </div>
+              <ApplyVoucher
+                restaurantId={restaurantId}
+                bookingAmount={selectedTables.reduce((sum, t) => sum + (t.depositAmount || 0), 0)}
+                onApplySuccess={handleApplySuccess}
+                onRemove={handleRemoveVoucher}
+              />
             </div>
 
             <div className="step-navigation-actions">

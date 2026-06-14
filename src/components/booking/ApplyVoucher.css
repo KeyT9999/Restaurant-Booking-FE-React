@@ -1,0 +1,228 @@
+.apply-voucher-container {
+  margin: var(--spacing-16) 0;
+  padding: var(--spacing-16);
+  background: rgba(30, 26, 22, 0.4);
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  border-radius: var(--radius-sm); /* 3px */
+}
+
+.apply-voucher-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-aged-parchment);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-8);
+}
+
+.apply-voucher-input-wrapper {
+  display: flex;
+  gap: var(--spacing-10);
+}
+
+.apply-voucher-input {
+  flex: 1;
+  background: rgba(44, 44, 44, 0.6);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  border-radius: var(--radius-sm); /* 3px */
+  color: var(--color-aged-parchment);
+  padding: var(--spacing-10) var(--spacing-12);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.apply-voucher-input:focus {
+  border-color: var(--color-amber-glow);
+}
+
+.apply-voucher-input.input-error {
+  border-color: rgba(200, 114, 114, 0.6);
+}
+
+.apply-voucher-btn-apply {
+  background: var(--color-aged-parchment);
+  color: var(--color-mahogany);
+  border: none;
+  padding: 0 var(--spacing-20);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.apply-voucher-btn-apply:hover:not(:disabled) {
+  background: var(--color-soft-linen);
+}
+
+.apply-voucher-btn-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.apply-voucher-btn-wallet {
+  border: 1px solid var(--color-aged-parchment);
+  background: transparent;
+  color: var(--color-aged-parchment);
+  padding: 0 var(--spacing-16);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.apply-voucher-btn-wallet:hover {
+  background: rgba(216, 203, 184, 0.1);
+}
+
+/* Success Box */
+.apply-voucher-success-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(163, 190, 140, 0.08);
+  border: 1px solid rgba(163, 190, 140, 0.3);
+  padding: var(--spacing-10) var(--spacing-12);
+  border-radius: var(--radius-sm);
+}
+
+.success-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-10);
+}
+
+.success-tag {
+  background: var(--color-amber-glow);
+  color: var(--color-mahogany);
+  font-weight: var(--font-weight-bold);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.success-desc {
+  font-size: var(--text-body-sm);
+  color: rgba(163, 190, 140, 1);
+  font-weight: var(--font-weight-bold);
+}
+
+.success-remove-btn {
+  background: transparent;
+  border: none;
+  color: rgba(200, 114, 114, 1);
+  cursor: pointer;
+  font-size: var(--text-body-sm);
+  text-decoration: underline;
+}
+
+.apply-voucher-error {
+  color: #c87272;
+  font-size: var(--text-caption);
+  margin-top: var(--spacing-6);
+}
+
+.apply-voucher-success-text {
+  color: rgba(163, 190, 140, 1);
+  font-size: var(--text-caption);
+  margin-top: var(--spacing-6);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Wallet Drawer CSS */
+.wallet-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wallet-drawer {
+  background: rgba(30, 26, 22, 0.98);
+  border-left: 1px solid rgba(216, 203, 184, 0.2);
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0px 30px rgba(0, 0, 0, 0.5);
+  animation: drawerSlideIn 0.3s ease;
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.wallet-drawer-header {
+  padding: var(--spacing-20);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wallet-drawer-header h4 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 300;
+  margin: 0;
+  color: var(--color-aged-parchment);
+}
+
+.wallet-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--color-faded-stone);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.wallet-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-20);
+}
+
+.wallet-loading,
+.wallet-empty {
+  color: var(--color-faded-stone);
+  font-size: var(--text-body);
+  text-align: center;
+  padding: var(--spacing-42) 0;
+  line-height: 1.5;
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.wallet-item {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .apply-voucher-input-wrapper {
+    flex-direction: column;
+    gap: var(--spacing-8);
+  }
+  
+  .wallet-drawer {
+    max-width: 100%;
+  }
+}

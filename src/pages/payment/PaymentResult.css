@@ -1,0 +1,98 @@
+/* ─── Payment Result Pages (Success / Cancel) ─── */
+.payment-result {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-mahogany, #2c2c2c);
+  padding: var(--spacing-24, 24px);
+}
+
+.payment-result__card {
+  background: rgba(30, 26, 22, 0.95);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  padding: var(--spacing-42, 42px) var(--spacing-32, 32px);
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.payment-result__icon {
+  margin-bottom: var(--spacing-16, 16px);
+}
+.payment-result__icon--success {
+  color: rgba(163, 190, 140, 1);
+}
+.payment-result__icon--cancel {
+  color: rgba(200, 114, 114, 1);
+}
+.payment-result__icon--pending {
+  font-size: 48px;
+}
+
+.payment-result__title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: clamp(24px, 4vw, 32px);
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin: 0 0 var(--spacing-12, 12px);
+}
+
+.payment-result__desc {
+  font-size: 14px;
+  color: var(--color-faded-stone, #b6ab9c);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.payment-result__actions {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.payment-result__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  background: var(--color-aged-parchment, #d8cbb8);
+  color: var(--color-mahogany, #2c2c2c);
+  border: none;
+  font-family: var(--font-button, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.payment-result__btn:hover {
+  background: var(--color-soft-linen, #dfdad5);
+}
+
+.payment-result__btn--outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+  background: transparent;
+  color: var(--color-aged-parchment, #d8cbb8);
+  border: 1px solid rgba(216, 203, 184, 0.4);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: var(--spacing-16, 16px);
+}
+.payment-result__btn--outline:hover {
+  background: rgba(216, 203, 184, 0.1);
+}
+
+.payment-result__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(216, 203, 184, 0.2);
+  border-top-color: var(--color-amber-glow, #d49653);
+  border-radius: 50%;
+  margin: 0 auto var(--spacing-20, 20px);
+  animation: pr-spin 0.8s linear infinite;
+}
+@keyframes pr-spin {
+  to { transform: rotate(360deg); }
+}

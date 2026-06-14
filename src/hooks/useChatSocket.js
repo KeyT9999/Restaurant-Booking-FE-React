@@ -15,6 +15,7 @@ export function useChatSocket({
   onMessageRead,
   onReactionUpdated,
   onBookingEvent,
+  onWaitlistEvent,
 } = {}) {
   const socketRef = useRef(null);
   const handlersRef = useRef({
@@ -24,12 +25,21 @@ export function useChatSocket({
     onMessageRead,
     onReactionUpdated,
     onBookingEvent,
+    onWaitlistEvent,
   });
   const [status, setStatus] = useState('disconnected');
 
   useEffect(() => {
-    handlersRef.current = { onMessage, onConversationUpdated, onTyping, onMessageRead, onReactionUpdated, onBookingEvent };
-  }, [onBookingEvent, onConversationUpdated, onMessage, onMessageRead, onReactionUpdated, onTyping]);
+    handlersRef.current = {
+      onMessage,
+      onConversationUpdated,
+      onTyping,
+      onMessageRead,
+      onReactionUpdated,
+      onBookingEvent,
+      onWaitlistEvent,
+    };
+  }, [onBookingEvent, onConversationUpdated, onMessage, onMessageRead, onReactionUpdated, onTyping, onWaitlistEvent]);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -57,6 +67,9 @@ export function useChatSocket({
     socket.on('message_reaction_updated', (payload) => handlersRef.current.onReactionUpdated?.(payload));
     ['booking:created', 'booking:confirmed', 'booking:cancelled', 'booking:completed', 'booking:no_show'].forEach((eventName) => {
       socket.on(eventName, (payload) => handlersRef.current.onBookingEvent?.(eventName, payload));
+    });
+    ['waitlist:created', 'waitlist:updated', 'waitlist:confirmed', 'waitlist:cancelled', 'waitlist:expired'].forEach((eventName) => {
+      socket.on(eventName, (payload) => handlersRef.current.onWaitlistEvent?.(eventName, payload));
     });
 
     return () => {
