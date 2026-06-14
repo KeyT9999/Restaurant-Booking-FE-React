@@ -1,0 +1,333 @@
+.owner-waitlist-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.owner-waitlist-stats div {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.owner-waitlist-stats span {
+  display: block;
+  color: #111827;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.owner-waitlist-stats small {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.owner-waitlist-stats .pending span { color: #d97706; }
+.owner-waitlist-stats .confirmed span { color: #059669; }
+.owner-waitlist-stats .expired span { color: #dc2626; }
+
+.owner-waitlist-toolbar {
+  display: grid;
+  grid-template-columns: 160px 180px 1fr auto;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.owner-waitlist-toolbar select,
+.owner-waitlist-toolbar input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 11px;
+  font: inherit;
+}
+
+.owner-waitlist-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.owner-waitlist-search input {
+  flex: 1;
+  border: 0;
+  padding-left: 0;
+  outline: none;
+}
+
+.owner-waitlist-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: #334155;
+  background: #e2e8f0;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.owner-waitlist-table-wrap {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.owner-waitlist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.owner-waitlist-table th,
+.owner-waitlist-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.owner-waitlist-table th {
+  color: #475569;
+  background: #f8fafc;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.owner-waitlist-table td span,
+.owner-waitlist-table td strong {
+  display: block;
+}
+
+.owner-waitlist-table td span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.owner-waitlist-guests {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  color: #111827 !important;
+  font-weight: 900;
+}
+
+.owner-waitlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.owner-waitlist-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #334155;
+  background: #e2e8f0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.owner-waitlist-actions .confirm {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.owner-waitlist-actions .danger {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.owner-waitlist-empty {
+  padding: 28px;
+  color: #64748b;
+  text-align: center;
+}
+
+.owner-waitlist-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.owner-waitlist-modal {
+  width: min(680px, 100%);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+}
+
+.owner-waitlist-modal header,
+.owner-waitlist-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.owner-waitlist-modal footer {
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 0;
+}
+
+.owner-waitlist-modal header p,
+.owner-waitlist-modal header h2 {
+  margin: 0;
+}
+
+.owner-waitlist-modal header p {
+  color: #ea580c;
+  font-weight: 900;
+}
+
+.owner-waitlist-modal header button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.owner-waitlist-modal section {
+  padding: 18px;
+}
+
+.owner-waitlist-modal-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.owner-waitlist-modal-tables button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.owner-waitlist-modal-tables button.selected {
+  border-color: #f97316;
+  background: #fff7ed;
+  box-shadow: 0 0 0 2px #fed7aa;
+}
+
+.owner-waitlist-modal-tables span {
+  color: #64748b;
+}
+
+.owner-waitlist-note {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  color: #374151;
+  font-weight: 800;
+}
+
+.owner-waitlist-note textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.owner-waitlist-modal footer button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #334155;
+  background: #e2e8f0;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.owner-waitlist-modal footer .primary {
+  color: #ffffff;
+  background: #f97316;
+}
+
+.owner-waitlist-modal footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .owner-waitlist-stats,
+  .owner-waitlist-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .owner-waitlist-table thead {
+    display: none;
+  }
+
+  .owner-waitlist-table,
+  .owner-waitlist-table tbody,
+  .owner-waitlist-table tr,
+  .owner-waitlist-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .owner-waitlist-table tr {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+  }
+
+  .owner-waitlist-table td {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+    border-bottom: 0;
+    padding: 8px 0;
+  }
+
+  .owner-waitlist-table td::before {
+    content: attr(data-label);
+    color: #64748b;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 620px) {
+  .owner-waitlist-stats,
+  .owner-waitlist-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-waitlist-table td {
+    grid-template-columns: 1fr;
+  }
+}

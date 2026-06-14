@@ -1,0 +1,308 @@
+.owner-vouchers-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+/* KPIs */
+.vouchers-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-20);
+}
+
+.kpi-card {
+  background: rgba(30, 26, 22, 0.9);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  padding: var(--spacing-20);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+
+.kpi-icon {
+  color: var(--color-amber-glow);
+}
+
+.kpi-icon-active {
+  width: 12px;
+  height: 12px;
+  background-color: rgba(163, 190, 140, 1);
+  border-radius: 50%;
+  margin-left: 6px;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-label {
+  font-size: var(--text-caption);
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--color-aged-parchment);
+  margin: 0;
+  line-height: 1.1;
+}
+
+/* Actions bar */
+.vouchers-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-create-voucher {
+  background: var(--color-aged-parchment);
+  color: var(--color-mahogany);
+  border: none;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-body-sm);
+  padding: var(--spacing-12) var(--spacing-20);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  border-radius: var(--radius-card); /* 0px */
+  transition: background 0.2s;
+}
+
+.btn-create-voucher:hover {
+  background: var(--color-soft-linen);
+}
+
+/* Bảng dữ liệu */
+.vouchers-table-wrap {
+  background: rgba(30, 26, 22, 0.5);
+  border: 1px solid rgba(216, 203, 184, 0.15);
+  overflow-x: auto;
+}
+
+.vouchers-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.vouchers-table th,
+.vouchers-table td {
+  padding: var(--spacing-16);
+  font-size: var(--text-body-sm);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  vertical-align: middle;
+}
+
+.vouchers-table th {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-aged-parchment);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(216, 203, 184, 0.05);
+}
+
+.voucher-code-td {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-amber-glow);
+  letter-spacing: 0.05em;
+}
+
+.voucher-val-td {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: var(--font-weight-bold);
+}
+
+.vouchers-action-buttons {
+  display: flex;
+  gap: var(--spacing-8);
+  justify-content: center;
+}
+
+.action-btn {
+  background: transparent;
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  color: var(--color-aged-parchment);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  border-color: var(--color-amber-glow);
+  color: var(--color-amber-glow);
+}
+
+.status-active-icon {
+  color: rgba(163, 190, 140, 1);
+}
+
+.btn-delete:hover {
+  border-color: rgba(200, 114, 114, 0.6);
+  color: rgba(200, 114, 114, 1);
+}
+
+/* Loading & Empty states */
+.vouchers-loading,
+.vouchers-empty,
+.vouchers-error {
+  color: var(--color-faded-stone);
+  font-size: var(--text-body);
+  text-align: center;
+  padding: var(--spacing-42) 0;
+  border: 1px dashed rgba(216, 203, 184, 0.15);
+}
+
+.vouchers-error {
+  color: #c87272;
+}
+
+/* Stats Drawer CSS */
+.stats-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.stats-drawer {
+  background: rgba(30, 26, 22, 0.98);
+  border-left: 1px solid rgba(216, 203, 184, 0.2);
+  width: 100%;
+  max-width: 460px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0px 30px rgba(0, 0, 0, 0.5);
+  animation: drawerSlideIn 0.3s ease;
+}
+
+.stats-drawer-header {
+  padding: var(--spacing-20);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stats-drawer-header h4 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 300;
+  margin: 0;
+  color: var(--color-aged-parchment);
+}
+
+.stats-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--color-faded-stone);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.stats-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-20);
+}
+
+.stats-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-28);
+}
+
+.stats-kpi {
+  background: rgba(216, 203, 184, 0.05);
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  padding: var(--spacing-12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stats-kpi-lbl {
+  font-size: 10px;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-4);
+}
+
+.stats-kpi-val {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 300;
+  margin: 0;
+  color: var(--color-aged-parchment);
+}
+
+.text-amber {
+  color: var(--color-amber-glow) !important;
+}
+
+.stats-sub-title {
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm);
+  color: var(--color-aged-parchment);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--spacing-16) 0;
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  padding-bottom: var(--spacing-8);
+}
+
+.stats-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.stats-history-item {
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  padding: var(--spacing-12);
+  background: rgba(30, 26, 22, 0.3);
+}
+
+.history-item-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-body-sm);
+  margin-bottom: var(--spacing-4);
+}
+
+.history-date {
+  color: var(--color-faded-stone);
+  font-size: var(--text-caption);
+}
+
+.history-amounts {
+  font-size: var(--text-caption);
+  color: var(--color-faded-stone);
+}
+
+@media (max-width: 768px) {
+  .vouchers-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,226 @@
+.admin-waitlist-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-waitlist-stats div {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.admin-waitlist-stats span {
+  display: block;
+  color: #111827;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.admin-waitlist-stats small {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.admin-waitlist-stats .pending span { color: #d97706; }
+.admin-waitlist-stats .confirmed span { color: #059669; }
+.admin-waitlist-stats .cancelled span { color: #dc2626; }
+.admin-waitlist-stats .expired span { color: #475569; }
+
+.admin-waitlist-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 150px 150px 150px auto;
+  gap: 10px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.admin-waitlist-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.admin-waitlist-search input {
+  flex: 1;
+  border: 0;
+  outline: none;
+}
+
+.admin-waitlist-toolbar input,
+.admin-waitlist-toolbar select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.admin-waitlist-toolbar button,
+.admin-waitlist-pagination button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: #334155;
+  background: #e2e8f0;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-waitlist-table-wrap {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.admin-waitlist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-waitlist-table th,
+.admin-waitlist-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-waitlist-table th {
+  color: #475569;
+  background: #f8fafc;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-waitlist-table td span,
+.admin-waitlist-table td strong {
+  display: block;
+}
+
+.admin-waitlist-table td span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.admin-waitlist-guests,
+.admin-waitlist-readonly {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  color: #111827 !important;
+  font-weight: 900;
+}
+
+.admin-waitlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.admin-waitlist-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #334155;
+  background: #e2e8f0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-waitlist-actions .danger {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.admin-waitlist-empty {
+  padding: 28px;
+  color: #64748b;
+  text-align: center;
+}
+
+.admin-waitlist-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-waitlist-pagination button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1080px) {
+  .admin-waitlist-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-waitlist-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-waitlist-table thead {
+    display: none;
+  }
+
+  .admin-waitlist-table,
+  .admin-waitlist-table tbody,
+  .admin-waitlist-table tr,
+  .admin-waitlist-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-waitlist-table tr {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+  }
+
+  .admin-waitlist-table td {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+    border-bottom: 0;
+    padding: 8px 0;
+  }
+
+  .admin-waitlist-table td::before {
+    content: attr(data-label);
+    color: #64748b;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-waitlist-stats,
+  .admin-waitlist-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-waitlist-table td {
+    grid-template-columns: 1fr;
+  }
+}

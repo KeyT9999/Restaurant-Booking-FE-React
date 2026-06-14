@@ -22,6 +22,8 @@ import * as tableApi from '../../api/tableApi';
 import { useAuth } from '../../context/useAuth';
 import { useChatWidget } from '../../context/useChatWidget';
 import toast from 'react-hot-toast';
+import { getRestaurantVouchers, saveVoucher } from '../../api/voucherApi';
+import VoucherCard from '../../components/voucher/VoucherCard';
 import './RestaurantDetailPage.css';
 
 export default function RestaurantDetailPage() {
@@ -34,11 +36,40 @@ export default function RestaurantDetailPage() {
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [tables, setTables] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' | 'tables' | 'info'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+
+  const fetchVouchers = useCallback(async () => {
+    try {
+      const res = await getRestaurantVouchers(id);
+      if (res.data?.success) {
+        setVouchers(res.data.data);
+      }
+    } catch (e) {
+      console.warn('Lỗi tải voucher nhà hàng:', e.message);
+    }
+  }, [id]);
+
+  const handleSaveVoucher = async (voucher) => {
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để lưu voucher');
+      navigate(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    try {
+      const res = await saveVoucher({ voucherId: voucher._id });
+      if (res.data?.success) {
+        toast.success(`Đã lưu mã ${voucher.code} vào ví!`);
+        setVouchers(prev => prev.map(v => v._id === voucher._id ? { ...v, isSaved: true } : v));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Không thể lưu voucher');
+    }
+  };
 
   const fetchRestaurantData = useCallback(async () => {
     setLoading(true);
@@ -76,7 +107,8 @@ export default function RestaurantDetailPage() {
 
   useEffect(() => {
     fetchRestaurantData();
-  }, [fetchRestaurantData]);
+    fetchVouchers();
+  }, [fetchRestaurantData, fetchVouchers]);
 
   const handleChatRestaurant = async () => {
     if (!isAuthenticated) {
@@ -237,6 +269,25 @@ export default function RestaurantDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Voucher Section */}
+            {vouchers.length > 0 && (
+              <div className="res-detail-vouchers-section">
+                <span className="section-eyebrow">Ưu đãi hấp dẫn</span>
+                <h3 className="vouchers-section-title">Khuyến Mại Độc Quyền</h3>
+                <div className="res-vouchers-grid">
+                  {vouchers.map(v => (
+                    <VoucherCard
+                      key={v._id}
+                      voucher={v}
+                      isSaved={v.isSaved}
+                      onAction={handleSaveVoucher}
+                      actionText="Lưu mã"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Navigation Tabs */}
             <div className="res-detail-tabs">

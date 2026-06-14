@@ -1,0 +1,93 @@
+.waitlist-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.waitlist-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.waitlist-card__top h3 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 1.05rem;
+}
+
+.waitlist-card__top p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.86rem;
+}
+
+.waitlist-card__meta,
+.waitlist-card__extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 14px;
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+.waitlist-card__meta span,
+.waitlist-card__extras span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waitlist-card__extras {
+  color: #64748b;
+}
+
+.waitlist-card__queue {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.waitlist-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-soft,
+.btn-danger-soft {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-soft {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.btn-danger-soft {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+@media (max-width: 640px) {
+  .waitlist-card__top {
+    flex-direction: column;
+  }
+
+  .waitlist-card__actions {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,421 @@
+.waitlist-page-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 32px auto 64px;
+  color: #111827;
+}
+
+.waitlist-loading,
+.waitlist-success-card,
+.waitlist-card-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.waitlist-loading {
+  padding: 40px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.waitlist-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.waitlist-header p,
+.waitlist-header h1,
+.waitlist-header span {
+  margin: 0;
+}
+
+.waitlist-header p {
+  color: #ea580c;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+}
+
+.waitlist-header h1 {
+  margin-top: 4px;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.waitlist-header span {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.waitlist-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #374151;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.waitlist-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.waitlist-stepper button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.waitlist-stepper span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.waitlist-stepper button.active {
+  border-color: #fb923c;
+  color: #9a3412;
+  background: #fff7ed;
+}
+
+.waitlist-stepper button.active span {
+  color: #ffffff;
+  background: #f97316;
+}
+
+.waitlist-card-panel {
+  overflow: hidden;
+}
+
+.waitlist-section {
+  padding: 26px;
+}
+
+.waitlist-section h2 {
+  margin: 0 0 18px;
+  font-size: 1.35rem;
+}
+
+.waitlist-muted {
+  margin: -8px 0 18px;
+  color: #64748b;
+}
+
+.waitlist-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.waitlist-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-weight: 800;
+  color: #374151;
+}
+
+.waitlist-form-grid label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waitlist-form-grid input,
+.waitlist-form-grid select,
+.waitlist-form-grid textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.waitlist-form-grid small {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.waitlist-field-wide {
+  grid-column: span 3;
+}
+
+.waitlist-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.waitlist-table-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 112px;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.waitlist-table-choice strong {
+  font-size: 1rem;
+}
+
+.waitlist-table-choice span,
+.waitlist-table-choice small {
+  color: #64748b;
+}
+
+.waitlist-table-choice.selected {
+  border-color: #f97316;
+  background: #fff7ed;
+  box-shadow: 0 0 0 2px #fed7aa;
+}
+
+.waitlist-pick-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.waitlist-pick-columns h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: #1f2937;
+}
+
+.waitlist-pick-list {
+  display: grid;
+  gap: 10px;
+}
+
+.waitlist-pick-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.waitlist-pick-item div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.waitlist-pick-item span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.qty-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-control button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.qty-control span {
+  width: 24px;
+  text-align: center;
+  color: #111827;
+  font-weight: 900;
+}
+
+.waitlist-empty-inline {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 18px;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.waitlist-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.waitlist-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.waitlist-summary span {
+  color: #64748b;
+}
+
+.waitlist-note-box {
+  margin: 16px 0 0;
+  border-radius: 8px;
+  padding: 13px;
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.waitlist-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 26px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.waitlist-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.waitlist-btn.primary {
+  color: #ffffff;
+  background: #f97316;
+}
+
+.waitlist-btn.secondary {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.waitlist-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.waitlist-success-card {
+  max-width: 680px;
+  margin: 72px auto;
+  padding: 34px;
+  text-align: center;
+}
+
+.waitlist-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  color: #047857;
+  background: #d1fae5;
+}
+
+.waitlist-success-card h1 {
+  margin: 18px 0 8px;
+}
+
+.waitlist-success-card p {
+  color: #64748b;
+}
+
+.waitlist-success-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 16px;
+  margin: 22px 0;
+  text-align: left;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.waitlist-success-grid span {
+  color: #64748b;
+}
+
+.waitlist-success-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .waitlist-form-grid,
+  .waitlist-pick-columns,
+  .waitlist-summary,
+  .waitlist-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .waitlist-field-wide {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .waitlist-page-shell {
+    width: min(100% - 20px, 1120px);
+    margin-top: 18px;
+  }
+
+  .waitlist-header {
+    flex-direction: column;
+  }
+
+  .waitlist-section,
+  .waitlist-actions {
+    padding: 18px;
+  }
+
+  .waitlist-actions,
+  .waitlist-success-actions {
+    flex-direction: column;
+  }
+
+  .waitlist-summary div {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

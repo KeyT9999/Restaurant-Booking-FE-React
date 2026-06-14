@@ -1,0 +1,110 @@
+.my-waitlists-page {
+  width: min(1120px, calc(100% - 32px));
+  margin: 32px auto 64px;
+}
+
+.my-waitlists-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.my-waitlists-header p,
+.my-waitlists-header h1,
+.my-waitlists-header span {
+  margin: 0;
+}
+
+.my-waitlists-header p {
+  color: #ea580c;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.my-waitlists-header h1 {
+  margin-top: 4px;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.my-waitlists-header span {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.my-waitlists-refresh,
+.my-waitlists-filter button,
+.my-waitlists-empty button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.my-waitlists-refresh {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.my-waitlists-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.my-waitlists-filter button {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.my-waitlists-filter button.active {
+  color: #ffffff;
+  background: #f97316;
+}
+
+.my-waitlists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
+}
+
+.my-waitlists-state,
+.my-waitlists-empty {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 36px;
+  color: #64748b;
+  background: #ffffff;
+  text-align: center;
+}
+
+.my-waitlists-empty h2 {
+  margin: 12px 0 8px;
+  color: #111827;
+}
+
+.my-waitlists-empty button {
+  margin-top: 12px;
+  color: #ffffff;
+  background: #f97316;
+}
+
+@media (max-width: 700px) {
+  .my-waitlists-page {
+    width: min(100% - 20px, 1120px);
+  }
+
+  .my-waitlists-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
