@@ -37,6 +37,11 @@ import BookingFormPage from './pages/booking/BookingFormPage';
 import MyBookingsPage from './pages/booking/MyBookingsPage';
 import BookingDetailPage from './pages/booking/BookingDetailPage';
 import OwnerBookingsPage from './pages/owner/OwnerBookingsPage';
+import OwnerBilling from './pages/owner/OwnerBilling';
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentCancel from './pages/payment/PaymentCancel';
+import AdminRevenue from './pages/admin/AdminRevenue';
+import AdminRefunds from './pages/admin/AdminRefunds';
 import useBookingNotifications from './hooks/useBookingNotifications';
 import './App.css';
 
@@ -90,6 +95,10 @@ function AppRoutes() {
         }
       />
 
+      {/* Payment result pages */}
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-cancel" element={<PaymentCancel />} />
+
       {/* Owner routes */}
       <Route
         path="/owner/*"
@@ -105,6 +114,7 @@ function AppRoutes() {
                 <Route path="menu" element={<MenuPage />} />
                 <Route path="tables" element={<TablePage />} />
                 <Route path="bookings" element={<OwnerBookingsPage />} />
+                <Route path="billing" element={<OwnerBilling />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </RestaurantProvider>
@@ -127,6 +137,8 @@ function AppRoutes() {
               <Route path="bookings" element={<AdminBookings />} />
               <Route path="bookings/:id" element={<AdminBookingDetail />} />
               <Route path="chat" element={<AdminChatPage />} />
+              <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="refunds" element={<AdminRefunds />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </AdminProtectedRoute>

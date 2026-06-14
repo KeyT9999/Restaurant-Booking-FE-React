@@ -1,0 +1,323 @@
+/* ─── Owner Billing Page ─── */
+.billing-loading,
+.billing-error {
+  padding: var(--spacing-24, 24px);
+  color: var(--color-faded-stone, #b6ab9c);
+  font-family: var(--font-body, 'Inter', sans-serif);
+}
+.billing-error { color: rgba(200, 114, 114, 1); }
+
+.billing-label {
+  font-family: var(--font-label, 'Inter', sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-amber-glow, #d49653);
+}
+
+.billing-section-title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin: var(--spacing-32, 32px) 0 var(--spacing-16, 16px);
+}
+
+/* ─── Current Plan ─── */
+.billing-current-plan {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-24, 24px);
+  background: rgba(30, 26, 22, 0.9);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+}
+
+.billing-current-plan__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 150, 83, 0.1);
+  border: 1px solid rgba(212, 150, 83, 0.3);
+  color: var(--color-amber-glow, #d49653);
+}
+
+.billing-current-plan__name {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: 32px;
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin: 4px 0;
+}
+
+.billing-current-plan__expiry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-faded-stone, #b6ab9c);
+}
+
+/* ─── Plan Cards Grid ─── */
+.billing-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: rgba(216, 203, 184, 0.1);
+}
+
+.billing-plan-card {
+  background: rgba(30, 26, 22, 0.9);
+  padding: var(--spacing-24, 24px);
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s;
+}
+.billing-plan-card:hover {
+  background: rgba(212, 150, 83, 0.04);
+}
+.billing-plan-card--current {
+  border: 1px solid rgba(212, 150, 83, 0.4);
+}
+
+.billing-plan-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin-bottom: var(--spacing-12, 12px);
+}
+.billing-plan-card__header h4 {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  flex: 1;
+}
+
+.billing-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(212, 150, 83, 0.15);
+  color: var(--color-amber-glow, #d49653);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.billing-plan-card__price {
+  margin-bottom: var(--spacing-16, 16px);
+}
+.billing-price-amount {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: 28px;
+  color: var(--color-aged-parchment, #d8cbb8);
+}
+.billing-price-period {
+  font-size: 13px;
+  color: var(--color-faded-stone, #b6ab9c);
+  margin-left: 4px;
+}
+
+.billing-plan-card__benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-20, 20px);
+  flex: 1;
+}
+.billing-plan-card__benefits li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-faded-stone, #b6ab9c);
+  padding: 4px 0;
+}
+.billing-plan-card__benefits li svg {
+  color: var(--color-amber-glow, #d49653);
+  flex-shrink: 0;
+}
+
+.billing-plan-card__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+  background: var(--color-aged-parchment, #d8cbb8);
+  color: var(--color-mahogany, #2c2c2c);
+  border: none;
+  font-family: var(--font-button, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.billing-plan-card__btn:hover {
+  background: var(--color-soft-linen, #dfdad5);
+}
+.billing-plan-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.billing-plan-card__btn--renew {
+  background: transparent;
+  color: var(--color-aged-parchment, #d8cbb8);
+  border: 1px solid var(--color-aged-parchment, #d8cbb8);
+}
+.billing-plan-card__btn--renew:hover {
+  background: var(--color-aged-parchment, #d8cbb8);
+  color: var(--color-mahogany, #2c2c2c);
+}
+
+/* ─── Billing History Table ─── */
+.billing-empty {
+  padding: var(--spacing-32, 32px);
+  text-align: center;
+  color: var(--color-faded-stone, #b6ab9c);
+  font-size: 14px;
+}
+
+.billing-table-wrap {
+  overflow-x: auto;
+}
+.billing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.billing-table th {
+  text-align: left;
+  padding: var(--spacing-10, 10px) var(--spacing-12, 12px);
+  font-family: var(--font-label, 'Inter', sans-serif);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-faded-stone, #b6ab9c);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.15);
+}
+.billing-table td {
+  padding: var(--spacing-10, 10px) var(--spacing-12, 12px);
+  color: var(--color-aged-parchment, #d8cbb8);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.08);
+}
+.billing-td-amount {
+  font-weight: 600;
+}
+
+.billing-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.billing-status--paid { background: rgba(163, 190, 140, 0.15); color: rgba(163, 190, 140, 1); }
+.billing-status--pending { background: rgba(182, 171, 156, 0.15); color: var(--color-faded-stone, #b6ab9c); }
+.billing-status--failed,
+.billing-status--cancelled { background: rgba(200, 114, 114, 0.15); color: rgba(200, 114, 114, 1); }
+.billing-status--refunded { background: rgba(212, 150, 83, 0.15); color: var(--color-amber-glow, #d49653); }
+
+/* ─── QR Payment Modal ─── */
+.qr-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+.qr-modal {
+  background: rgba(30, 26, 22, 0.97);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  padding: var(--spacing-32, 32px);
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+.qr-modal__title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: 24px;
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin: 0 0 var(--spacing-12, 12px);
+}
+.qr-modal__amount {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-weight: 300;
+  font-size: 36px;
+  color: var(--color-aged-parchment, #d8cbb8);
+  margin: var(--spacing-8, 8px) 0;
+}
+.qr-modal__desc {
+  font-size: 14px;
+  color: var(--color-faded-stone, #b6ab9c);
+  margin-bottom: var(--spacing-20, 20px);
+}
+.qr-modal__actions {
+  margin-bottom: var(--spacing-20, 20px);
+}
+.qr-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  background: var(--color-aged-parchment, #d8cbb8);
+  color: var(--color-mahogany, #2c2c2c);
+  text-decoration: none;
+  font-family: var(--font-button, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.qr-modal__btn:hover {
+  background: var(--color-soft-linen, #dfdad5);
+}
+.qr-modal__polling {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-amber-glow, #d49653);
+  margin-bottom: var(--spacing-16, 16px);
+}
+.qr-modal__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(212, 150, 83, 0.3);
+  border-top-color: var(--color-amber-glow, #d49653);
+  border-radius: 50%;
+  animation: qr-spin 0.8s linear infinite;
+}
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+.qr-modal__close {
+  background: transparent;
+  border: 1px solid rgba(200, 114, 114, 0.4);
+  color: rgba(200, 114, 114, 0.8);
+  padding: var(--spacing-10, 10px) var(--spacing-20, 20px);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.qr-modal__close:hover {
+  border-color: rgba(200, 114, 114, 0.8);
+  color: rgba(200, 114, 114, 1);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .billing-plans-grid { grid-template-columns: 1fr; }
+  .billing-current-plan__name { font-size: 24px; }
+  .qr-modal__amount { font-size: 28px; }
+}
