@@ -8,6 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import toast from 'react-hot-toast';
+import { ReviewFormModal } from '../../components/booking/ReviewFormModal';
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
@@ -25,6 +26,15 @@ export default function MyBookingsPage() {
   const [cancellingId, setCancellingId] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // Review modal state
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
+
+  const handleReviewClick = (booking) => {
+    setSelectedBookingForReview(booking);
+    setIsReviewOpen(true);
+  };
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -210,6 +220,7 @@ export default function MyBookingsPage() {
                 booking={booking}
                 onViewDetail={handleViewDetail}
                 onCancel={handleCancelClick}
+                onReview={handleReviewClick}
               />
             ))}
             {renderPagination()}
@@ -263,6 +274,16 @@ export default function MyBookingsPage() {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* Review Form Dialog */}
+      {isReviewOpen && (
+        <ReviewFormModal
+          isOpen={isReviewOpen}
+          onClose={() => setIsReviewOpen(false)}
+          booking={selectedBookingForReview}
+          onSubmitSuccess={fetchBookings}
+        />
       )}
     </div>
   );
