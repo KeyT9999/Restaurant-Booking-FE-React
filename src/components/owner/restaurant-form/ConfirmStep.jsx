@@ -19,14 +19,18 @@ const DAY_LABELS = {
 
 function SectionCard({ title, stepNum, onEdit, children }) {
   return (
-    <div className="confirm-section">
-      <div className="confirm-section-header">
-        <h3 className="confirm-section-title">{title}</h3>
-        <button type="button" className="btn-edit-section" onClick={() => onEdit(stepNum)}>
+    <div className="bg-[#0F1115]/30 border border-border rounded-xl p-4 space-y-3.5">
+      <div className="flex items-center justify-between border-b border-border/40 pb-2">
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider">{title}</h3>
+        <button 
+          type="button" 
+          className="text-[11px] px-2.5 py-1 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-semibold transition cursor-pointer" 
+          onClick={() => onEdit(stepNum)}
+        >
           ✏️ Sửa
         </button>
       </div>
-      <div className="confirm-section-body">{children}</div>
+      <div className="space-y-2.5 text-xs text-muted-foreground">{children}</div>
     </div>
   );
 }
@@ -41,12 +45,12 @@ function InfoRow({ label, value }) {
 
     if (filtered.length > 1) {
       return (
-        <div className="confirm-row align-start">
-          <span className="confirm-label">{label}</span>
-          <div className="confirm-value">
-            <ul className="confirm-bullet-list">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20 last:border-0 last:pb-0">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+          <div className="sm:col-span-3 text-white">
+            <ul className="list-disc list-inside space-y-0.5">
               {filtered.map((item, idx) => (
-                <li key={idx}>{item}</li>
+                <li key={idx} className="text-xs leading-normal">{item}</li>
               ))}
             </ul>
           </div>
@@ -57,9 +61,9 @@ function InfoRow({ label, value }) {
   }
 
   return (
-    <div className="confirm-row">
-      <span className="confirm-label">{label}</span>
-      <span className="confirm-value">{displayValue}</span>
+    <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20 last:border-0 last:pb-0">
+      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+      <span className="sm:col-span-3 text-white leading-normal font-medium">{displayValue}</span>
     </div>
   );
 }
@@ -76,12 +80,12 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
   };
 
   return (
-    <div className="form-step" id="step-confirm">
-      <h2 className="step-title">
-        <span className="step-icon">✅</span>
+    <div className="space-y-5 text-left" id="step-confirm">
+      <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+        <span className="text-lg">✅</span>
         Xác nhận thông tin
       </h2>
-      <p className="step-desc">
+      <p className="text-xs text-muted-foreground">
         {isEdit ? 'Kiểm tra lại toàn bộ thông tin trước khi cập nhật nhà hàng.' : 'Kiểm tra lại toàn bộ thông tin trước khi tạo nhà hàng.'}
       </p>
 
@@ -111,32 +115,32 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
       {/* Section 4: Operating Hours */}
       <SectionCard title="🕐 Thời gian hoạt động" stepNum={4} onEdit={onEdit}>
         {Object.keys(hours).length > 0 ? (
-          <div className="confirm-hours-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             {Object.entries(DAY_LABELS).map(([key, label]) => {
               const dayData = hours[key];
               if (!dayData) return null;
               return (
-                <div key={key} className="confirm-hours-row">
-                  <span className="confirm-day">{label}</span>
-                  <span className="confirm-time">
-                    {dayData.closed ? '🔒 Nghỉ' : `${dayData.open || '--:--'} → ${dayData.close || '--:--'}`}
+                <div key={key} className="flex justify-between items-center bg-[#0F1115]/40 p-2 rounded-lg border border-border/60">
+                  <span className="font-medium text-white">{label}</span>
+                  <span className="text-muted-foreground">
+                    {dayData.closed ? '🔒 Nghỉ ngày này' : `${dayData.open || '--:--'} → ${dayData.close || '--:--'}`}
                   </span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="confirm-empty">Chưa thiết lập</p>
+          <p className="italic text-muted-foreground">Chưa thiết lập giờ hoạt động</p>
         )}
       </SectionCard>
 
       {/* Section 5: Additional Info */}
       <SectionCard title="🖼️ Thông tin bổ sung" stepNum={5} onEdit={onEdit}>
         {data.logo ? (
-          <div className="confirm-row">
-            <span className="confirm-label">Logo</span>
-            <span className="confirm-value">
-              <img src={data.logo} alt="Logo" style={{ maxWidth: '60px', maxHeight: '60px', borderRadius: '4px', border: '1px solid rgba(216, 203, 184, 0.15)' }} />
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Logo</span>
+            <span className="sm:col-span-3">
+              <img src={data.logo} alt="Logo" className="max-w-[60px] max-h-[60px] rounded-lg border border-border/80 object-cover shadow" />
             </span>
           </div>
         ) : null}
@@ -155,37 +159,37 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
       </SectionCard>
 
       {/* Confirmation checkbox */}
-      <div className="confirm-checkbox-wrapper">
-        <label className="confirm-checkbox-label">
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-6">
+        <label className="flex items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            className="confirm-checkbox"
+            className="h-4.5 w-4.5 rounded border-border bg-[#0F1115] text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
             id="confirm-checkbox"
           />
-          <span className="confirm-checkbox-text">
-            Tôi xác nhận toàn bộ thông tin khai báo trên là chính xác
+          <span className="text-white font-medium">
+            Tôi xác nhận toàn bộ thông tin khai báo ở trên là chính xác và trung thực
           </span>
         </label>
       </div>
 
       {/* Submit button */}
-      <div className="confirm-actions">
+      <div className="flex justify-center mt-6">
         <button
           type="button"
-          className="btn-submit-restaurant"
           onClick={onSubmit}
           disabled={!confirmed || isSubmitting}
+          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-primary text-black font-semibold text-sm hover:bg-primary/95 transition-all shadow-lg hover:shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           id="btn-create-restaurant"
         >
           {isSubmitting ? (
             <>
-              <span className="btn-spinner" />
-              {isEdit ? 'Đang cập nhật...' : 'Đang tạo...'}
+              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <span>{isEdit ? 'Đang cập nhật...' : 'Đang tạo nhà hàng...'}</span>
             </>
           ) : (
-            isEdit ? '💾 Cập nhật nhà hàng' : '🏗️ Tạo nhà hàng'
+            <span>{isEdit ? '💾 Cập nhật thông tin nhà hàng' : '🏗️ Đăng ký nhà hàng'}</span>
           )}
         </button>
       </div>

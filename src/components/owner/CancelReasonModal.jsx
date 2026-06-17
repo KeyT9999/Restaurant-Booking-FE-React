@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
-import './CancelReasonModal.css';
+import { Button } from '../ui/button';
 
 export default function CancelReasonModal({ isOpen, onClose, onConfirm, bookingInfo }) {
   const [reason, setReason] = useState('');
@@ -69,56 +69,71 @@ export default function CancelReasonModal({ isOpen, onClose, onConfirm, bookingI
   };
 
   return (
-    <div className="owner-modal-overlay" onMouseDown={onClose}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+      onClick={onClose}
+    >
       <div
         ref={modalRef}
-        className="owner-modal owner-modal--cancel"
+        className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-left"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cancel-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header">
-          <h4 id="cancel-modal-title" className="text-danger flex items-center gap-2">
-            <AlertTriangle size={20} /> Từ chối / Hủy đơn đặt bàn
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
+          <h4 id="cancel-modal-title" className="text-rose-500 flex items-center gap-2 font-serif text-base font-bold">
+            <AlertTriangle size={18} /> Từ chối / Hủy đặt bàn
           </h4>
-          <button className="close-btn" onClick={onClose}>
+          <button 
+            type="button"
+            className="text-muted-foreground hover:text-white transition rounded-lg p-1 hover:bg-secondary/40" 
+            onClick={onClose}
+            aria-label="Đóng"
+          >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <p>
-              Bạn đang thực hiện hủy đơn đặt bàn của khách hàng{' '}
-              <strong>{bookingInfo?.name}</strong>. Hành động này sẽ gửi thông báo và email hủy đến khách hàng.
-            </p>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Bạn đang thực hiện hủy đơn đặt bàn của khách hàng{' '}
+            <strong className="text-white">{bookingInfo?.name}</strong>. Hành động này sẽ tự động gửi thông báo và email hủy đến cho khách hàng.
+          </p>
 
-            <div className="form-group">
-              <label className="input-label">Lý do hủy đặt bàn (Bắt buộc):</label>
-              <textarea
-                className="form-control"
-                rows="3"
-                placeholder="Nhập lý do chi tiết để khách hàng được biết..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-                maxLength="200"
-              ></textarea>
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lý do hủy đặt bàn (Bắt buộc):</label>
+            <textarea
+              className="w-full bg-[#0F1115] border border-border text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[90px]"
+              rows="3"
+              placeholder="Nhập lý do chi tiết (ví dụ: hết bàn, nhà hàng sửa chữa)..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+              maxLength="200"
+            />
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={onClose}>
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-4 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="border-border hover:bg-secondary/40 text-xs h-9"
+            >
               Quay lại
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="btn btn-danger"
+              variant="destructive"
+              className="text-xs h-9"
               disabled={!reason.trim()}
             >
               Xác nhận hủy đặt bàn
-            </button>
+            </Button>
           </div>
         </form>
       </div>

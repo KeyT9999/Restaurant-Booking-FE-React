@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getAvailableTablesForBooking, changeTable } from '../../api/bookingApi';
 import { X, Users, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import './ChangeTableModal.css';
+import { Button } from '../ui/button';
 
 export default function ChangeTableModal({ isOpen, onClose, bookingId, currentTables = [], onConfirm }) {
   const [availableTables, setAvailableTables] = useState([]);
@@ -122,75 +122,100 @@ export default function ChangeTableModal({ isOpen, onClose, bookingId, currentTa
   };
 
   return (
-    <div className="owner-modal-overlay" onMouseDown={onClose}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+      onClick={onClose}
+    >
       <div
         ref={modalRef}
-        className="owner-modal owner-modal--change-table"
+        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-left"
         role="dialog"
         aria-modal="true"
         aria-labelledby="change-table-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header">
-          <h4 id="change-table-modal-title">🪑 Thay đổi bàn ăn cho đơn đặt</h4>
-          <button className="close-btn" onClick={onClose}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
+          <h4 id="change-table-modal-title" className="text-white flex items-center gap-2 font-serif text-base font-bold">
+            🪑 Thay đổi bàn ăn cho đơn đặt
+          </h4>
+          <button 
+            type="button"
+            className="text-muted-foreground hover:text-white transition rounded-lg p-1 hover:bg-secondary/40" 
+            onClick={onClose}
+            aria-label="Đóng"
+          >
             <X size={18} />
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <p className="current-tables-desc">
-              Bàn hiện tại: <strong>{currentTables.join(', ') || 'Chưa gán bàn'}</strong>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Bàn hiện tại: <strong className="text-white">{currentTables.join(', ') || 'Chưa gán bàn'}</strong>
             </p>
 
             {loading ? (
-              <div className="modal-loading-state">
-                <div className="spinner"></div>
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-sm text-muted-foreground">
+                <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
                 <p>Đang kiểm tra bàn trống...</p>
               </div>
             ) : availableTables.length === 0 ? (
-              <div className="modal-empty-state">
-                <p className="text-danger">Không còn bàn trống nào phù hợp cho khung giờ này!</p>
+              <div className="py-8 text-center text-rose-400 bg-rose-500/5 border border-rose-500/10 rounded-xl text-sm font-medium">
+                Không còn bàn trống nào phù hợp cho khung giờ này!
               </div>
             ) : (
-              <div className="available-tables-selection-grid">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {availableTables.map((table) => {
                   const isChecked = selectedTables.includes(table.tableNumber);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={table.id}
-                      className={`selectable-table-option-card ${isChecked ? 'active' : ''}`}
+                      className={`flex flex-col text-left p-3 rounded-xl border transition-all ${
+                        isChecked
+                          ? 'border-primary bg-primary/10 text-white ring-1 ring-primary'
+                          : 'border-border bg-[#0F1115] text-muted-foreground hover:border-border/80 hover:text-white'
+                      }`}
                       onClick={() => handleTableToggle(table.tableNumber)}
                     >
-                      <div className="card-top">
-                        <span className="table-name">Bàn {table.tableNumber}</span>
-                        {isChecked && <Check size={16} className="checked-icon" />}
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-semibold text-sm text-white">Bàn {table.tableNumber}</span>
+                        {isChecked && <Check size={14} className="text-primary" />}
                       </div>
-                      <div className="card-bottom">
-                        <span className="capacity-badge">
-                          <Users size={12} /> {table.capacity} chỗ
+                      <div className="flex flex-col gap-0.5 mt-2 text-[11px]">
+                        <span className="flex items-center gap-1">
+                          <Users size={12} className="text-muted-foreground/60" /> {table.capacity} chỗ
                         </span>
-                        {table.zone && <span className="zone-badge">{table.zone}</span>}
+                        {table.zone && <span className="text-[10px] text-muted-foreground/50 truncate">📍 {table.zone}</span>}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
             )}
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={onClose} disabled={isSubmitting}>
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-4 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="border-border hover:bg-secondary/40 text-xs h-9"
+            >
               Quay lại
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="btn btn-primary-blue"
+              variant="default"
+              className="bg-primary hover:bg-primary/95 text-black font-semibold text-xs h-9"
               disabled={loading || selectedTables.length === 0 || isSubmitting}
             >
               {isSubmitting ? 'Đang cập nhật...' : 'Xác nhận đổi bàn'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

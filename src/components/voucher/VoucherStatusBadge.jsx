@@ -1,67 +1,39 @@
 import React from 'react';
 
+const STATUS_CONFIGS = {
+  active: {
+    label: 'Hoạt động',
+    classes: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+  },
+  inactive: {
+    label: 'Chờ kích hoạt',
+    classes: 'bg-secondary/40 border-border/80 text-muted-foreground',
+  },
+  expired: {
+    label: 'Hết hạn',
+    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+  },
+  disabled: {
+    label: 'Đã hủy',
+    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+  },
+  paused: {
+    label: 'Tạm dừng',
+    classes: 'bg-primary/10 border-primary/20 text-primary',
+  },
+};
+
 const VoucherStatusBadge = ({ status }) => {
-  const getBadgeStyle = () => {
-    switch (status) {
-      case 'active':
-        return {
-          border: '1px solid rgba(163, 190, 140, 0.6)',
-          color: 'rgba(163, 190, 140, 1)',
-          background: 'rgba(163, 190, 140, 0.08)',
-        };
-      case 'inactive':
-        return {
-          border: '1px solid rgba(180, 180, 180, 0.4)',
-          color: 'rgba(180, 180, 180, 1)',
-          background: 'rgba(180, 180, 180, 0.05)',
-        };
-      case 'expired':
-      case 'disabled':
-        return {
-          border: '1px solid rgba(200, 114, 114, 0.6)',
-          color: 'rgba(200, 114, 114, 1)',
-          background: 'rgba(200, 114, 114, 0.08)',
-        };
-      case 'paused':
-        return {
-          border: '1px solid rgba(212, 150, 83, 0.6)',
-          color: 'var(--color-amber-glow)',
-          background: 'rgba(212, 150, 83, 0.08)',
-        };
-      default:
-        return {};
-    }
+  const config = STATUS_CONFIGS[status] || {
+    label: status,
+    classes: 'bg-secondary border-border text-muted-foreground',
   };
 
-  const getStatusLabel = () => {
-    switch (status) {
-      case 'active':
-        return 'Hoạt động';
-      case 'inactive':
-        return 'Chờ kích hoạt';
-      case 'expired':
-        return 'Hết hạn';
-      case 'paused':
-        return 'Tạm dừng';
-      case 'disabled':
-        return 'Đã hủy';
-      default:
-        return status;
-    }
-  };
-
-  const baseStyle = {
-    display: 'inline-block',
-    padding: '4px 8px',
-    fontSize: '11px',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderRadius: '3px', /* var(--radius-sm) */
-    ...getBadgeStyle(),
-  };
-
-  return <span style={baseStyle}>{getStatusLabel()}</span>;
+  return (
+    <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${config.classes}`}>
+      {config.label}
+    </span>
+  );
 };
 
 export default VoucherStatusBadge;

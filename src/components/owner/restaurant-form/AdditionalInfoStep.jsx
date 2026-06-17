@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { uploadImage } from '../../../api/uploadApi';
+import { Plus, Trash2, Upload, ImageIcon, HelpCircle } from 'lucide-react';
+import { Button } from '../../ui/button';
 
 function MultiInputList({ label, items = [], placeholder, onChange }) {
   const listItems = Array.isArray(items) ? (items.length === 0 ? [''] : items) : [''];
@@ -20,22 +22,23 @@ function MultiInputList({ label, items = [], placeholder, onChange }) {
   };
 
   return (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      <div className="multi-input-list">
+    <div className="flex flex-col gap-2.5">
+      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      <div className="space-y-2">
         {listItems.map((item, index) => (
-          <div key={index} className="multi-input-item">
+          <div key={index} className="flex items-center gap-2">
             <input
               type="text"
-              className="form-input"
+              className="flex-1 bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
               value={item}
               onChange={(e) => handleItemChange(index, e.target.value)}
-              placeholder={`${placeholder}`}
+              placeholder={placeholder}
+              aria-label={`${label} dòng ${index + 1}`}
             />
             {listItems.length > 1 && (
               <button
                 type="button"
-                className="btn-remove-item"
+                className="w-9 h-9 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition shrink-0 cursor-pointer"
                 onClick={() => handleRemoveItem(index)}
                 title="Xóa dòng này"
               >
@@ -47,10 +50,10 @@ function MultiInputList({ label, items = [], placeholder, onChange }) {
       </div>
       <button
         type="button"
-        className="btn-add-item"
+        className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline self-start bg-transparent border-0 cursor-pointer mt-1"
         onClick={handleAddItem}
       >
-        ➕ Thêm dòng mới
+        <Plus size={12} /> Thêm dòng mới
       </button>
     </div>
   );
@@ -96,132 +99,137 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
   };
 
   return (
-    <div className="form-step" id="step-additional-info">
-      <h2 className="step-title">
-        <span className="step-icon">🖼️</span>
+    <div className="space-y-5 text-left" id="step-additional-info">
+      <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+        <span className="text-lg">🖼️</span>
         Hình ảnh & Thông tin bổ sung
       </h2>
-      <p className="step-desc">
+      <p className="text-xs text-muted-foreground">
         Bổ sung các thông tin tùy chọn giúp nâng cao hiển thị trên trang tìm kiếm.
-        <span className="step-optional"> (Tất cả các trường đều không bắt buộc)</span>
+        <span className="text-primary italic font-medium"> (Không bắt buộc)</span>
       </p>
 
       {/* Logo Upload */}
-      <div className="form-group logo-upload-group">
-        <label className="form-label">Logo Nhà Hàng</label>
-        <div className="logo-upload-container">
-          {data.logo ? (
-            <div className="logo-uploaded-preview">
-              <img src={data.logo} alt="Logo" />
-              <button
-                type="button"
-                className="btn-remove-logo"
-                onClick={() => handleChange('logo', '')}
-              >
-                ✕ Xóa ảnh
-              </button>
-            </div>
-          ) : (
-            <div className="logo-upload-placeholder">
-              <label htmlFor="logo-file-input" className="logo-upload-label">
-                {uploading ? (
-                  <div className="upload-spinner-wrapper">
-                    <span className="upload-spinner"></span>
-                    <span>Đang tải lên...</span>
-                  </div>
-                ) : (
-                  <>
-                    <span className="upload-icon">📤</span>
-                    <span className="upload-text">Nhấp để chọn hoặc kéo thả file ảnh làm logo</span>
-                    <span className="upload-subtext">Định dạng JPEG, PNG, GIF, WebP tối đa 5MB</span>
-                  </>
-                )}
-              </label>
-              <input
-                id="logo-file-input"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                disabled={uploading}
-                style={{ display: 'none' }}
-              />
-            </div>
-          )}
-          {uploadError && <span className="field-error">{uploadError}</span>}
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Logo Nhà Hàng</label>
+        
+        {data.logo ? (
+          <div className="relative border border-border rounded-xl bg-[#0F1115]/50 overflow-hidden flex flex-col items-center justify-center p-4 gap-3 max-w-sm">
+            <img src={data.logo} alt="Logo" className="max-h-[120px] object-contain rounded-lg border border-border/80 shadow" />
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 text-xs font-semibold transition cursor-pointer"
+              onClick={() => handleChange('logo', '')}
+            >
+              ✕ Xóa ảnh
+            </button>
+          </div>
+        ) : (
+          <div className="border border-dashed border-border/60 hover:border-primary/50 rounded-xl bg-[#0F1115]/30 p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 gap-2 max-w-lg">
+            <label htmlFor="logo-file-input" className="flex flex-col items-center gap-2 cursor-pointer w-full">
+              {uploading ? (
+                <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
+                  <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                  <span>Đang tải lên...</span>
+                </div>
+              ) : (
+                <>
+                  <Upload size={28} className="text-muted-foreground/60" />
+                  <span className="text-xs text-white">Nhấp để chọn file ảnh làm logo thương hiệu</span>
+                  <span className="text-[10px] text-muted-foreground">JPEG, PNG, GIF, WebP tối đa 5MB</span>
+                </>
+              )}
+            </label>
+            <input
+              id="logo-file-input"
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              disabled={uploading}
+              className="hidden"
+            />
+          </div>
+        )}
+        {uploadError && <span className="text-xs text-rose-455 font-medium mt-0.5">{uploadError}</span>}
       </div>
 
       {/* Price section */}
-      <div className="form-section-divider">
-        <span>💰 Thông tin giá cả</span>
-      </div>
+      <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-border/40 pb-2 mt-6">
+        💰 Thông tin giá cả
+      </h3>
 
-      <div className="form-row-3">
-        <div className={`form-group ${errors?.averagePrice ? 'has-error' : ''}`}>
-          <label className="form-label" htmlFor="avg-price">Giá trung bình (VNĐ)</label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="avg-price">Giá trung bình (VNĐ)</label>
           <input
             id="avg-price"
             type="number"
-            className="form-input"
+            className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+              errors?.averagePrice ? 'border-destructive' : 'border-border'
+            }`}
             placeholder="VD: 80000"
             value={data.averagePrice || ''}
             onChange={(e) => handleChange('averagePrice', e.target.value)}
             min={0}
           />
-          {errors?.averagePrice && <span className="field-error">{errors.averagePrice}</span>}
+          {errors?.averagePrice && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.averagePrice}</span>}
         </div>
-        <div className={`form-group ${errors?.priceRangeMin ? 'has-error' : ''}`}>
-          <label className="form-label" htmlFor="price-min">Giá thấp nhất (VNĐ)</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="price-min">Giá thấp nhất (VNĐ)</label>
           <input
             id="price-min"
             type="number"
-            className="form-input"
+            className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+              errors?.priceRangeMin ? 'border-destructive' : 'border-border'
+            }`}
             placeholder="VD: 50000"
             value={data.priceRangeMin || ''}
             onChange={(e) => handleChange('priceRangeMin', e.target.value)}
             min={0}
           />
-          {errors?.priceRangeMin && <span className="field-error">{errors.priceRangeMin}</span>}
+          {errors?.priceRangeMin && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.priceRangeMin}</span>}
         </div>
-        <div className={`form-group ${errors?.priceRangeMax ? 'has-error' : ''}`}>
-          <label className="form-label" htmlFor="price-max">Giá cao nhất (VNĐ)</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="price-max">Giá cao nhất (VNĐ)</label>
           <input
             id="price-max"
             type="number"
-            className="form-input"
+            className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+              errors?.priceRangeMax ? 'border-destructive' : 'border-border'
+            }`}
             placeholder="VD: 200000"
             value={data.priceRangeMax || ''}
             onChange={(e) => handleChange('priceRangeMax', e.target.value)}
             min={0}
           />
-          {errors?.priceRangeMax && <span className="field-error">{errors.priceRangeMax}</span>}
+          {errors?.priceRangeMax && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.priceRangeMax}</span>}
         </div>
       </div>
 
       {/* Display info */}
-      <div className="form-section-divider">
-        <span>✨ Thông tin hiển thị</span>
-      </div>
+      <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-border/40 pb-2 mt-6">
+        ✨ Thông tin hiển thị khám phá
+      </h3>
 
-      <div className="form-group">
-        <label className="form-label" htmlFor="status-message">Dòng trạng thái</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="status-message">Dòng trạng thái nhanh</label>
         <input
           id="status-message"
           type="text"
-          className="form-input"
-          placeholder="VD: Mở cửa đón khách từ 10:30"
+          className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+          placeholder="Ví dụ: Đang giảm 10% đặt bàn hôm nay, Mở cửa đón khách từ 10:30"
           value={data.statusMessage || ''}
           onChange={(e) => handleChange('statusMessage', e.target.value)}
           maxLength={255}
         />
       </div>
 
-      <div className="form-group">
-        <label className="form-label" htmlFor="summary-highlights">Điểm nổi bật</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="summary-highlights">Điểm nổi bật ngắn gọn</label>
         <textarea
           id="summary-highlights"
-          className="form-textarea"
-          placeholder="VD: Không gian sang trọng, view sông Hàn tuyệt đẹp..."
+          className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[70px]"
+          placeholder="Ví dụ: Không gian sân vườn thoáng đãng, Thích hợp tiệc công ty..."
           value={data.summaryHighlights || ''}
           onChange={(e) => handleChange('summaryHighlights', e.target.value)}
           rows={3}
@@ -229,39 +237,39 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
       </div>
 
       <MultiInputList
-        label="Phù hợp cho"
+        label="Không gian phù hợp cho"
         items={data.suitableFor}
-        placeholder="VD: Gia đình, Hẹn hò, Họp lớp"
+        placeholder="Ví dụ: Họp nhóm, Liên hoan gia đình, Sinh nhật"
         onChange={(val) => handleChange('suitableFor', val)}
       />
 
       <MultiInputList
-        label="Món ăn đặc trưng"
+        label="Món ăn đặc sản / Món ký danh"
         items={data.signatureDishes}
-        placeholder="VD: Phở bò, Bún chả, Vịt quay Bắc Kinh"
+        placeholder="Ví dụ: Lẩu cua đồng bắp bò, Gỏi cuốn ngũ sắc"
         onChange={(val) => handleChange('signatureDishes', val)}
       />
 
       <MultiInputList
         label="Tiện ích đi kèm"
         items={data.amenities}
-        placeholder="VD: Chỗ đỗ xe ô tô, Máy lạnh, WiFi miễn phí"
+        placeholder="Ví dụ: Chỗ để xe ô tô rộng rãi, Máy lạnh, Phòng riêng"
         onChange={(val) => handleChange('amenities', val)}
       />
 
       <MultiInputList
         label="Quy định nhà hàng"
         items={data.policyRules}
-        placeholder="VD: Không mang thức ăn từ bên ngoài vào, Giữ trật tự chung"
+        placeholder="Ví dụ: Hạn chế hút thuốc, Giữ trật tự khu chung"
         onChange={(val) => handleChange('policyRules', val)}
       />
 
-      <div className="form-group">
-        <label className="form-label" htmlFor="booking-notes">Lưu ý đặt bàn</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="booking-notes">Lưu ý đặt bàn quan trọng</label>
         <textarea
           id="booking-notes"
-          className="form-textarea"
-          placeholder="VD: Giữ bàn tối đa 15 phút kể từ giờ đặt"
+          className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[70px]"
+          placeholder="Ví dụ: Chỉ giữ bàn tối đa 15 phút, Đặt cọc trước 20% đối với tiệc trên 20 khách..."
           value={data.bookingNotes || ''}
           onChange={(e) => handleChange('bookingNotes', e.target.value)}
           rows={3}
@@ -269,38 +277,39 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
       </div>
 
       {/* Cấu hình hoàn thiện */}
-      <div className="form-section-divider" style={{ marginTop: '24px', borderTop: '1px solid rgba(216, 203, 184, 0.08)', paddingTop: '20px' }}>
-        <span>⚙️ Hoàn thiện cấu hình nhà hàng</span>
-      </div>
+      <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-border/40 pb-2 mt-6">
+        ⚙️ Hoàn thiện cấu hình nhà hàng
+      </h3>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div className="flex flex-col gap-3 pt-1">
+        <label className="flex items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
           <input
             id="has-menu-chk"
             type="checkbox"
             checked={data.hasMenu || false}
             onChange={(e) => handleChange('hasMenu', e.target.checked)}
-            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            className="h-4.5 w-4.5 rounded border-border bg-[#0F1115] text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
           />
-          <label htmlFor="has-menu-chk" style={{ fontSize: '13px', cursor: 'pointer', color: 'var(--color-soft-linen)' }}>
+          <span className="text-white/90">
             Tôi đã hoàn thành thiết lập <strong>Thực đơn (Menu)</strong> cho nhà hàng
-          </label>
-        </div>
+          </span>
+        </label>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <label className="flex items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
           <input
             id="has-table-layout-chk"
             type="checkbox"
             checked={data.hasTableLayout || false}
             onChange={(e) => handleChange('hasTableLayout', e.target.checked)}
-            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            className="h-4.5 w-4.5 rounded border-border bg-[#0F1115] text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
           />
-          <label htmlFor="has-table-layout-chk" style={{ fontSize: '13px', cursor: 'pointer', color: 'var(--color-soft-linen)' }}>
+          <span className="text-white/90">
             Tôi đã hoàn thành thiết lập <strong>Sơ đồ bàn (Table layout)</strong> cho nhà hàng
-          </label>
-        </div>
-        <p style={{ fontSize: '11px', color: 'var(--color-faded-stone)', marginTop: '4px', fontStyle: 'italic', lineHeight: 1.4 }}>
-          Lưu ý: Sau khi được Ban quản trị phê duyệt, bạn bắt buộc phải xác nhận hoàn thành cấu hình hai mục này để nhà hàng có thể xuất hiện công khai trên trang khám phá.
+          </span>
+        </label>
+        
+        <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed mt-1">
+          Lưu ý: Sau khi được duyệt, bạn bắt buộc phải xác nhận hoàn thành cấu hình hai mục này để nhà hàng có thể chính thức mở cửa nhận đặt bàn công khai.
         </p>
       </div>
     </div>
