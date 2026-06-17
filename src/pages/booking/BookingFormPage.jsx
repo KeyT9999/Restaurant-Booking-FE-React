@@ -16,7 +16,6 @@ import {
   Plus,
   Search,
   ShieldCheck,
-  Sparkles,
   Store,
   Ticket,
   Users,
@@ -36,6 +35,11 @@ import { useAuth } from '../../context/useAuth';
 
 const FALLBACK_RESTAURANT_IMAGE =
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80';
+
+const SLOT_INTERVAL_MINUTES = 30;
+const MIN_BOOKING_ADVANCE_MINUTES = 30;
+const MAX_BOOKING_ADVANCE_DAYS = 30;
+const DEFAULT_OPERATING_HOURS = { open: '10:00', close: '22:00', closed: false };
 
 const steps = [
   { num: 1, label: 'Thời gian', description: 'Ngày, giờ, số khách' },
@@ -92,6 +96,28 @@ function toDateInputValue(date) {
   return localDate.toISOString().split('T')[0];
 }
 
+function getTodayString() {
+  return toDateInputValue(new Date());
+}
+
+function getMaxDateString() {
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + MAX_BOOKING_ADVANCE_DAYS);
+  return toDateInputValue(maxDate);
+}
+
+function toMinutes(value) {
+  const [hour = 0, minute = 0] = String(value || '').split(':').map(Number);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return 0;
+  return hour * 60 + minute;
+}
+
+function getDateAtMinutes(dateValue, minutes) {
+  const date = new Date(`${dateValue}T00:00:00`);
+  date.setMinutes(date.getMinutes() + minutes);
+  return date;
+}
+
 function getTableId(table) {
   return table?.id || table?._id || table?.tableNumber;
 }
@@ -123,9 +149,13 @@ export default function BookingFormPage() {
   const [loadError, setLoadError] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
 
-  const [bookingDate, setBookingDate] = useState('');
+  const [bookingDate, setBookingDate] = useState(() => getTodayString());
   const [bookingTime, setBookingTime] = useState('');
   const [numberOfGuests, setNumberOfGuests] = useState(2);
+  const [minBookableTime] = useState(() => {
+    const now = new Date();
+    return new Date(now.getTime() + MIN_BOOKING_ADVANCE_MINUTES * 60 * 1000);
+  });
 
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [availableTables, setAvailableTables] = useState([]);
@@ -153,14 +183,6 @@ export default function BookingFormPage() {
   const cuisineText = Array.isArray(restaurant?.cuisineTypes)
     ? restaurant.cuisineTypes.join(', ')
     : restaurant?.cuisineType || restaurant?.cuisine || 'Ẩm thực chọn lọc';
-
-  const getTodayString = () => toDateInputValue(new Date());
-
-  const getMaxDateString = () => {
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 30);
-    return toDateInputValue(maxDate);
-  };
 
   const fetchRestaurant = useCallback(async () => {
     if (!restaurantId) {
@@ -200,43 +222,42 @@ export default function BookingFormPage() {
   }, [user]);
 
   const getOperatingHoursForDate = useCallback((dateValue) => {
-    const fallback = { open: '10:00', close: '22:00', closed: false };
     const hoursConfig = restaurant?.operatingHours || restaurant?.openingHours;
-    if (!dateValue || !hoursConfig) return fallback;
+    if (!dateValue || !hoursConfig) return DEFAULT_OPERATING_HOURS;
 
     const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const dayName = daysOfWeek[new Date(`${dateValue}T00:00:00`).getDay()];
-    const dayHours = hoursConfig[dayName] || fallback;
+    const dayHours = hoursConfig[dayName] || DEFAULT_OPERATING_HOURS;
 
     return {
-      open: dayHours.open || dayHours.openTime || fallback.open,
-      close: dayHours.close || dayHours.closeTime || fallback.close,
+      open: dayHours.open || dayHours.openTime || DEFAULT_OPERATING_HOURS.open,
+      close: dayHours.close || dayHours.closeTime || DEFAULT_OPERATING_HOURS.close,
       closed: Boolean(dayHours.closed || dayHours.isClosed || dayHours.isOpen === false),
     };
   }, [restaurant]);
 
+  const selectedDateHours = useMemo(
+    () => getOperatingHoursForDate(bookingDate),
+    [bookingDate, getOperatingHoursForDate]
+  );
+
   const timeSlots = useMemo(() => {
-    const hours = getOperatingHoursForDate(bookingDate);
-    if (hours.closed) return [];
+    if (!bookingDate || selectedDateHours.closed) return [];
 
-    const toMinutes = (value) => {
-      const [hour = 0, minute = 0] = String(value || '').split(':').map(Number);
-      if (Number.isNaN(hour) || Number.isNaN(minute)) return 0;
-      return hour * 60 + minute;
-    };
-
-    let start = toMinutes(hours.open);
-    let end = toMinutes(hours.close);
+    let start = toMinutes(selectedDateHours.open);
+    let end = toMinutes(selectedDateHours.close);
     if (end <= start) end += 24 * 60;
 
     const slots = [];
-    for (let cursor = start; cursor <= end; cursor += 30) {
+    for (let cursor = start; cursor <= end; cursor += SLOT_INTERVAL_MINUTES) {
+      if (getDateAtMinutes(bookingDate, cursor) < minBookableTime) continue;
+
       const hour = Math.floor((cursor % (24 * 60)) / 60);
       const minute = cursor % 60;
       slots.push(`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
     }
     return slots;
-  }, [bookingDate, getOperatingHoursForDate]);
+  }, [bookingDate, minBookableTime, selectedDateHours]);
 
   useEffect(() => {
     if (bookingTime && timeSlots.length > 0 && !timeSlots.includes(bookingTime)) {
@@ -550,8 +571,12 @@ export default function BookingFormPage() {
                         <InfoPanel
                           tone="danger"
                           icon={AlertTriangle}
-                          title="Nhà hàng không phục vụ ngày này"
-                          description="Bạn có thể chọn một ngày khác trong vòng 30 ngày tới."
+                          title={selectedDateHours.closed ? 'Nhà hàng không phục vụ ngày này' : 'Không còn khung giờ phù hợp'}
+                          description={
+                            selectedDateHours.closed
+                              ? 'Bạn có thể chọn một ngày khác trong vòng 30 ngày tới.'
+                              : 'Các khung giờ còn lại hôm nay đã qua hoặc quá sát giờ dùng bữa. Vui lòng chọn ngày khác.'
+                          }
                         />
                       ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-2">
@@ -559,6 +584,7 @@ export default function BookingFormPage() {
                             <button
                               key={slot}
                               type="button"
+                              aria-pressed={bookingTime === slot}
                               onClick={() => {
                                 setBookingTime(slot);
                                 setFieldErrors((current) => ({ ...current, bookingTime: null }));
