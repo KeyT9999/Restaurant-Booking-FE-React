@@ -5,31 +5,36 @@ const VoucherStatusBadge = ({ status }) => {
     switch (status) {
       case 'active':
         return {
-          border: '1px solid rgba(163, 190, 140, 0.6)',
-          color: 'rgba(163, 190, 140, 1)',
-          background: 'rgba(163, 190, 140, 0.08)',
+          border: '1px solid var(--color-success)',
+          color: 'var(--color-success-text)',
+          background: 'var(--color-success-bg)',
         };
       case 'inactive':
+      case 'scheduled':
         return {
-          border: '1px solid rgba(180, 180, 180, 0.4)',
-          color: 'rgba(180, 180, 180, 1)',
-          background: 'rgba(180, 180, 180, 0.05)',
+          border: '1px solid var(--color-warning)',
+          color: 'var(--color-warning-text)',
+          background: 'var(--color-warning-bg)',
         };
       case 'expired':
       case 'disabled':
         return {
-          border: '1px solid rgba(200, 114, 114, 0.6)',
-          color: 'rgba(200, 114, 114, 1)',
-          background: 'rgba(200, 114, 114, 0.08)',
+          border: '1px solid var(--color-error)',
+          color: 'var(--color-error-text)',
+          background: 'var(--color-error-bg)',
         };
       case 'paused':
         return {
-          border: '1px solid rgba(212, 150, 83, 0.6)',
+          border: '1px solid var(--border-accent)',
           color: 'var(--color-amber-glow)',
           background: 'rgba(212, 150, 83, 0.08)',
         };
       default:
-        return {};
+        return {
+          border: '1px solid var(--border-subtle)',
+          color: 'var(--color-faded-stone)',
+          background: 'rgba(216, 203, 184, 0.04)',
+        };
     }
   };
 
@@ -38,7 +43,8 @@ const VoucherStatusBadge = ({ status }) => {
       case 'active':
         return 'Hoạt động';
       case 'inactive':
-        return 'Chờ kích hoạt';
+      case 'scheduled':
+        return 'Chờ chạy';
       case 'expired':
         return 'Hết hạn';
       case 'paused':
@@ -56,8 +62,8 @@ const VoucherStatusBadge = ({ status }) => {
     fontSize: '11px',
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderRadius: '3px', /* var(--radius-sm) */
+    letterSpacing: '0.08em',
+    borderRadius: 'var(--radius-sm)', /* 3px */
     ...getBadgeStyle(),
   };
 

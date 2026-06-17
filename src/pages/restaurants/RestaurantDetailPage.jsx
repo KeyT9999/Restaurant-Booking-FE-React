@@ -46,8 +46,8 @@ export default function RestaurantDetailPage() {
   const fetchVouchers = useCallback(async () => {
     try {
       const res = await getRestaurantVouchers(id);
-      if (res.data?.success) {
-        setVouchers(res.data.data);
+      if (res?.success) {
+        setVouchers(res.data || []);
       }
     } catch (e) {
       console.warn('Lỗi tải voucher nhà hàng:', e.message);
@@ -62,7 +62,7 @@ export default function RestaurantDetailPage() {
     }
     try {
       const res = await saveVoucher({ voucherId: voucher._id });
-      if (res.data?.success) {
+      if (res?.success) {
         toast.success(`Đã lưu mã ${voucher.code} vào ví!`);
         setVouchers(prev => prev.map(v => v._id === voucher._id ? { ...v, isSaved: true } : v));
       }

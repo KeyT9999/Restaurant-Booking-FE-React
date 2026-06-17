@@ -19,9 +19,9 @@ const ApplyVoucher = ({ restaurantId, bookingAmount, onApplySuccess, onRemove })
     setFetchingWallet(true);
     try {
       const response = await getMyVouchers({ filter: 'unused' });
-      if (response.data?.success) {
+      if (response?.success) {
         // Lọc các voucher hợp lệ với nhà hàng hiện tại (của riêng nhà hàng này HOẶC Global)
-        const validVouchers = response.data.data.filter(item => {
+        const validVouchers = (response.data || []).filter(item => {
           const v = item.voucherId;
           return v && (!v.restaurantId || v.restaurantId._id === restaurantId || v.restaurantId === restaurantId);
         });
@@ -55,15 +55,15 @@ const ApplyVoucher = ({ restaurantId, bookingAmount, onApplySuccess, onRemove })
         orderAmount: bookingAmount,
       });
 
-      if (response.data?.valid) {
-        const { discountAmount, voucher } = response.data;
+      if (response?.valid) {
+        const { discountAmount, voucher } = response;
         setAppliedVoucher(voucher);
         setSuccessMsg(`Áp dụng thành công! Bạn được giảm ${discountAmount.toLocaleString('vi-VN')} ₫`);
         setCode(codeToApply);
         onApplySuccess({ voucherCode: codeToApply, discountAmount });
         setIsDrawerOpen(false);
       } else {
-        setError(response.data?.reason || 'Mã giảm giá không hợp lệ');
+        setError(response?.reason || 'Mã giảm giá không hợp lệ');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra khi áp dụng mã');

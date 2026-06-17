@@ -45,6 +45,8 @@ import AdminRefunds from './pages/admin/AdminRefunds';
 import OwnerVouchers from './pages/owner/OwnerVouchers';
 import SavedVouchers from './pages/profile/SavedVouchers';
 import AdminVouchers from './pages/admin/AdminVouchers';
+import VoucherCenter from './pages/restaurants/VoucherCenter';
+import VoucherDetail from './pages/restaurants/VoucherDetail';
 import WaitlistFormPage from './pages/waitlist/WaitlistFormPage';
 import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
@@ -117,6 +119,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SavedVouchers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vouchers"
+        element={
+          <ProtectedRoute>
+            <VoucherCenter />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vouchers/:id"
+        element={
+          <ProtectedRoute>
+            <VoucherDetail />
           </ProtectedRoute>
         }
       />

@@ -145,3 +145,90 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Wallet actions & list views */
+.saved-vouchers-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+.saved-voucher-item-wrapper {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-16);
+  transition: border-color 0.2s;
+}
+
+.saved-voucher-item-wrapper:hover {
+  border-color: var(--color-amber-glow);
+}
+
+.saved-voucher-restaurant-header {
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm);
+  color: var(--color-amber-glow);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--border-dimmed);
+  padding-bottom: var(--spacing-8);
+}
+
+.saved-voucher-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-20);
+}
+
+.saved-voucher-card-row > .voucher-card {
+  flex: 1;
+}
+
+.saved-voucher-extra-actions {
+  display: flex;
+  align-items: center;
+}
+
+.wallet-action-unsave-btn {
+  padding: var(--spacing-8) var(--spacing-16);
+  border: 1px solid var(--color-error);
+  color: var(--color-error-text);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-body-sm);
+  transition: all 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wallet-action-unsave-btn:hover {
+  background: var(--color-error-bg);
+}
+
+.gold-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--color-amber-glow);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto var(--spacing-16);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .saved-voucher-card-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .wallet-action-unsave-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

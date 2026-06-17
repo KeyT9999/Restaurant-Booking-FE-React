@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, CreditCard, LogOut, MessageCircle, Plus, Settings, Store, Utensils, Armchair } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, CreditCard, LogOut, MessageCircle, Plus, Settings, Store, Utensils, Armchair, Ticket } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import RestaurantSwitcher from './RestaurantSwitcher';
 import Header from '../Header';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/owner/tables', icon: Armchair, label: 'Sơ đồ bàn' },
   { to: '/owner/bookings', icon: CalendarDays, label: 'Booking' },
   { to: '/owner/waitlists', icon: ClipboardList, label: 'Waitlist' },
+  { to: '/owner/vouchers', icon: Ticket, label: 'Mã giảm giá' },
   { to: '/owner/billing', icon: CreditCard, label: 'Gói dịch vụ' },
   { to: '/owner/settings', icon: Settings, label: 'Cài đặt' },
 ];

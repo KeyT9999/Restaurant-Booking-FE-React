@@ -1,87 +1,169 @@
-.admin-vouchers {
+.admin-vouchers-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-24);
 }
 
-.admin-vouchers__header {
+/* Navigation Tabs */
+.admin-vouchers-tabs {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
-  padding-bottom: var(--spacing-16);
+  gap: var(--spacing-8);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.15);
+  margin-bottom: var(--spacing-20);
 }
 
-.admin-vouchers__title {
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-light);
-  font-size: 28px;
-  color: var(--color-aged-parchment);
-  margin: 0;
-}
-
-.admin-vouchers__create-btn {
-  background: var(--color-aged-parchment);
-  color: var(--color-mahogany);
+.tab-btn {
+  background: transparent;
   border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-faded-stone);
   font-family: var(--font-body);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-medium);
   font-size: var(--text-body-sm);
-  padding: var(--spacing-10) var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-20);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--spacing-8);
-  border-radius: var(--radius-card); /* 0px */
-  transition: background 0.2s;
+  border-radius: 0px;
+  transition: all 0.2s ease;
 }
 
-.admin-vouchers__create-btn:hover {
-  background: var(--color-soft-linen);
+.tab-btn:hover {
+  color: var(--color-aged-parchment);
 }
 
-/* KPIs */
-.admin-vouchers__kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.tab-btn.active {
+  color: var(--color-amber-glow);
+  border-bottom-color: var(--color-amber-glow);
+}
+
+/* Tab Pane Layout */
+.tab-pane {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-20);
 }
 
-.kpi-card-admin {
-  background: rgba(30, 26, 22, 0.9);
-  border: 1px solid rgba(216, 203, 184, 0.2);
-  padding: var(--spacing-20);
+.tab-pane-header {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  padding-bottom: var(--spacing-12);
 }
 
-.kpi-card-admin__lbl {
-  font-size: 10px;
-  color: var(--color-faded-stone);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: var(--font-weight-bold);
-}
-
-.kpi-card-admin__val {
+.tab-pane-header h2 {
   font-family: var(--font-display);
-  font-size: 32px;
   font-weight: 300;
+  font-size: 22px;
   color: var(--color-aged-parchment);
-  line-height: 1.1;
+  margin: 0;
 }
 
-.kpi-card-admin small {
-  font-size: var(--text-caption);
+.action-buttons-group {
+  display: flex;
+  gap: var(--spacing-12);
+}
+
+.btn-admin-action {
+  border: none;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-body-sm);
+  padding: var(--spacing-10) var(--spacing-18);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  border-radius: 0px;
+  transition: all 0.2s ease;
+}
+
+.btn-issue-comp {
+  background: transparent;
+  border: 1px solid var(--color-amber-glow);
+  color: var(--color-amber-glow);
+}
+
+.btn-issue-comp:hover {
+  background: rgba(212, 150, 83, 0.1);
+}
+
+.btn-create-global {
+  background: var(--color-aged-parchment);
+  color: var(--color-mahogany);
+}
+
+.btn-create-global:hover {
+  background: var(--color-soft-linen);
+}
+
+/* Filters bar */
+.admin-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  align-items: center;
+  background: rgba(30, 26, 22, 0.4);
+  padding: var(--spacing-16);
+  border: 1px solid rgba(216, 203, 184, 0.1);
+}
+
+.admin-filters-bar select,
+.admin-filters-bar input {
+  background: rgba(20, 18, 16, 0.8);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  color: var(--color-aged-parchment);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-sm); /* 3px */
+}
+
+.admin-filters-bar select:focus,
+.admin-filters-bar input:focus {
+  border-color: var(--color-amber-glow);
+  outline: none;
+}
+
+.filter-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-input-wrap input {
+  padding-left: var(--spacing-36);
+  width: 100%;
+}
+
+.filter-input-wrap .search-icon {
+  position: absolute;
+  left: var(--spacing-12);
   color: var(--color-faded-stone);
 }
 
-.text-green {
-  color: rgba(163, 190, 140, 1) !important;
+.btn-filter-apply {
+  background: var(--color-amber-glow);
+  color: var(--color-mahogany);
+  border: none;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  padding: var(--spacing-8) var(--spacing-16);
+  cursor: pointer;
+  border-radius: 0px;
+  transition: background 0.2s;
+  font-size: 13px;
 }
 
-/* Bảng */
+.btn-filter-apply:hover {
+  background: var(--color-soft-linen);
+}
+
+/* Table */
 .admin-vouchers__table-wrap {
   background: rgba(30, 26, 22, 0.5);
   border: 1px solid rgba(216, 203, 184, 0.15);
@@ -147,7 +229,7 @@
   white-space: nowrap;
 }
 
-.admin-vouchers__actions {
+.admin-action-buttons-row {
   display: flex;
   gap: var(--spacing-8);
 }
@@ -171,8 +253,12 @@
 }
 
 .text-red-btn:hover {
-  border-color: rgba(200, 114, 114, 0.6);
-  color: rgba(200, 114, 114, 1);
+  border-color: var(--color-error);
+  color: var(--color-error-text);
+}
+
+.text-green {
+  color: var(--color-success-text) !important;
 }
 
 /* Loading & Empty states */
@@ -183,15 +269,169 @@
   font-size: var(--text-body);
   text-align: center;
   padding: var(--spacing-42) 0;
-  border: 1px dashed rgba(216, 203, 184, 0.15);
+  border: 1px dashed var(--border-subtle);
 }
 
 .admin-vouchers__error {
-  color: #c87272;
+  color: var(--color-error-text);
+}
+
+/* Campaigns Badge */
+.segment-badge {
+  display: inline-block;
+  background: rgba(216, 203, 184, 0.08);
+  border: 1px solid var(--border-dimmed);
+  color: var(--color-faded-stone);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.yes-no-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.yes-no-badge.yes {
+  border: 1px solid var(--color-success);
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+}
+
+.yes-no-badge.no {
+  border: 1px solid var(--color-error);
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+}
+
+/* Analytics Tab Filters */
+.analytics-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-20);
+  align-items: flex-end;
+  background: rgba(30, 26, 22, 0.4);
+  padding: var(--spacing-16);
+  border: 1px solid rgba(216, 203, 184, 0.1);
+  margin-bottom: var(--spacing-20);
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.date-input-group label {
+  font-size: 11px;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.date-input-group input,
+.date-input-group select {
+  background: rgba(20, 18, 16, 0.8);
+  border: 1px solid rgba(216, 203, 184, 0.2);
+  color: var(--color-aged-parchment);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-sm);
+  width: 160px;
+}
+
+.btn-analytics-filter {
+  background: var(--color-aged-parchment);
+  color: var(--color-mahogany);
+  border: none;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  padding: var(--spacing-8) var(--spacing-20);
+  cursor: pointer;
+  border-radius: 0px;
+  height: 35px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-analytics-filter:hover {
+  background: var(--color-soft-linen);
+}
+
+/* Fraud Grid */
+.fraud-flex-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-24);
+}
+
+@media (max-width: 992px) {
+  .fraud-flex-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fraud-card {
+  background: rgba(30, 26, 22, 0.9);
+  border: 1px solid rgba(216, 203, 184, 0.15);
+  padding: var(--spacing-20);
+  border-radius: 0px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.fraud-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  border-bottom: 1px solid rgba(216, 203, 184, 0.1);
+  padding-bottom: var(--spacing-8);
+}
+
+.fraud-card-header h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--color-aged-parchment);
+  margin: 0;
+}
+
+.fraud-card-desc {
+  font-size: 12px;
+  color: var(--color-faded-stone);
+  margin: 0 0 var(--spacing-8) 0;
+  line-height: 1.4;
+}
+
+.alert-indicator {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.alert-indicator.high {
+  border: 1px solid var(--color-error);
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+}
+
+.alert-indicator.medium {
+  border: 1px solid rgba(212, 150, 83, 0.8);
+  color: var(--color-amber-glow);
+  background: rgba(212, 150, 83, 0.1);
 }
 
 @media (max-width: 768px) {
-  .admin-vouchers__kpi-grid {
-    grid-template-columns: 1fr;
+  .admin-vouchers__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-12);
   }
 }
