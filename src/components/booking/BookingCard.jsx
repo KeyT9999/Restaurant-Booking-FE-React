@@ -9,7 +9,7 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 };
 
-export default function BookingCard({ booking, onViewDetail, onCancel }) {
+export default function BookingCard({ booking, onViewDetail, onCancel, onReview }) {
   const {
     id,
     bookingDate,
@@ -19,6 +19,7 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
     status,
     restaurant,
     discountAmount,
+    reviewed,
   } = booking;
 
   const formattedDate = new Date(bookingDate).toLocaleDateString('vi-VN', {
@@ -96,6 +97,11 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
 
         {/* Buttons actions block */}
         <div className="mt-3.5 pt-3 border-t border-border/40 flex items-center gap-2 justify-end">
+          {status === 'completed' && reviewed && (
+            <span className="text-xs text-muted-foreground mr-auto font-medium">
+              ✓ Đã đánh giá
+            </span>
+          )}
           <Button
             variant="outline"
             onClick={() => onViewDetail(id)}
@@ -104,6 +110,15 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
           >
             Xem chi tiết
           </Button>
+          {status === 'completed' && !reviewed && onReview && (
+            <Button
+              onClick={() => onReview({ ...booking, restaurantName: restaurant?.name })}
+              className="bg-[#D49653] hover:bg-[#D49653]/90 text-[#0F1115] text-xs font-bold h-8.5 px-3.5 border-none"
+              aria-label={`Viết đánh giá cho nhà hàng ${restaurant?.name}`}
+            >
+              Viết đánh giá
+            </Button>
+          )}
           {canCancel() && (
             <Button
               variant="destructive"
