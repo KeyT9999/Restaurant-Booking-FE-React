@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Armchair,
-  Bell,
   Building2,
   CalendarDays,
   ChefHat,
@@ -25,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '../ui/utils';
+import NotificationIcon from '../notifications/NotificationIcon';
 import RestaurantSwitcher from './RestaurantSwitcher';
 
 const NAV_ITEMS = [
@@ -186,15 +186,7 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-10 w-10 rounded-full text-white hover:bg-secondary"
-                aria-label="Notifications"
-              >
-                <Bell size={19} />
-                <span className="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-              </Button>
+              <NotificationIcon buttonClassName="h-10 w-10 rounded-full text-white hover:bg-secondary" />
 
               <Avatar className="h-10 w-10">
                 {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.fullName || user.username} />}
