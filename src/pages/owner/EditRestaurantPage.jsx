@@ -10,7 +10,7 @@ import OperatingHoursStep from '../../components/owner/restaurant-form/Operating
 import AdditionalInfoStep from '../../components/owner/restaurant-form/AdditionalInfoStep';
 import ConfirmStep from '../../components/owner/restaurant-form/ConfirmStep';
 import { getOwnerRestaurant, updateRestaurant } from '../../api/restaurantApi';
-import '../owner/CreateRestaurantPage.css';
+import { Button } from '../../components/ui/button';
 
 // ─── Validation helpers ───
 const PHONE_REGEX = /^(\+84|0)[35789][0-9]{8}$/;
@@ -297,59 +297,90 @@ export default function EditRestaurantPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0F1115] text-white flex flex-col justify-center items-center gap-3">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Đang tải thông tin nhà hàng...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="create-restaurant-page">
+    <div className="min-h-screen bg-[#0F1115] text-white flex flex-col">
       <Header />
-      <main className="create-restaurant-main">
-        <div className="create-restaurant-container">
-          {/* Page header */}
-          <div className="page-header-create">
-            <h1 className="page-title-create">Chỉnh sửa nhà hàng</h1>
-            <p className="page-subtitle-create">
-              Chỉnh sửa thông tin chi tiết nhà hàng của bạn.
-              Nếu nhà hàng từng bị từ chối duyệt, lưu lại sẽ được gửi phê duyệt lại.
-            </p>
-          </div>
+      <main className="flex-1 py-10 px-4 max-w-4xl mx-auto w-full">
+        {/* Page Header */}
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-3xl font-bold text-white mb-2">Chỉnh sửa nhà hàng</h1>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Cập nhật lại các thông tin của nhà hàng. Nếu nhà hàng đang ở trạng thái bị từ chối duyệt, 
+            khi lưu lại sẽ tự động chuyển sang trạng thái chờ phê duyệt lại từ Ban quản trị.
+          </p>
+        </div>
 
-          {/* Stepper */}
-          <StepperBar
-            currentStep={currentStep}
-            onStepClick={goToStep}
-            completedSteps={completedSteps}
-          />
+        {/* Stepper Bar */}
+        <StepperBar
+          currentStep={currentStep}
+          onStepClick={goToStep}
+          completedSteps={completedSteps}
+        />
 
-          {/* Form content */}
-          <div className="form-card">
-            {renderStep()}
+        {/* Form Card Content */}
+        <div className="bg-card border border-border rounded-2xl p-6 sm:p-10 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-350 mt-6">
+          {renderStep()}
 
-            {/* Navigation buttons */}
-            {currentStep < 6 && (
-              <div className="form-nav-buttons">
-                {currentStep > 1 && (
-                  <button type="button" className="btn-prev" onClick={handlePrev}>
-                    ← Quay lại
-                  </button>
-                )}
-                <div className="nav-spacer" />
-                {currentStep === 5 && (
-                  <button type="button" className="btn-skip" onClick={handleSkipStep5}>
-                    Bỏ qua bước này →
-                  </button>
-                )}
-                <button type="button" className="btn-next" onClick={handleNext}>
-                  Tiếp tục →
-                </button>
-              </div>
-            )}
-
-            {currentStep === 6 && (
-              <div className="form-nav-buttons">
-                <button type="button" className="btn-prev" onClick={handlePrev}>
+          {/* Navigation Controls */}
+          {currentStep < 6 && (
+            <div className="flex items-center justify-between border-t border-border/40 pt-6 mt-8 gap-3">
+              {currentStep > 1 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrev}
+                  className="border-border text-xs h-10 px-5 shrink-0"
+                >
                   ← Quay lại
-                </button>
+                </Button>
+              ) : (
+                <div />
+              )}
+              
+              <div className="flex items-center gap-2">
+                {currentStep === 5 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSkipStep5}
+                    className="border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 text-xs h-10 px-4"
+                  >
+                    Bỏ qua bước này →
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={handleNext}
+                  className="bg-primary hover:bg-primary/95 text-black font-semibold text-xs h-10 px-6"
+                >
+                  Tiếp tục →
+                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {currentStep === 6 && (
+            <div className="flex items-center justify-start border-t border-border/40 pt-6 mt-8">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrev}
+                className="border-border text-xs h-10 px-5"
+              >
+                ← Quay lại điều chỉnh
+              </Button>
+            </div>
+          )}
         </div>
       </main>
     </div>

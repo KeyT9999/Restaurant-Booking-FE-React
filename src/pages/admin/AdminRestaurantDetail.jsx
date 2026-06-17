@@ -4,11 +4,10 @@ import { adminApi } from '../../api/adminApi';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
 import {
-  ArrowLeft, Store, MapPin, Phone, Mail, Clock, ShieldCheck,
-  CheckCircle, XCircle, PauseCircle, Users, Activity, CreditCard,
+  ArrowLeft, Store, MapPin, Phone, Mail, Clock,
+  CheckCircle, XCircle, PauseCircle, CreditCard,
   FileText, History, Star, Landmark, Eye, Undo, Play, Trash2
 } from 'lucide-react';
-import './AdminRestaurantDetail.css';
 
 // Components & Modals
 import RestaurantStatusBadge from '../../components/admin/RestaurantStatusBadge';
@@ -45,16 +44,6 @@ export default function AdminRestaurantDetail() {
   const [activeModal, setActiveModal] = useState(null); // 'approve' | 'reject' | 'suspend' | 'unsuspend' | 'delete' | 'restore'
   const [showLicenseViewer, setShowLicenseViewer] = useState(false);
 
-  useEffect(() => {
-    fetchDetail();
-  }, [id]);
-
-  useEffect(() => {
-    if (activeTab === 'logs') {
-      fetchLogs(1, true);
-    }
-  }, [activeTab, id]);
-
   const fetchDetail = async () => {
     setLoading(true);
     try {
@@ -63,7 +52,7 @@ export default function AdminRestaurantDetail() {
       setEditCommissionRate(res.data.commissionRate ?? 10);
       setEditFeatured(res.data.featured ?? false);
     } catch (err) {
-      toast.error('Không thể tải chi tiết nhà hàng');
+      toast.error(err.message || 'Không thể tải chi tiết nhà hàng');
       navigate('/admin/restaurants');
     } finally {
       setLoading(false);
@@ -87,6 +76,16 @@ export default function AdminRestaurantDetail() {
       setLogsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDetail();
+  }, [id]);
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchLogs(1, true);
+    }
+  }, [activeTab, id]);
 
   const handleLoadMoreLogs = () => {
     if (logsPage < logsTotalPages) {
@@ -199,9 +198,9 @@ export default function AdminRestaurantDetail() {
   if (loading) {
     return (
       <AdminLayout title="Chi tiết Nhà hàng">
-        <div className="admin-loading">
-          <div className="admin-spinner" />
-          <span>Đang tải thông tin nhà hàng...</span>
+        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 space-y-3 bg-[#1A1D24] border border-zinc-800 rounded-xl">
+          <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Đang tải thông tin nhà hàng...</span>
         </div>
       </AdminLayout>
     );
@@ -212,44 +211,68 @@ export default function AdminRestaurantDetail() {
 
   return (
     <AdminLayout title={restaurant.name} subtitle={`Quản lý nhà hàng của ${restaurant.ownerId?.fullName || 'N/A'}`}>
-      <div className="detail-header">
-        <button className="btn-back" onClick={() => navigate('/admin/restaurants')}>
-          <ArrowLeft size={16} /> Quay lại danh sách
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center mb-6">
+        <button 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-lg transition duration-150 self-start sm:self-auto" 
+          onClick={() => navigate('/admin/restaurants')}
+        >
+          <ArrowLeft size={14} /> Quay lại danh sách
         </button>
-        <div className="detail-actions">
+        <div className="flex flex-wrap gap-2 items-center">
           {isDeleted ? (
-            <button className="btn-success" onClick={() => setActiveModal('restore')}>
-              <Undo size={16} /> Khôi phục nhà hàng
+            <button 
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition" 
+              onClick={() => setActiveModal('restore')}
+            >
+              <Undo size={14} /> Khôi phục nhà hàng
             </button>
           ) : (
             <>
               {restaurant.approvalStatus === 'pending' && (
                 <>
-                  <button className="btn-success" onClick={() => setActiveModal('approve')}>
-                    <CheckCircle size={16} /> Duyệt hoạt động
+                  <button 
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition" 
+                    onClick={() => setActiveModal('approve')}
+                  >
+                    <CheckCircle size={14} /> Duyệt hoạt động
                   </button>
-                  <button className="btn-danger" onClick={() => setActiveModal('reject')}>
-                    <XCircle size={16} /> Từ chối duyệt
+                  <button 
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg transition" 
+                    onClick={() => setActiveModal('reject')}
+                  >
+                    <XCircle size={14} /> Từ chối duyệt
                   </button>
                 </>
               )}
               {restaurant.approvalStatus === 'approved' && (
-                <button className="btn-warning" onClick={() => setActiveModal('suspend')}>
-                  <PauseCircle size={16} /> Tạm ngưng
+                <button 
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs rounded-lg transition" 
+                  onClick={() => setActiveModal('suspend')}
+                >
+                  <PauseCircle size={14} /> Tạm ngưng
                 </button>
               )}
               {restaurant.approvalStatus === 'suspended' && (
-                <button className="btn-success" onClick={() => setActiveModal('unsuspend')}>
-                  <Play size={16} /> Gỡ tạm ngưng
+                <button 
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition" 
+                  onClick={() => setActiveModal('unsuspend')}
+                >
+                  <Play size={14} /> Gỡ tạm ngưng
                 </button>
               )}
               {restaurant.approvalStatus === 'rejected' && (
-                <button className="btn-success" onClick={() => setActiveModal('approve')}>
-                  <CheckCircle size={16} /> Duyệt lại
+                <button 
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition" 
+                  onClick={() => setActiveModal('approve')}
+                >
+                  <CheckCircle size={14} /> Duyệt lại
                 </button>
               )}
-              <button className="btn-danger" onClick={() => setActiveModal('delete')}>
-                <Trash2 size={16} /> Xóa nhà hàng
+              <button 
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg transition" 
+                onClick={() => setActiveModal('delete')}
+              >
+                <Trash2 size={14} /> Xóa nhà hàng
               </button>
             </>
           )}
@@ -257,119 +280,132 @@ export default function AdminRestaurantDetail() {
       </div>
 
       {/* Tabs list */}
-      <div className="detail-tabs">
+      <div className="flex border-b border-zinc-800 mb-6 overflow-x-auto whitespace-nowrap scrollbar-none gap-2">
         <button
-          className={`detail-tab-btn ${activeTab === 'info' ? 'active' : ''}`}
+          className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold tracking-wide uppercase border-b-2 transition duration-200 outline-none ${
+            activeTab === 'info' 
+              ? 'border-amber-500 text-amber-500' 
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
           onClick={() => setActiveTab('info')}
         >
-          <Store size={15} /> Thông tin
+          <Store size={14} /> Thông tin
         </button>
         <button
-          className={`detail-tab-btn ${activeTab === 'financial' ? 'active' : ''}`}
+          className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold tracking-wide uppercase border-b-2 transition duration-200 outline-none ${
+            activeTab === 'financial' 
+              ? 'border-amber-500 text-amber-500' 
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
           onClick={() => setActiveTab('financial')}
         >
-          <CreditCard size={15} /> Tài chính & Pháp lý
+          <CreditCard size={14} /> Tài chính & Pháp lý
         </button>
         <button
-          className={`detail-tab-btn ${activeTab === 'logs' ? 'active' : ''}`}
+          className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold tracking-wide uppercase border-b-2 transition duration-200 outline-none ${
+            activeTab === 'logs' 
+              ? 'border-amber-500 text-amber-500' 
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
           onClick={() => setActiveTab('logs')}
         >
-          <History size={15} /> Lịch sử hoạt động
+          <History size={14} /> Lịch sử hoạt động
         </button>
       </div>
 
       {/* Tab Contents */}
-      <div className="tab-content-wrapper">
+      <div className="space-y-6">
         
         {/* Tab 1: INFO */}
         {activeTab === 'info' && (
-          <div className="detail-grid">
-            <div className="detail-col">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
               {/* Basic Info */}
-              <div className="detail-card">
-                <h3 className="card-title">Thông tin cơ bản</h3>
-                <div className="info-list">
-                  <div className="info-item">
-                    <span className="info-label">Trạng thái duyệt:</span>
-                    <span className="info-value">
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Thông tin cơ bản</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Trạng thái duyệt</span>
+                    <span className="text-sm font-medium">
                       <RestaurantStatusBadge status={isDeleted ? 'deleted' : restaurant.approvalStatus} />
                     </span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Ghim nổi bật:</span>
-                    <span className="info-value" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Ghim nổi bật</span>
+                    <span className="text-sm font-medium flex items-center gap-1">
                       {restaurant.featured ? (
                         <>
                           <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                          <span style={{ color: '#fbbf24', fontWeight: 600 }}>Nổi bật</span>
+                          <span className="text-amber-550 font-semibold">Nổi bật</span>
                         </>
                       ) : (
-                        <span style={{ color: 'var(--color-faded-stone)' }}>Không</span>
+                        <span className="text-zinc-500">Không</span>
                       )}
                     </span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Tên nhà hàng:</span>
-                    <span className="info-value bold">{restaurant.name}</span>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-zinc-500">Tên nhà hàng</span>
+                    <span className="text-sm font-semibold text-zinc-200">{restaurant.name}</span>
                   </div>
-                  <div className="info-item full">
-                    <span className="info-label">Mô tả:</span>
-                    <span className="info-value text-muted">{restaurant.description}</span>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-zinc-500">Mô tả</span>
+                    <span className="text-xs text-zinc-400 leading-relaxed">{restaurant.description}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Phân khúc giá:</span>
-                    <span className="info-value capitalize">{restaurant.priceRange}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Phân khúc giá</span>
+                    <span className="text-sm text-zinc-200 capitalize font-medium">{restaurant.priceRange}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Sức chứa tối đa:</span>
-                    <span className="info-value">{restaurant.capacity} khách</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Sức chứa tối đa</span>
+                    <span className="text-sm text-zinc-200 font-medium">{restaurant.capacity} khách</span>
                   </div>
-                  <div className="info-item full">
-                    <span className="info-label">Loại ẩm thực:</span>
-                    <span className="info-value">
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-zinc-500">Loại ẩm thực</span>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
                       {restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0 ? (
-                        <div className="tags-container">
-                          {restaurant.cuisineTypes.map((tag) => (
-                            <span key={tag} className="tag-item">{tag}</span>
-                          ))}
-                        </div>
-                      ) : 'Chưa cập nhật'}
-                    </span>
+                        restaurant.cuisineTypes.map((tag) => (
+                          <span key={tag} className="px-2 py-0.5 bg-zinc-800 border border-zinc-700/50 rounded text-xs text-zinc-300">{tag}</span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-zinc-500">Chưa cập nhật</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Contact & Location */}
-              <div className="detail-card">
-                <h3 className="card-title">Liên hệ & Địa chỉ</h3>
-                <div className="info-list">
-                  <div className="info-item">
-                    <span className="info-label"><Phone size={14} /> Điện thoại:</span>
-                    <span className="info-value">{restaurant.phoneNumber}</span>
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Liên hệ & Địa chỉ</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500 flex items-center gap-1"><Phone size={12} /> Điện thoại</span>
+                    <span className="text-sm font-mono text-zinc-200">{restaurant.phoneNumber}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label"><Mail size={14} /> Email:</span>
-                    <span className="info-value">{restaurant.email}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500 flex items-center gap-1"><Mail size={12} /> Email</span>
+                    <span className="text-sm text-zinc-200">{restaurant.email}</span>
                   </div>
-                  <div className="info-item full">
-                    <span className="info-label"><MapPin size={14} /> Địa chỉ chi tiết:</span>
-                    <span className="info-value">{restaurant.address?.fullAddress}</span>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-zinc-500 flex items-center gap-1"><MapPin size={12} /> Địa chỉ chi tiết</span>
+                    <span className="text-sm text-zinc-300 leading-relaxed">{restaurant.address?.fullAddress}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Tỉnh / Thành phố:</span>
-                    <span className="info-value">{restaurant.address?.city}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Tỉnh / Thành phố</span>
+                    <span className="text-sm text-zinc-200">{restaurant.address?.city}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Quận / Huyện:</span>
-                    <span className="info-value">{restaurant.address?.district}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Quận / Huyện</span>
+                    <span className="text-sm text-zinc-200">{restaurant.address?.district}</span>
                   </div>
                 </div>
               </div>
 
               {/* Operating Hours */}
-              <div className="detail-card">
-                <h3 className="card-title"><Clock size={14} /> Giờ hoạt động</h3>
-                <div className="operating-hours-table">
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide flex items-center gap-1.5"><Clock size={14} /> Giờ hoạt động</h3>
+                <div className="divide-y divide-zinc-800/60 max-w-md">
                   {restaurant.operatingHours ? (
                     Object.keys(restaurant.operatingHours).map((day) => {
                       const hours = restaurant.operatingHours[day];
@@ -378,11 +414,11 @@ export default function AdminRestaurantDetail() {
                         thursday: 'Thứ Năm', friday: 'Thứ Sáu', saturday: 'Thứ Bảy', sunday: 'Chủ Nhật'
                       };
                       return (
-                        <div key={day} className="hours-row">
-                          <span className="day-name">{dayLabels[day] || day}</span>
-                          <span className="hours-time">
+                        <div key={day} className="flex justify-between items-center py-2 text-xs">
+                          <span className="font-semibold text-zinc-400">{dayLabels[day] || day}</span>
+                          <span className="text-zinc-200 font-mono">
                             {hours.closed ? (
-                              <span className="closed-tag">Đóng cửa</span>
+                              <span className="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded">Đóng cửa</span>
                             ) : (
                               `${hours.open} - ${hours.close}`
                             )}
@@ -391,122 +427,134 @@ export default function AdminRestaurantDetail() {
                       );
                     })
                   ) : (
-                    <p style={{ fontSize: '13px', color: 'var(--color-faded-stone)' }}>Chưa cập nhật</p>
+                    <p className="text-xs text-zinc-500">Chưa cập nhật</p>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="detail-col">
+            <div className="space-y-6">
               {/* Owner Profile */}
-              <div className="detail-card">
-                <h3 className="card-title">Chủ sở hữu</h3>
-                <div className="owner-profile">
-                  <div className="owner-avatar">
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Chủ sở hữu</h3>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center text-lg font-bold text-amber-500 uppercase">
                     {restaurant.ownerId?.fullName?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <div className="owner-details">
-                    <div className="owner-name-large">{restaurant.ownerId?.fullName || 'N/A'}</div>
-                    <div className="owner-email">{restaurant.ownerId?.email}</div>
-                    <div className="owner-phone">{restaurant.ownerId?.phoneNumber || 'Chưa cập nhật SĐT'}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-zinc-150 truncate">{restaurant.ownerId?.fullName || 'N/A'}</div>
+                    <div className="text-xs text-zinc-400 truncate">{restaurant.ownerId?.email}</div>
+                    <div className="text-xs text-zinc-500 mt-1 font-mono">{restaurant.ownerId?.phoneNumber || 'Chưa cập nhật SĐT'}</div>
                   </div>
                 </div>
               </div>
 
               {/* Stats overview */}
-              <div className="detail-card">
-                <h3 className="card-title">Thống kê hoạt động</h3>
-                <div className="stats-mini-grid">
-                  <div className="stat-box">
-                    <span className="stat-label">Tổng Booking</span>
-                    <span className="stat-value">{restaurant.stats?.totalBookings || 0}</span>
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Thống kê hoạt động</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-[#13161C] border border-zinc-800/60 p-3 rounded-lg flex flex-col">
+                    <span className="text-[10px] text-zinc-550 uppercase font-semibold">Tổng Booking</span>
+                    <span className="text-lg font-bold text-zinc-200 mt-0.5">{restaurant.stats?.totalBookings || 0}</span>
                   </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Đã hoàn thành</span>
-                    <span className="stat-value green">{restaurant.stats?.completedBookings || 0}</span>
+                  <div className="bg-[#13161C] border border-zinc-800/60 p-3 rounded-lg flex flex-col">
+                    <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đã hoàn thành</span>
+                    <span className="text-lg font-bold text-emerald-400 mt-0.5">{restaurant.stats?.completedBookings || 0}</span>
                   </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Đã hủy</span>
-                    <span className="stat-value red">{restaurant.stats?.cancelledBookings || 0}</span>
+                  <div className="bg-[#13161C] border border-zinc-800/60 p-3 rounded-lg flex flex-col">
+                    <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đã hủy</span>
+                    <span className="text-lg font-bold text-rose-450 mt-0.5">{restaurant.stats?.cancelledBookings || 0}</span>
                   </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Đánh giá TB</span>
-                    <span className="stat-value amber">{restaurant.stats?.averageRating?.toFixed(1) || '0.0'} ⭐</span>
+                  <div className="bg-[#13161C] border border-zinc-800/60 p-3 rounded-lg flex flex-col">
+                    <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đánh giá TB</span>
+                    <span className="text-lg font-bold text-amber-500 mt-0.5 flex items-center gap-1">
+                      {restaurant.stats?.averageRating?.toFixed(1) || '0.0'} <span className="text-sm">⭐</span>
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Moderation Warnings */}
               {(restaurant.rejectionReason || restaurant.suspensionReason || restaurant.deleteReason) && (
-                <div className="detail-card warning-card">
-                  <h3 className="card-title" style={{ color: '#fb923c' }}>Ghi chú Kiểm duyệt</h3>
-                  {restaurant.rejectionReason && (
-                    <div className="note-box reject">
-                      <strong>Lý do từ chối duyệt:</strong> {restaurant.rejectionReason}
-                    </div>
-                  )}
-                  {restaurant.suspensionReason && (
-                    <div className="note-box suspend">
-                      <strong>Lý do tạm ngưng:</strong> {restaurant.suspensionReason}
-                    </div>
-                  )}
-                  {restaurant.deleteReason && (
-                    <div className="note-box delete">
-                      <strong>Lý do xóa nhà hàng:</strong> {restaurant.deleteReason}
-                    </div>
-                  )}
+                <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg border-l-4 border-l-orange-500">
+                  <h3 className="text-sm font-bold text-orange-400 mb-3 uppercase tracking-wide">Ghi chú Kiểm duyệt</h3>
+                  <div className="space-y-2.5 text-xs">
+                    {restaurant.rejectionReason && (
+                      <div className="p-2.5 bg-rose-500/5 border border-rose-550/10 rounded-lg text-rose-350">
+                        <strong className="block mb-0.5">Lý do từ chối duyệt:</strong> {restaurant.rejectionReason}
+                      </div>
+                    )}
+                    {restaurant.suspensionReason && (
+                      <div className="p-2.5 bg-orange-500/5 border border-orange-500/10 rounded-lg text-orange-350">
+                        <strong className="block mb-0.5">Lý do tạm ngưng:</strong> {restaurant.suspensionReason}
+                      </div>
+                    )}
+                    {restaurant.deleteReason && (
+                      <div className="p-2.5 bg-red-500/5 border border-red-500/10 rounded-lg text-red-350">
+                        <strong className="block mb-0.5">Lý do xóa nhà hàng:</strong> {restaurant.deleteReason}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Admin configuration settings */}
               {!isDeleted && (
-                <div className="detail-card admin-config-card">
-                  <h3 className="card-title">Cấu hình Admin</h3>
+                <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                  <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Cấu hình Admin</h3>
                   {!isEditingSettings ? (
-                    <div className="config-view-mode">
-                      <div className="info-item">
-                        <span className="info-label">Tỷ lệ hoa hồng:</span>
-                        <span className="info-value bold amber">{restaurant.commissionRate ?? 10}%</span>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-zinc-500">Tỷ lệ hoa hồng:</span>
+                        <span className="font-bold text-amber-550">{restaurant.commissionRate ?? 10}%</span>
                       </div>
-                      <div className="info-item">
-                        <span className="info-label">Ghi nhận nổi bật:</span>
-                        <span className="info-value">{restaurant.featured ? 'Đang Bật' : 'Đang Tắt'}</span>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-zinc-500">Ghi nhận nổi bật:</span>
+                        <span className="font-semibold text-zinc-300">{restaurant.featured ? 'Đang Bật' : 'Đang Tắt'}</span>
                       </div>
                       <button 
-                        className="btn-primary" 
-                        style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}
+                        className="w-full flex items-center justify-center py-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-black font-semibold text-xs rounded-lg transition"
                         onClick={() => setIsEditingSettings(true)}
                       >
                         Chỉnh sửa cấu hình
                       </button>
                     </div>
                   ) : (
-                    <div className="config-edit-mode" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div className="form-group">
-                        <label>Tỷ lệ hoa hồng (%)</label>
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">Tỷ lệ hoa hồng (%)</label>
                         <input
                           type="number"
-                          className="modal-input"
+                          className="w-full bg-[#13161C] border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-205 focus:outline-none focus:ring-1 focus:ring-amber-500"
                           min="0"
                           max="100"
                           value={editCommissionRate}
                           onChange={(e) => setEditCommissionRate(Number(e.target.value))}
                         />
                       </div>
-                      <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                      <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           id="featured-check"
                           checked={editFeatured}
                           onChange={(e) => setEditFeatured(e.target.checked)}
-                          style={{ width: 'auto', cursor: 'pointer' }}
+                          className="w-4 h-4 rounded border-zinc-850 bg-zinc-900 text-amber-550 focus:ring-amber-500 cursor-pointer"
                         />
-                        <label htmlFor="featured-check" style={{ cursor: 'pointer' }}>Ghim nổi bật (Featured)</label>
+                        <label htmlFor="featured-check" className="text-xs text-zinc-300 font-semibold cursor-pointer">Ghim nổi bật (Featured)</label>
                       </div>
-                      <div className="form-actions" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                        <button className="btn-cancel" style={{ flex: 1 }} onClick={() => { setIsEditingSettings(false); setEditCommissionRate(restaurant.commissionRate ?? 10); setEditFeatured(restaurant.featured ?? false); }}>Hủy</button>
-                        <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleSaveSettings} disabled={actionLoading}>
-                          {actionLoading ? 'Đang lưu...' : 'Lưu lại'}
+                      <div className="flex items-center gap-2 pt-2">
+                        <button 
+                          className="flex-1 py-2 border border-zinc-800 hover:bg-zinc-850 text-zinc-300 font-semibold text-xs rounded-lg transition" 
+                          onClick={() => { setIsEditingSettings(false); setEditCommissionRate(restaurant.commissionRate ?? 10); setEditFeatured(restaurant.featured ?? false); }}
+                        >
+                          Hủy
+                        </button>
+                        <button 
+                          className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-lg transition" 
+                          onClick={handleSaveSettings} 
+                          disabled={actionLoading}
+                        >
+                          {actionLoading ? 'Lưu...' : 'Lưu lại'}
                         </button>
                       </div>
                     </div>
@@ -516,13 +564,15 @@ export default function AdminRestaurantDetail() {
 
               {/* Gallery Images */}
               {restaurant.images && restaurant.images.length > 0 && (
-                <div className="detail-card">
-                  <h3 className="card-title">Hình ảnh nhà hàng</h3>
-                  <div className="images-preview-grid">
+                <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                  <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Hình ảnh nhà hàng</h3>
+                  <div className="grid grid-cols-2 gap-2.5">
                     {restaurant.images.map((img, idx) => (
-                      <div key={idx} className="detail-image-preview">
-                        <img src={img.url} alt="" />
-                        {img.isPrimary && <span className="primary-tag">Chính</span>}
+                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 group">
+                        <img src={img.url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        {img.isPrimary && (
+                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-amber-500 text-black text-[9px] font-bold uppercase rounded">Chính</span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -534,86 +584,89 @@ export default function AdminRestaurantDetail() {
 
         {/* Tab 2: FINANCIAL & LEGAL */}
         {activeTab === 'financial' && (
-          <div className="detail-grid">
-            <div className="detail-col">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
               {/* Financial Balance Info */}
-              <div className="detail-card">
-                <h3 className="card-title"><Landmark size={15} /> Tổng quan tài chính</h3>
-                <div className="info-list">
-                  <div className="info-item">
-                    <span className="info-label">Số dư hiện tại (Balance):</span>
-                    <span className="info-value bold green">{restaurant.balance?.toLocaleString('vi-VN')} đ</span>
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide flex items-center gap-1.5"><Landmark size={14} /> Tổng quan tài chính</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Số dư hiện tại (Balance)</span>
+                    <span className="text-base font-bold text-emerald-450">{restaurant.balance?.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Doanh thu tổng:</span>
-                    <span className="info-value">{restaurant.totalRevenue?.toLocaleString('vi-VN')} đ</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Doanh thu tổng</span>
+                    <span className="text-sm text-zinc-200 font-semibold">{restaurant.totalRevenue?.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Hoa hồng đã thu:</span>
-                    <span className="info-value bold amber">{restaurant.totalCommission?.toLocaleString('vi-VN')} đ</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Hoa hồng đã thu</span>
+                    <span className="text-sm text-amber-500 font-bold">{restaurant.totalCommission?.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Tỷ lệ chiết khấu:</span>
-                    <span className="info-value">{restaurant.commissionRate ?? 10}%</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Tỷ lệ chiết khấu</span>
+                    <span className="text-sm text-zinc-300 font-semibold">{restaurant.commissionRate ?? 10}%</span>
                   </div>
                 </div>
               </div>
 
               {/* Bank Transfer Details */}
-              <div className="detail-card">
-                <h3 className="card-title">Thông tin tài khoản ngân hàng</h3>
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Thông tin tài khoản ngân hàng</h3>
                 {restaurant.bankInfo && restaurant.bankInfo.bankName ? (
-                  <div className="info-list">
-                    <div className="info-item">
-                      <span className="info-label">Ngân hàng nhận:</span>
-                      <span className="info-value bold">{restaurant.bankInfo.bankName}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-zinc-500">Ngân hàng nhận</span>
+                      <span className="text-sm font-bold text-zinc-200">{restaurant.bankInfo.bankName}</span>
                     </div>
-                    <div className="info-item">
-                      <span className="info-label">Số tài khoản:</span>
-                      <span className="info-value bold amber">{restaurant.bankInfo.accountNumber}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-zinc-500">Số tài khoản</span>
+                      <span className="text-sm font-bold text-amber-500 font-mono">{restaurant.bankInfo.accountNumber}</span>
                     </div>
-                    <div className="info-item">
-                      <span className="info-label">Chủ tài khoản:</span>
-                      <span className="info-value capitalize">{restaurant.bankInfo.accountHolder}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-zinc-500">Chủ tài khoản</span>
+                      <span className="text-sm font-semibold text-zinc-200 capitalize">{restaurant.bankInfo.accountHolder}</span>
                     </div>
-                    <div className="info-item full">
-                      <span className="info-label">Chi nhánh ngân hàng:</span>
-                      <span className="info-value">{restaurant.bankInfo.branch || 'Chưa cập nhật'}</span>
+                    <div className="flex flex-col gap-1 sm:col-span-2">
+                      <span className="text-xs text-zinc-500">Chi nhánh ngân hàng</span>
+                      <span className="text-sm text-zinc-300">{restaurant.bankInfo.branch || 'Chưa cập nhật'}</span>
                     </div>
                   </div>
                 ) : (
-                  <p style={{ fontSize: '13px', color: 'var(--color-faded-stone)', padding: '10px 0' }}>Chủ nhà hàng chưa thiết lập thông tin ngân hàng rút tiền.</p>
+                  <p className="text-xs text-zinc-500 italic py-2">Chủ nhà hàng chưa thiết lập thông tin ngân hàng rút tiền.</p>
                 )}
               </div>
             </div>
 
-            <div className="detail-col">
+            <div className="space-y-6">
               {/* Business License & Tax Code */}
-              <div className="detail-card">
-                <h3 className="card-title"><FileText size={15} /> Hồ sơ pháp lý</h3>
-                <div className="info-list">
-                  <div className="info-item">
-                    <span className="info-label">Mã số thuế doanh nghiệp:</span>
-                    <span className="info-value bold">{restaurant.taxCode || 'Chưa cập nhật'}</span>
+              <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+                <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide flex items-center gap-1.5"><FileText size={14} /> Hồ sơ pháp lý</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Mã số thuế doanh nghiệp</span>
+                    <span className="text-sm font-bold text-zinc-200 font-mono">{restaurant.taxCode || 'Chưa cập nhật'}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">Số giấy phép kinh doanh:</span>
-                    <span className="info-value bold">{restaurant.businessLicense?.number || 'Chưa cập nhật'}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-500">Số giấy phép kinh doanh</span>
+                    <span className="text-sm font-bold text-zinc-200 font-mono">{restaurant.businessLicense?.number || 'Chưa cập nhật'}</span>
                   </div>
                   {restaurant.businessLicense?.verifiedAt && (
-                    <div className="info-item full">
-                      <span className="info-label">Ngày xác thực GPKD:</span>
-                      <span className="info-value text-muted">{new Date(restaurant.businessLicense.verifiedAt).toLocaleDateString('vi-VN')}</span>
+                    <div className="flex flex-col gap-1 sm:col-span-2">
+                      <span className="text-xs text-zinc-500">Ngày xác thực GPKD</span>
+                      <span className="text-sm text-zinc-400 font-mono">{new Date(restaurant.businessLicense.verifiedAt).toLocaleDateString('vi-VN')}</span>
                     </div>
                   )}
                   {restaurant.businessLicense?.imageUrl && (
-                    <div className="info-item full" style={{ flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
-                      <span className="info-label">Ảnh chụp Giấy phép kinh doanh:</span>
-                      <div className="business-license-img-wrap" onClick={() => setShowLicenseViewer(true)}>
-                        <img src={restaurant.businessLicense.imageUrl} alt="GPKD" />
-                        <div className="img-overlay">
-                          <Eye size={20} />
-                          <span>Click xem ảnh lớn</span>
+                    <div className="flex flex-col gap-1.5 sm:col-span-2">
+                      <span className="text-xs text-zinc-500">Ảnh chụp Giấy phép kinh doanh</span>
+                      <div 
+                        className="relative max-w-sm rounded-lg overflow-hidden border border-zinc-800/80 bg-zinc-900 group cursor-pointer" 
+                        onClick={() => setShowLicenseViewer(true)}
+                      >
+                        <img src={restaurant.businessLicense.imageUrl} alt="GPKD" className="w-full h-auto object-cover max-h-56 group-hover:brightness-90 transition" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition duration-150 gap-1.5">
+                          <Eye size={20} className="text-amber-500" />
+                          <span className="text-[11px] text-zinc-200 font-semibold uppercase tracking-wider">Click xem ảnh lớn</span>
                         </div>
                       </div>
                     </div>
@@ -626,8 +679,8 @@ export default function AdminRestaurantDetail() {
 
         {/* Tab 3: ACTIVITY LOGS */}
         {activeTab === 'logs' && (
-          <div className="detail-card">
-            <h3 className="card-title">Nhật ký hoạt động của nhà hàng</h3>
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+            <h3 className="text-sm font-bold text-zinc-200 mb-6 pb-2 border-b border-zinc-805 uppercase tracking-wide">Nhật ký hoạt động của nhà hàng</h3>
             <ActivityTimeline
               logs={logs}
               loading={logsLoading}
@@ -640,14 +693,22 @@ export default function AdminRestaurantDetail() {
 
       {/* Fullscreen business license image viewer */}
       {showLicenseViewer && restaurant.businessLicense?.imageUrl && (
-        <div className="modal-overlay license-viewer-overlay" onClick={() => setShowLicenseViewer(false)}>
-          <div className="license-viewer-box" onClick={(e) => e.stopPropagation()}>
-            <div className="license-viewer-header">
-              <h4>Giấy phép kinh doanh - {restaurant.name}</h4>
-              <button onClick={() => setShowLicenseViewer(false)}>Đóng (X)</button>
+        <div 
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200" 
+          onClick={() => setShowLicenseViewer(false)}
+        >
+          <div className="relative max-w-4xl w-full flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-bold text-zinc-100">Giấy phép kinh doanh - {restaurant.name}</h4>
+              <button 
+                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-lg transition"
+                onClick={() => setShowLicenseViewer(false)}
+              >
+                Đóng
+              </button>
             </div>
-            <div className="license-viewer-img-container">
-              <img src={restaurant.businessLicense.imageUrl} alt="GPKD Fullscreen" />
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-2 flex items-center justify-center max-h-[80vh]">
+              <img src={restaurant.businessLicense.imageUrl} alt="GPKD Fullscreen" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
             </div>
           </div>
         </div>

@@ -1,48 +1,16 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 
-/**
- * AdminProtectedRoute — Bảo vệ route admin.
- * - Loading: spinner
- * - Chưa đăng nhập: redirect → /auth/login
- * - Đã đăng nhập nhưng không phải admin: redirect → /
- * - Admin: render children
- */
 export default function AdminProtectedRoute({ children }) {
   const { user, loading, isAuthenticated } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--surface-0)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px',
-            color: 'var(--color-faded-stone)',
-          }}
-        >
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              border: '2px solid rgba(216,203,184,0.15)',
-              borderTopColor: 'var(--color-amber-glow)',
-              borderRadius: '50%',
-              animation: 'spin 0.9s linear infinite',
-            }}
-          />
-          <span style={{ fontSize: '13px' }}>Đang tải...</span>
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-10 w-10 rounded-full border-2 border-border border-t-primary animate-spin" />
+          <span className="text-sm font-medium">Đang tải...</span>
         </div>
       </div>
     );

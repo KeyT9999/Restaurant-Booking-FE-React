@@ -53,6 +53,8 @@ export function RestaurantProvider({ children }) {
         syncRestaurantId(validQueryId);
       } else if (validSavedId) {
         syncRestaurantId(validSavedId);
+      } else if (list.length > 0) {
+        syncRestaurantId(list[0].id);
       } else {
         syncRestaurantId(null);
       }

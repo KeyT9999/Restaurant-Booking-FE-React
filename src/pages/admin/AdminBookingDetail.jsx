@@ -5,9 +5,8 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, CalendarDays, Clock, Users, User, Store,
-  MapPin, Phone, Mail, CheckCircle, Save,
+  MapPin, Phone, Mail, Save,
 } from 'lucide-react';
-import './AdminBookings.css';
 
 const STATUSES = [
   { value: 'pending', label: 'Chờ xác nhận' },
@@ -29,10 +28,6 @@ export default function AdminBookingDetail() {
   const [internalNotes, setInternalNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchDetail();
-  }, [id]);
-
   const fetchDetail = async () => {
     setLoading(true);
     try {
@@ -41,12 +36,17 @@ export default function AdminBookingDetail() {
       setStatus(res.data.status);
       setInternalNotes(res.data.internalNotes || '');
     } catch (err) {
-      toast.error('Không thể tải chi tiết đặt bàn');
+      toast.error(err.message || 'Không thể tải chi tiết đặt bàn');
       navigate('/admin/bookings');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDetail();
+  }, [id]);
+
 
   const handleUpdateStatus = async () => {
     if (status === booking.status && internalNotes === (booking.internalNotes || '')) {
@@ -70,9 +70,9 @@ export default function AdminBookingDetail() {
   if (loading) {
     return (
       <AdminLayout title="Chi tiết Đặt bàn">
-        <div className="admin-loading">
-          <div className="admin-spinner" />
-          <span>Đang tải thông tin...</span>
+        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 space-y-3 bg-[#1A1D24] border border-zinc-800 rounded-xl">
+          <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Đang tải thông tin...</span>
         </div>
       </AdminLayout>
     );
@@ -81,53 +81,60 @@ export default function AdminBookingDetail() {
   if (!booking) return null;
 
   const getStatusBadge = (s) => {
-    const map = {
-      pending:   { label: 'Chờ xác nhận', cls: 'pending' },
-      confirmed: { label: 'Đã xác nhận', cls: 'confirmed' },
-      completed: { label: 'Hoàn thành',   cls: 'completed' },
-      cancelled: { label: 'Đã hủy',       cls: 'cancelled' },
-      no_show:   { label: 'Không đến',    cls: 'no-show' },
-    };
-    const mapped = map[s] || { label: s, cls: '' };
-    return <span className={`status-badge ${mapped.cls}`}>{mapped.label}</span>;
+    switch (s) {
+      case 'pending':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Chờ xác nhận</span>;
+      case 'confirmed':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-450 border border-blue-500/20">Đã xác nhận</span>;
+      case 'completed':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-450 border border-emerald-500/20">Hoàn thành</span>;
+      case 'cancelled':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-450 border border-rose-500/20">Đã hủy</span>;
+      case 'no_show':
+      default:
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-500/10 text-zinc-400 border border-zinc-550/20">Không đến</span>;
+    }
   };
 
   return (
     <AdminLayout title="Chi tiết Đặt bàn" subtitle={`Mã: ${booking.id.substring(0, 8).toUpperCase()}`}>
-      <div className="detail-header">
-        <button className="btn-back" onClick={() => navigate('/admin/bookings')}>
-          <ArrowLeft size={16} /> Quay lại danh sách
+      <div className="mb-6">
+        <button 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-lg transition duration-150" 
+          onClick={() => navigate('/admin/bookings')}
+        >
+          <ArrowLeft size={14} /> Quay lại danh sách
         </button>
       </div>
 
-      <div className="detail-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
-        <div className="detail-col">
+        <div className="lg:col-span-2 space-y-6">
           {/* Booking Info */}
-          <div className="detail-card">
-            <h3 className="card-title">Thông tin Đặt bàn</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <span className="info-label"><CalendarDays size={14} /> Ngày đặt:</span>
-                <span className="info-value bold">
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+            <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Thông tin Đặt bàn</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><CalendarDays size={12} /> Ngày đặt</span>
+                <span className="text-sm font-semibold text-zinc-200">
                   {new Date(booking.bookingDate).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
               </div>
-              <div className="info-item">
-                <span className="info-label"><Clock size={14} /> Giờ đặt:</span>
-                <span className="info-value bold amber">{booking.bookingTime}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><Clock size={12} /> Giờ đặt</span>
+                <span className="text-sm font-semibold text-amber-500 font-mono">{booking.bookingTime}</span>
               </div>
-              <div className="info-item">
-                <span className="info-label"><Users size={14} /> Số lượng khách:</span>
-                <span className="info-value">{booking.numberOfGuests} người</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><Users size={12} /> Số lượng khách</span>
+                <span className="text-sm text-zinc-200 font-medium">{booking.numberOfGuests} người</span>
               </div>
-              <div className="info-item">
-                <span className="info-label">Dịp đặc biệt (Occasion):</span>
-                <span className="info-value capitalize">{booking.occasion || 'Không có'}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500">Dịp đặc biệt (Occasion)</span>
+                <span className="text-sm text-zinc-200 font-medium capitalize">{booking.occasion || 'Không có'}</span>
               </div>
-              <div className="info-item full">
-                <span className="info-label">Yêu cầu đặc biệt:</span>
-                <span className="info-value text-muted">
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-xs text-zinc-500">Yêu cầu đặc biệt</span>
+                <span className="text-xs text-zinc-400 bg-zinc-900/40 border border-zinc-805 p-2.5 rounded-lg leading-relaxed">
                   {booking.specialRequests || 'Không có yêu cầu đặc biệt'}
                 </span>
               </div>
@@ -135,35 +142,35 @@ export default function AdminBookingDetail() {
           </div>
 
           {/* Customer Info */}
-          <div className="detail-card">
-            <h3 className="card-title">Thông tin Khách hàng</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <span className="info-label"><User size={14} /> Tên khách hàng:</span>
-                <span className="info-value bold">{booking.customerName}</span>
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+            <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Thông tin Khách hàng</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><User size={12} /> Tên khách hàng</span>
+                <span className="text-sm font-bold text-zinc-200">{booking.customerName}</span>
               </div>
-              <div className="info-item">
-                <span className="info-label"><Phone size={14} /> Điện thoại:</span>
-                <span className="info-value">{booking.customerPhone}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><Phone size={12} /> Điện thoại</span>
+                <span className="text-sm font-mono text-zinc-200">{booking.customerPhone}</span>
               </div>
-              <div className="info-item full">
-                <span className="info-label"><Mail size={14} /> Email:</span>
-                <span className="info-value">{booking.customerEmail}</span>
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><Mail size={12} /> Email</span>
+                <span className="text-sm text-zinc-300">{booking.customerEmail}</span>
               </div>
             </div>
           </div>
 
           {/* Restaurant Info */}
-          <div className="detail-card">
-            <h3 className="card-title">Nhà hàng</h3>
-            <div className="info-list">
-              <div className="info-item full">
-                <span className="info-label"><Store size={14} /> Tên nhà hàng:</span>
-                <span className="info-value bold amber">{booking.restaurantId?.name || 'N/A'}</span>
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+            <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Nhà hàng</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><Store size={12} /> Tên nhà hàng</span>
+                <span className="text-sm font-bold text-amber-500">{booking.restaurantId?.name || 'N/A'}</span>
               </div>
-              <div className="info-item full">
-                <span className="info-label"><MapPin size={14} /> Địa chỉ:</span>
-                <span className="info-value">
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-xs text-zinc-500 flex items-center gap-1"><MapPin size={12} /> Địa chỉ</span>
+                <span className="text-sm text-zinc-300 leading-relaxed">
                   {booking.restaurantId?.address?.fullAddress || 
                    `${booking.restaurantId?.address?.street || ''}, ${booking.restaurantId?.address?.district || ''}, ${booking.restaurantId?.address?.city || ''}`}
                 </span>
@@ -173,22 +180,22 @@ export default function AdminBookingDetail() {
         </div>
 
         {/* Right Column */}
-        <div className="detail-col">
+        <div className="space-y-6">
           {/* Status Update */}
-          <div className="detail-card">
-            <h3 className="card-title">Trạng thái & Cập nhật</h3>
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+            <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Trạng thái & Cập nhật</h3>
             
-            <div className="info-item" style={{ marginBottom: '20px' }}>
-              <span className="info-label">Trạng thái hiện tại:</span>
-              <span className="info-value" style={{ marginTop: '8px' }}>
+            <div className="flex flex-col gap-1 mb-5">
+              <span className="text-xs text-zinc-500">Trạng thái hiện tại:</span>
+              <span className="mt-1">
                 {getStatusBadge(booking.status)}
               </span>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label className="modal-label">Cập nhật trạng thái:</label>
+            <div className="flex flex-col gap-1.5 mb-4">
+              <label className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">Cập nhật trạng thái:</label>
               <select
-                className="select-status"
+                className="bg-[#13161C] border border-zinc-800 text-zinc-300 rounded-lg text-sm px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-amber-500"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -199,11 +206,11 @@ export default function AdminBookingDetail() {
             </div>
 
             {status !== booking.status && (
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="modal-label">Ghi chú đổi trạng thái (Gửi cho khách/nhà hàng):</label>
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">Ghi chú đổi trạng thái (Gửi cho khách/nhà hàng):</label>
                 <input
                   type="text"
-                  className="modal-input"
+                  className="bg-[#13161C] border border-zinc-800 text-zinc-200 placeholder-zinc-600 rounded-lg text-sm px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-amber-500"
                   placeholder="Vd: Quá giờ, Khách yêu cầu hủy..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -211,10 +218,10 @@ export default function AdminBookingDetail() {
               </div>
             )}
 
-            <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label className="modal-label">Ghi chú nội bộ (Chỉ Admin xem):</label>
+            <div className="flex flex-col gap-1.5 mb-5">
+              <label className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">Ghi chú nội bộ (Chỉ Admin xem):</label>
               <textarea
-                className="modal-input"
+                className="bg-[#13161C] border border-zinc-800 text-zinc-200 placeholder-zinc-600 rounded-lg text-sm px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-amber-500 resize-none"
                 rows={3}
                 placeholder="Ghi chú nội bộ cho quản trị viên..."
                 value={internalNotes}
@@ -223,33 +230,34 @@ export default function AdminBookingDetail() {
             </div>
 
             <button
-              className="btn-primary"
-              style={{ width: '100%', justifyContent: 'center' }}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-black font-bold text-xs rounded-lg transition shadow-lg shadow-amber-500/10 disabled:opacity-50"
               onClick={handleUpdateStatus}
               disabled={saving}
             >
-              <Save size={16} /> {saving ? 'Đang lưu...' : 'Lưu cập nhật'}
+              <Save size={14} /> {saving ? 'Đang lưu...' : 'Lưu cập nhật'}
             </button>
           </div>
 
           {/* Status History */}
           {booking.statusHistory && booking.statusHistory.length > 0 && (
-            <div className="detail-card">
-              <h3 className="card-title">Lịch sử trạng thái</h3>
-              <div className="history-timeline">
+            <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl p-5 shadow-lg">
+              <h3 className="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-805 uppercase tracking-wide">Lịch sử trạng thái</h3>
+              <div className="relative border-l border-zinc-800 ml-3 pl-6 space-y-5">
                 {booking.statusHistory.slice().reverse().map((hist, idx) => (
-                  <div key={idx} className="history-item">
-                    <div className="history-dot" />
-                    <div className="history-content">
-                      <div className="history-top">
+                  <div key={idx} className="relative">
+                    {/* Dot marker */}
+                    <div className="absolute -left-[30px] top-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 border border-black shadow" />
+                    
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         {getStatusBadge(hist.status)}
-                        <span className="history-date">
+                        <span className="text-[10px] text-zinc-500 font-mono">
                           {new Date(hist.changedAt).toLocaleString('vi-VN')}
                         </span>
                       </div>
                       {hist.note && (
-                        <div className="history-note">
-                          <strong>Note:</strong> {hist.note}
+                        <div className="text-xs text-zinc-400 italic bg-zinc-900/40 p-2 rounded border border-zinc-805 mt-1">
+                          <strong>Ghi chú:</strong> {hist.note}
                         </div>
                       )}
                     </div>

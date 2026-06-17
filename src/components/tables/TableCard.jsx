@@ -11,53 +11,64 @@ export default function TableCard({ table, onEdit, onDelete, onStatusChange, sta
     color: '#94a3b8'
   };
 
+  // Border hover mapping based on status
+  const statusHoverClasses = {
+    available: 'hover:border-emerald-500/40',
+    occupied: 'hover:border-rose-500/40',
+    reserved: 'hover:border-amber-500/40',
+    inactive: 'hover:border-zinc-500/40',
+    maintenance: 'hover:border-indigo-500/40',
+  };
+  const hoverClass = statusHoverClasses[table.status] || 'hover:border-primary/40';
+
   return (
-    <div className={`table-card table-card--${table.status}`}>
-      <div className="table-card-header">
-        <h3 className="table-card-number">{table.tableNumber}</h3>
+    <div className={`bg-card border border-border rounded-xl p-5 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full ${hoverClass}`}>
+      <div className="flex justify-between items-center">
+        <h3 className="font-serif text-lg font-bold text-white">Bàn {table.tableNumber}</h3>
         <span 
-          className="table-card-status-badge"
-          style={{ backgroundColor: `${currentStatusOption.color}20`, color: currentStatusOption.color }}
+          className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+          style={{ backgroundColor: `${currentStatusOption.color}15`, borderColor: `${currentStatusOption.color}30`, color: currentStatusOption.color }}
         >
           {currentStatusOption.label}
         </span>
       </div>
 
-      <div className="table-card-body">
-        <div className="table-card-info-item">
-          <Users size={16} />
-          <span>Sức chứa: <strong>{table.capacity}</strong> người</span>
+      <div className="flex flex-col gap-2.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Users size={14} className="text-muted-foreground/70" />
+          <span>Sức chứa: <strong className="text-white font-medium">{table.capacity}</strong> người</span>
         </div>
 
         {table.zone && (
-          <div className="table-card-info-item">
-            <MapPin size={16} />
-            <span>Khu vực: <strong>{table.zone}</strong></span>
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-muted-foreground/70" />
+            <span>Khu vực: <strong className="text-white font-medium">{table.zone}</strong></span>
           </div>
         )}
 
         {table.depositAmount > 0 && (
-          <div className="table-card-info-item text-amber">
-            <DollarSign size={16} />
-            <span>Đặt cọc: <strong>{formatCurrency(table.depositAmount)}</strong></span>
+          <div className="flex items-center gap-2 text-primary">
+            <DollarSign size={14} className="shrink-0" />
+            <span>Đặt cọc: <strong className="font-semibold">{formatCurrency(table.depositAmount)}</strong></span>
           </div>
         )}
 
         {table.note && (
-          <div className="table-card-info-item table-card-note">
-            <FileText size={14} />
+          <div className="mt-1 p-2 bg-[#0F1115]/50 border-l-2 border-primary/30 rounded text-xs italic text-muted-foreground flex items-start gap-1.5 leading-normal">
+            <FileText size={12} className="shrink-0 mt-0.5 text-muted-foreground/75" />
             <span>{table.note}</span>
           </div>
         )}
       </div>
 
-      <div className="table-card-actions">
-        <div className="table-status-select-wrapper">
+      <div className="mt-auto pt-3 border-t border-border/40 flex justify-between items-center gap-2">
+        <div className="flex-1">
           <select
             value={table.status}
             onChange={(e) => onStatusChange(table, e.target.value)}
-            className="table-status-select"
-            style={{ borderColor: currentStatusOption.color }}
+            className="w-full bg-[#0F1115] border text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+            style={{ borderColor: `${currentStatusOption.color}60` }}
+            aria-label="Thay đổi trạng thái bàn"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -67,12 +78,20 @@ export default function TableCard({ table, onEdit, onDelete, onStatusChange, sta
           </select>
         </div>
         
-        <div className="table-card-buttons">
-          <button className="table-action-btn" onClick={() => onEdit(table)} title="Chỉnh sửa">
-            <Edit size={15} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            className="w-8 h-8 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/50 flex items-center justify-center transition-all bg-transparent hover:bg-secondary/20 cursor-pointer"
+            onClick={() => onEdit(table)}
+            title="Chỉnh sửa"
+          >
+            <Edit size={14} />
           </button>
-          <button className="table-action-btn table-action-btn--danger" onClick={() => onDelete(table)} title="Xóa">
-            <Trash2 size={15} />
+          <button
+            className="w-8 h-8 rounded-lg border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 flex items-center justify-center transition-all bg-transparent hover:bg-secondary/20 cursor-pointer"
+            onClick={() => onDelete(table)}
+            title="Xóa"
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
