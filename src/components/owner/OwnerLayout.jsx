@@ -2,18 +2,14 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Armchair,
-  Bell,
   Building2,
   CalendarDays,
-  ChefHat,
-  CreditCard,
   Globe2,
   LayoutGrid,
   Menu,
   MessageSquare,
   Search,
   Settings,
-  Shield,
   Star,
   Ticket,
   Utensils,
@@ -25,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '../ui/utils';
+import NotificationIcon from '../notifications/NotificationIcon';
 import RestaurantSwitcher from './RestaurantSwitcher';
 
 const NAV_ITEMS = [
@@ -34,7 +31,7 @@ const NAV_ITEMS = [
   { to: '/owner/menu', icon: Utensils, label: 'Menu' },
   { to: '/owner/tables', icon: Armchair, label: 'Tables & Floor' },
   { to: '/owner/vouchers', icon: Ticket, label: 'Vouchers' },
-  { to: '/owner/dashboard', icon: Star, label: 'Reviews', muted: true },
+  { to: '/owner/reviews', icon: Star, label: 'Reviews' },
   { to: '/owner/billing', icon: Wallet, label: 'Withdrawals' },
   { to: '/owner/chat', icon: MessageSquare, label: 'Messages' },
   { to: '/owner/restaurants', icon: Settings, label: 'Settings', muted: true },
@@ -88,30 +85,6 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
             <span className="hidden rounded-full border border-border bg-secondary/20 px-3 py-1 text-xs font-medium text-muted-foreground lg:inline-flex">
               Multi-role demo
             </span>
-          </div>
-
-          <div className="hidden items-center rounded-xl border border-border bg-card/70 p-1 md:flex">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-muted-foreground hover:bg-secondary/50 hover:text-white"
-            >
-              <Utensils size={15} /> Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/owner/dashboard')}
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-background"
-            >
-              <ChefHat size={15} /> Restaurant Owner
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/admin/dashboard')}
-              className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-muted-foreground hover:bg-secondary/50 hover:text-white"
-            >
-              <Shield size={15} /> Platform Admin
-            </button>
           </div>
         </div>
       </header>
@@ -186,15 +159,7 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-10 w-10 rounded-full text-white hover:bg-secondary"
-                aria-label="Notifications"
-              >
-                <Bell size={19} />
-                <span className="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-              </Button>
+              <NotificationIcon buttonClassName="h-10 w-10 rounded-full text-white hover:bg-secondary" />
 
               <Avatar className="h-10 w-10">
                 {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.fullName || user.username} />}

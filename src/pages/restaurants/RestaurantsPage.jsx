@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
-import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Utensils, AlertTriangle, ArrowUpDown, DollarSign, Calendar } from 'lucide-react';
+import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Heart } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { useChatWidget } from '../../context/useChatWidget';
 import { Button } from '../../components/ui/button';
@@ -10,6 +10,7 @@ import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import toast from 'react-hot-toast';
+import { getFavoriteIds, addFavorite, removeFavorite } from '../../api/favoriteApi';
 
 export default function RestaurantsPage() {
   const navigate = useNavigate();
@@ -21,6 +22,60 @@ export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [cuisineTypes, setCuisineTypes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+
+  // Tải danh sách ID yêu thích nếu đã đăng nhập và là customer
+  const loadFavoriteIds = async () => {
+    if (isAuthenticated && user?.role === 'customer') {
+      try {
+        const res = await getFavoriteIds();
+        if (res && res.success) {
+          setFavoriteIds(res.data || []);
+        }
+      } catch (err) {
+        console.error('Lỗi tải ID yêu thích:', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadFavoriteIds();
+  }, [isAuthenticated, user]);
+
+  const handleToggleFavorite = async (restaurantId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để lưu nhà hàng yêu thích');
+      navigate(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
+    if (user?.role !== 'customer') {
+      toast.error('Chỉ khách hàng mới có thể lưu nhà hàng yêu thích');
+      return;
+    }
+
+    const isFav = favoriteIds.includes(restaurantId);
+    try {
+      if (isFav) {
+        const res = await removeFavorite(restaurantId);
+        if (res && res.success) {
+          setFavoriteIds(prev => prev.filter(id => id !== restaurantId));
+          toast.success('Đã xóa khỏi danh sách yêu thích');
+        }
+      } else {
+        const res = await addFavorite(restaurantId);
+        if (res && res.success) {
+          setFavoriteIds(prev => [...prev, restaurantId]);
+          toast.success('Đã thêm vào danh sách yêu thích');
+        }
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi thao tác yêu thích');
+    }
+  };
 
   // Filter states from URL
   const [search, setSearch] = useState(searchParams.get('search') || '');
@@ -334,6 +389,22 @@ export default function RestaurantsPage() {
                             NỔI BẬT
                           </Badge>
                         )}
+                        {/* Favorite Heart Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleFavorite(res.id, e)}
+                          className="absolute top-3.5 right-3.5 p-2 rounded-full bg-black/55 hover:bg-black/70 border border-white/10 text-white transition-colors cursor-pointer z-10 flex items-center justify-center"
+                          aria-label={favoriteIds.includes(res.id) ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                        >
+                          <Heart
+                            size={16}
+                            className={`transition duration-300 ${
+                              favoriteIds.includes(res.id)
+                                ? 'fill-rose-500 text-rose-500 scale-110'
+                                : 'text-zinc-300 hover:text-rose-455'
+                            }`}
+                          />
+                        </button>
                       </div>
 
                       {/* Info details block */}

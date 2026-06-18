@@ -2,14 +2,21 @@ import { Calendar, Clock, Users, ShieldAlert } from 'lucide-react';
 import { StatusBadge } from '../bookeat/StatusBadge';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
 
 const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return '0đ';
   return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 };
 
-export default function BookingCard({ booking, onViewDetail, onCancel }) {
+const formatAddress = (address) => {
+  if (!address) return 'Chưa cập nhật địa chỉ';
+  if (typeof address === 'string') return address;
+  return address.fullAddress
+    || [address.street, address.ward, address.district, address.city].filter(Boolean).join(', ')
+    || 'Chưa cập nhật địa chỉ';
+};
+
+export default function BookingCard({ booking, onViewDetail, onCancel, onReview }) {
   const {
     id,
     bookingDate,
@@ -19,6 +26,7 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
     status,
     restaurant,
     discountAmount,
+    reviewed,
   } = booking;
 
   const formattedDate = new Date(bookingDate).toLocaleDateString('vi-VN', {
@@ -64,7 +72,7 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
         </div>
 
         <p className="text-xs text-muted-foreground truncate leading-relaxed">
-          {restaurant?.address}
+          {formatAddress(restaurant?.address)}
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-1.5 text-xs text-muted-foreground">
@@ -96,6 +104,11 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
 
         {/* Buttons actions block */}
         <div className="mt-3.5 pt-3 border-t border-border/40 flex items-center gap-2 justify-end">
+          {status === 'completed' && reviewed && (
+            <span className="text-xs text-muted-foreground mr-auto font-medium">
+              ✓ Đã đánh giá
+            </span>
+          )}
           <Button
             variant="outline"
             onClick={() => onViewDetail(id)}
@@ -104,6 +117,15 @@ export default function BookingCard({ booking, onViewDetail, onCancel }) {
           >
             Xem chi tiết
           </Button>
+          {status === 'completed' && !reviewed && onReview && (
+            <Button
+              onClick={() => onReview({ ...booking, restaurantName: restaurant?.name })}
+              className="bg-[#D49653] hover:bg-[#D49653]/90 text-[#0F1115] text-xs font-bold h-8.5 px-3.5 border-none"
+              aria-label={`Viết đánh giá cho nhà hàng ${restaurant?.name}`}
+            >
+              Viết đánh giá
+            </Button>
+          )}
           {canCancel() && (
             <Button
               variant="destructive"

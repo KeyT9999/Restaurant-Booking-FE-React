@@ -6,7 +6,7 @@ import StatusBadge from '../../components/booking/StatusBadge';
 import BookingDetailModal from '../../components/owner/BookingDetailModal';
 import CancelReasonModal from '../../components/owner/CancelReasonModal';
 import ChangeTableModal from '../../components/owner/ChangeTableModal';
-import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users, Calendar, Clock } from 'lucide-react';
+import { Search, RefreshCw, Clipboard, Users, Calendar, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 
@@ -74,21 +74,63 @@ export default function OwnerBookingsPage() {
     }
   }, [selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page]);
 
+  // Main data load — only when restaurant or filter criteria really change
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (isRestaurantReady) {
-        fetchBookings();
-        fetchStats();
-      } else {
-        setBookings([]);
-        setStats(null);
-        setLoading(false);
+    if (!isRestaurantReady || !selectedRestaurantId) {
+      setBookings([]);
+      setStats(null);
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [bookingRes, statsRes] = await Promise.all([
+          getRestaurantBookings({
+            restaurantId: selectedRestaurantId,
+            status: filterStatus || undefined,
+            search: searchQuery || undefined,
+            fromDate: fromDate || undefined,
+            toDate: toDate || undefined,
+            page,
+            limit: 10,
+          }),
+          getBookingStats({ restaurantId: selectedRestaurantId, period: 'all' }),
+        ]);
+
+        if (cancelled) return;
+
+        if (bookingRes.success) {
+          setBookings(bookingRes.data.bookings || []);
+          setTotalPages(bookingRes.data.totalPages || 1);
+        }
+
+        if (statsRes.success) {
+          setStats(statsRes.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error fetching bookings/stats:', err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }, 0);
+    };
 
-    return () => window.clearTimeout(timeoutId);
-  }, [isRestaurantReady, fetchBookings, fetchStats]);
+    // Debounce search input; immediate for other filter changes
+    const delay = searchQuery ? 400 : 0;
+    const timerId = window.setTimeout(load, delay);
 
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
+  }, [isRestaurantReady, selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page]);
+
+  // Listen for real-time booking events (socket-dispatched custom events)
   useEffect(() => {
     const handleBookingEvent = (event) => {
       const eventRestaurantId = event.detail?.payload?.restaurantId?.toString?.() || event.detail?.payload?.restaurantId;

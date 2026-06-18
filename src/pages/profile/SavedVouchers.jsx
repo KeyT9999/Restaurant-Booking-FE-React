@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getMyVouchers } from '../../api/voucherApi';
 import VoucherCard from '../../components/voucher/VoucherCard';
 import { Ticket, Loader2, AlertCircle } from 'lucide-react';
@@ -9,11 +9,7 @@ export default function SavedVouchers() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('unused'); // unused, used, expired
 
-  useEffect(() => {
-    loadSavedVouchers();
-  }, [activeTab]);
-
-  const loadSavedVouchers = async () => {
+  const loadSavedVouchers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -26,7 +22,11 @@ export default function SavedVouchers() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadSavedVouchers();
+  }, [loadSavedVouchers]);
 
   const tabs = [
     { key: 'unused', label: 'Chưa sử dụng' },

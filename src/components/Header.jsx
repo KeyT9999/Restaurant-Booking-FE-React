@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Utensils, Bell, LogOut, ChevronDown, User, Calendar, Settings, Shield, Menu, X } from 'lucide-react';
+import { Utensils, LogOut, ChevronDown, User, Calendar, Shield, Menu, X, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from './ui/utils';
-
+import NotificationIcon from './notifications/NotificationIcon';
 export default function Header() {
   const { user, isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ export default function Header() {
     } else if (user?.role === 'customer') {
       items.push(
         { to: '/restaurants', label: 'Khám phá' },
+        { to: '/my-favorites', label: 'Yêu thích' },
         { to: '/my-bookings', label: 'Đặt bàn' },
         { to: '/my-waitlists', label: 'Waitlist' },
         { to: '/my-vouchers', label: 'Mã ưu đãi' },
@@ -106,9 +107,7 @@ export default function Header() {
           {!loading && isAuthenticated && (
             <div className="flex items-center gap-3">
               {/* Notification icon */}
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white hover:bg-secondary/40 h-9 w-9">
-                <Bell className="h-4.5 w-4.5" />
-              </Button>
+              <NotificationIcon buttonClassName="text-muted-foreground hover:text-white hover:bg-secondary/40 h-9 w-9" />
 
               {/* Quick links to workspaces */}
               {user?.role === 'admin' && (
@@ -174,6 +173,13 @@ export default function Header() {
                       >
                         <Calendar className="h-4 w-4" />
                         Đặt bàn của tôi
+                      </button>
+                      <button
+                        onClick={() => { setMenuOpen(false); navigate('/my-favorites'); }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-white hover:bg-secondary transition-colors"
+                      >
+                        <Heart className="h-4 w-4" />
+                        Nhà hàng yêu thích
                       </button>
 
                       {/* Workspaces links in dropdown for mobile */}

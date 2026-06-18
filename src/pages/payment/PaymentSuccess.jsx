@@ -11,6 +11,17 @@ export default function PaymentSuccess() {
   const orderCode = searchParams.get('orderCode');
   const targetType = searchParams.get('targetType');
 
+  const verifyPayment = async () => {
+    try {
+      const res = await checkPaymentStatus(orderCode);
+      setVerified(res.data?.status === 'paid');
+    } catch {
+      setVerified(false);
+    } finally {
+      setChecking(false);
+    }
+  };
+
   useEffect(() => {
     if (orderCode) {
       verifyPayment();
@@ -19,17 +30,6 @@ export default function PaymentSuccess() {
       setVerified(true); // Assume success if no orderCode (came from webhook)
     }
   }, [orderCode]);
-
-  const verifyPayment = async () => {
-    try {
-      const res = await checkPaymentStatus(orderCode);
-      setVerified(res.data?.status === 'paid');
-    } catch (e) {
-      setVerified(false);
-    } finally {
-      setChecking(false);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-[#0F1115] relative flex items-center justify-center p-4 overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_center,rgba(212,150,83,0.06)_0%,transparent_70%)]">

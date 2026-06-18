@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { uploadImage } from '../../../api/uploadApi';
-import { Plus, Trash2, Upload, ImageIcon, HelpCircle } from 'lucide-react';
-import { Button } from '../../ui/button';
+import { Plus, Upload } from 'lucide-react';
 
 function MultiInputList({ label, items = [], placeholder, onChange }) {
   const listItems = Array.isArray(items) ? (items.length === 0 ? [''] : items) : [''];

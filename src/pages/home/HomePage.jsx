@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
-import { Search, MapPin, Calendar, Users, Star, Heart, ChevronRight, Clock, Utensils, Sparkles, AlertTriangle } from 'lucide-react';
+import { Search, MapPin, Users, Star, Heart, ChevronRight, Utensils, Sparkles, AlertTriangle } from 'lucide-react';
 import { Section, PhaseLabel } from '../../components/bookeat/Section';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import toast from 'react-hot-toast';
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   // API Data states

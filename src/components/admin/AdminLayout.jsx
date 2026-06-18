@@ -12,16 +12,17 @@ import {
   RefreshCcw,
   MessageSquare,
   LogOut,
-  Bell,
   Search,
   ChevronLeft,
   Menu,
-  Shield
+  Shield,
+  Star
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '../ui/utils';
+import NotificationIcon from '../notifications/NotificationIcon';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: LayoutGrid, label: 'Tổng quan' },
@@ -32,7 +33,9 @@ const NAV_ITEMS = [
   { to: '/admin/vouchers', icon: Ticket, label: 'Mã ưu đãi' },
   { to: '/admin/revenue', icon: DollarSign, label: 'Doanh thu' },
   { to: '/admin/refunds', icon: RefreshCcw, label: 'Hoàn tiền' },
+  { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
   { to: '/admin/chat', icon: MessageSquare, label: 'Tin nhắn' },
+  { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];
 
 export default function AdminLayout({ children, title, subtitle, action }) {
@@ -191,10 +194,7 @@ export default function AdminLayout({ children, title, subtitle, action }) {
             </div>
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative h-8 w-8 text-muted-foreground hover:text-white">
-              <Bell className="h-4.5 w-4.5" />
-              <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-primary" />
-            </Button>
+            <NotificationIcon buttonClassName="h-8 w-8 text-muted-foreground hover:text-white" />
 
             {action && <div className="flex items-center gap-2">{action}</div>}
           </div>
