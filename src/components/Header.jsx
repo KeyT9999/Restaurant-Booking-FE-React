@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Utensils, LogOut, ChevronDown, User, Calendar, Settings, Shield, Menu, X, Heart } from 'lucide-react';
+import { Utensils, LogOut, ChevronDown, User, Calendar, Shield, Menu, X, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from './ui/utils';
 import NotificationIcon from './notifications/NotificationIcon';
-
 export default function Header() {
   const { user, isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();

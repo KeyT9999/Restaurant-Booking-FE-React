@@ -6,12 +6,7 @@ import { notificationApi } from '../api/notificationApi';
 import ToastNotification from '../components/notifications/ToastNotification';
 import NotificationContext from './NotificationContext';
 import { useAuth } from './useAuth';
-
-const getSocketUrl = () => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL;
-  if (!apiBase) return window.location.origin;
-  return apiBase.replace(/\/api\/v1\/?$/, '');
-};
+import { getSocketUrl } from '../utils/socketUrl';
 
 const getNotificationTarget = (notification, user) => {
   const role = user?.role;
@@ -67,6 +62,7 @@ export function NotificationProvider({ children }) {
   const navigate = useNavigate();
   const socketRef = useRef(null);
   const notificationsRef = useRef([]);
+  const openNotificationRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [status, setStatus] = useState('disconnected');
@@ -170,6 +166,10 @@ export function NotificationProvider({ children }) {
   }, [markAsRead, navigate, user]);
 
   useEffect(() => {
+    openNotificationRef.current = openNotification;
+  }, [openNotification]);
+
+  useEffect(() => {
     refreshNotifications();
   }, [refreshNotifications, userId]);
 
@@ -209,7 +209,7 @@ export function NotificationProvider({ children }) {
           notification={notification}
           onOpen={() => {
             toast.dismiss(t.id);
-            openNotification(notification);
+            openNotificationRef.current?.(notification);
           }}
           onDismiss={() => toast.dismiss(t.id)}
         />
@@ -249,7 +249,7 @@ export function NotificationProvider({ children }) {
       socketRef.current = null;
       setStatus('disconnected');
     };
-  }, [isAuthenticated, loading, openNotification, reset, userId]);
+  }, [isAuthenticated, loading, reset, userId]);
 
   const value = useMemo(() => ({
     notifications,

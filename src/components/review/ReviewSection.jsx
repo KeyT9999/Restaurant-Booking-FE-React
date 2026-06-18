@@ -1,225 +1,217 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Star, ChevronDown, MessageSquareText } from 'lucide-react';
-import ReviewCard from './ReviewCard';
+import { useState, useEffect, useCallback } from 'react';
+import { Star, Loader2 } from 'lucide-react';
+import { getRestaurantReviews } from '../../api/reviewApi';
+import { RatingStars } from '../ui/RatingStars';
 import { Button } from '../ui/button';
-import * as reviewApi from '../../api/reviewApi';
-import toast from 'react-hot-toast';
-
-const StarBar = ({ star, count, total }) => {
-  const pct = total > 0 ? (count / total) * 100 : 0;
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="text-muted-foreground w-4 text-right font-medium">{star}</span>
-      <Star size={12} className="text-amber-400 fill-amber-400 flex-shrink-0" />
-      <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-400 rounded-full transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-muted-foreground w-6 text-right font-medium">{count}</span>
-    </div>
-  );
-};
+import { Card } from '../ui/card';
 
 export default function ReviewSection({ restaurantId }) {
   const [reviews, setReviews] = useState([]);
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState('newest');
-  const [filterRating, setFilterRating] = useState(null);
-
-  const fetchSummary = useCallback(async () => {
-    try {
-      const res = await reviewApi.getRatingSummary(restaurantId);
-      if (res?.success) {
-        setSummary(res.data);
-      }
-    } catch (err) {
-      console.error('Error loading summary:', err);
-    }
-  }, [restaurantId]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState('');
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [activeLightboxImage, setActiveLightboxImage] = useState(null);
+  const [avgRating, setAvgRating] = useState(0);
 
   const fetchReviews = useCallback(async () => {
-    setLoading(true);
+    setReviewsLoading(true);
     try {
-      const params = { page, limit: 10, sort: sortBy };
-      if (filterRating) params.rating = filterRating;
-
-      const res = await reviewApi.getRestaurantReviews(restaurantId, params);
-      if (res?.success) {
-        setReviews(res.data || []);
-        setTotalPages(res.pagination?.totalPages || 1);
-        setTotal(res.pagination?.total || 0);
+      const params = { page: reviewsPage, limit: 5 };
+      if (selectedRatingFilter) {
+        params.rating = selectedRatingFilter;
       }
-    } catch (err) {
-      console.error('Error loading reviews:', err);
-      toast.error('Không thể tải đánh giá');
+      const res = await getRestaurantReviews(restaurantId, params);
+      if (res.data?.success) {
+        setReviews(res.data.data || []);
+        setReviewsTotalPages(res.data.pagination?.totalPages || 1);
+        setReviewsTotal(res.data.pagination?.total || 0);
+        if (res.data.stats?.averageRating !== undefined) {
+          setAvgRating(res.data.stats.averageRating);
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi tải đánh giá nhà hàng:', e.message);
     } finally {
-      setLoading(false);
+      setReviewsLoading(false);
     }
-  }, [restaurantId, page, sortBy, filterRating]);
-
-  const handleRefresh = useCallback(() => {
-    fetchReviews();
-    fetchSummary();
-  }, [fetchReviews, fetchSummary]);
-
-  useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+  }, [restaurantId, reviewsPage, selectedRatingFilter]);
 
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
 
-  const handleFilterRating = (star) => {
-    setFilterRating(filterRating === star ? null : star);
-    setPage(1);
-  };
-
-  const sortOptions = [
-    { value: 'newest', label: 'Mới nhất' },
-    { value: 'oldest', label: 'Cũ nhất' },
-    { value: 'highest', label: 'Cao nhất' },
-    { value: 'lowest', label: 'Thấp nhất' },
-    { value: 'helpful', label: 'Hữu ích nhất' },
-  ];
-
-  if (loading && reviews.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <div className="h-8 w-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs text-muted-foreground animate-pulse">Đang tải đánh giá...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setReviewsPage(1);
+  }, [selectedRatingFilter]);
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Rating Summary */}
-      {summary && (
-        <div className="bg-card border border-border rounded-xl p-6 flex flex-col sm:flex-row gap-6">
-          {/* Average Rating */}
-          <div className="flex flex-col items-center justify-center gap-1.5 min-w-[120px]">
-            <span className="text-4xl font-extrabold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-              {summary.averageRating > 0 ? summary.averageRating.toFixed(1) : '—'}
-            </span>
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  size={14}
-                  className={star <= Math.round(summary.averageRating)
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-border'
-                  }
-                />
-              ))}
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-              {summary.totalReviews} đánh giá
-            </p>
+      {/* Rating Summary Block */}
+      <Card className="p-6 bg-card border-border flex flex-col md:flex-row gap-6 items-center">
+        <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#2C313C]/60 pb-6 md:pb-0 md:pr-10 shrink-0 w-full md:w-auto">
+          <span className="text-5xl font-extrabold text-[#D49653] font-serif">
+            {Number(avgRating || 0).toFixed(1)}
+          </span>
+          <div className="mt-2.5">
+            <RatingStars rating={avgRating || 0} size="md" />
           </div>
+          <span className="text-xs text-[#A5ADBA] mt-2 block">
+            Từ {reviewsTotal} đánh giá
+          </span>
+        </div>
 
-          {/* Distribution */}
-          <div className="flex-1 flex flex-col gap-1.5 justify-center">
-            {[5, 4, 3, 2, 1].map((star) => (
+        <div className="flex-1 w-full text-left">
+          <span className="text-xs text-[#A5ADBA] uppercase tracking-wider font-semibold block mb-2.5">
+            Lọc theo đánh giá
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: '', label: 'Tất cả' },
+              { value: '5', label: '5 ★' },
+              { value: '4', label: '4 ★' },
+              { value: '3', label: '3 ★' },
+              { value: '2', label: '2 ★' },
+              { value: '1', label: '1 ★' },
+            ].map((filterItem) => (
               <button
-                key={star}
-                onClick={() => handleFilterRating(star)}
-                className={`transition-opacity ${
-                  filterRating && filterRating !== star ? 'opacity-40' : 'opacity-100'
-                } hover:opacity-100`}
+                key={filterItem.value}
+                onClick={() => setSelectedRatingFilter(filterItem.value)}
+                className={`text-xs font-semibold px-4 py-2 rounded-md border transition-all cursor-pointer ${
+                  selectedRatingFilter === filterItem.value
+                    ? 'bg-[#D49653] text-[#0F1115] border-[#D49653]'
+                    : 'border-[#2C313C] text-[#A5ADBA] hover:text-white hover:bg-[#20242D]'
+                }`}
               >
-                <StarBar
-                  star={star}
-                  count={summary.distribution?.[star] || 0}
-                  total={summary.totalReviews}
-                />
+                {filterItem.label}
               </button>
             ))}
           </div>
         </div>
-      )}
+      </Card>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground font-medium">Sắp xếp:</span>
-          {sortOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => { setSortBy(opt.value); setPage(1); }}
-              className={`text-[11px] px-3 py-1.5 rounded-full transition font-medium ${
-                sortBy === opt.value
-                  ? 'bg-primary text-background'
-                  : 'bg-secondary hover:bg-accent text-muted-foreground hover:text-white'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+      {/* Reviews List */}
+      {reviewsLoading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Đang tải đánh giá...</p>
         </div>
-
-        {filterRating && (
-          <button
-            onClick={() => { setFilterRating(null); setPage(1); }}
-            className="text-[11px] text-primary hover:text-primary/80 font-semibold transition"
-          >
-            ✕ Bỏ lọc {filterRating}★
-          </button>
-        )}
-      </div>
-
-      {/* Review List */}
-      {reviews.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {reviews.map((review) => (
-            <ReviewCard key={review.id || review._id} review={review} onUpdate={handleRefresh} />
-          ))}
+      ) : reviews.length === 0 ? (
+        <div className="text-center py-16 bg-card/10 border border-dashed border-[#2C313C] rounded-xl flex flex-col items-center justify-center gap-3">
+          <Star className="text-muted-foreground w-8 h-8" />
+          <p className="text-muted-foreground text-sm font-medium">Chưa có đánh giá nào tương ứng với bộ lọc này.</p>
         </div>
       ) : (
-        <div className="text-center py-16 bg-card/10 border border-dashed border-border rounded-xl">
-          <MessageSquareText className="mx-auto text-muted-foreground mb-3" size={36} />
-          <p className="text-muted-foreground text-sm font-medium">
-            {filterRating
-              ? `Chưa có đánh giá ${filterRating}★ nào`
-              : 'Chưa có đánh giá nào cho nhà hàng này'}
-          </p>
-          <p className="text-xs text-muted-foreground/60 mt-1">
-            Hãy là người đầu tiên chia sẻ trải nghiệm!
-          </p>
+        <div className="flex flex-col gap-4 text-left">
+          {reviews.map((rev) => (
+            <Card key={rev._id} className="p-5 bg-card border-border flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-[#20242D] border border-border overflow-hidden shrink-0">
+                    {rev.userId?.avatarUrl ? (
+                      <img src={rev.userId.avatarUrl} alt={rev.userId.fullName} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[#D49653]">
+                        {rev.userId?.fullName?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-sm font-bold text-white truncate">
+                      {rev.userId?.fullName || 'Khách hàng'}
+                    </span>
+                    <span className="block text-[10px] text-[#A5ADBA]">
+                      {new Date(rev.createdAt).toLocaleString('vi-VN')}
+                    </span>
+                  </div>
+                </div>
+                <RatingStars rating={rev.rating} size="sm" />
+              </div>
+
+              <p className="text-xs sm:text-sm text-white leading-relaxed whitespace-pre-line">
+                {rev.comment}
+              </p>
+
+              {rev.images && rev.images.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {rev.images.map((imgUrl, i) => (
+                    <img
+                      key={i}
+                      src={imgUrl}
+                      alt={`Review thumbnail ${i + 1}`}
+                      onClick={() => setActiveLightboxImage(imgUrl)}
+                      className="h-16 w-16 rounded-lg object-cover border border-border cursor-pointer hover:opacity-85 transition"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {rev.ownerReply && rev.ownerReply.comment && (
+                <div className="ml-4 md:ml-6 mt-2 p-4 bg-[#20242D] border-l-2 border-[#D49653] rounded-lg">
+                  <span className="block text-xs font-bold text-[#D49653] mb-1">Phản hồi từ nhà hàng</span>
+                  <p className="text-xs sm:text-sm text-[#A5ADBA] leading-relaxed whitespace-pre-line">
+                    {rev.ownerReply.comment}
+                  </p>
+                  <span className="block text-[10px] text-muted-foreground mt-2">
+                    {new Date(rev.ownerReply.repliedAt).toLocaleString('vi-VN')}
+                  </span>
+                </div>
+              )}
+            </Card>
+          ))}
+
+          {reviewsTotalPages > 1 && (
+            <div className="mt-6 flex justify-center items-center gap-1.5">
+              <Button
+                disabled={reviewsPage <= 1}
+                onClick={() => setReviewsPage(reviewsPage - 1)}
+                variant="outline"
+                size="sm"
+                className="border-border text-xs text-white"
+              >
+                Trước
+              </Button>
+              {Array.from({ length: reviewsTotalPages }, (_, i) => i + 1).map((p) => (
+                <Button
+                  key={p}
+                  variant={p === reviewsPage ? 'default' : 'outline'}
+                  size="icon"
+                  className={`h-8 w-8 text-xs ${
+                    p === reviewsPage ? 'bg-primary text-background font-bold' : 'border-border text-white'
+                  }`}
+                  onClick={() => setReviewsPage(p)}
+                >
+                  {p}
+                </Button>
+              ))}
+              <Button
+                disabled={reviewsPage >= reviewsTotalPages}
+                onClick={() => setReviewsPage(reviewsPage + 1)}
+                variant="outline"
+                size="sm"
+                className="border-border text-xs text-white"
+              >
+                Sau
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="border-border text-xs h-8"
+      {activeLightboxImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200">
+          <button
+            onClick={() => setActiveLightboxImage(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition cursor-pointer"
           >
-            Trước
-          </Button>
-          <span className="text-xs text-muted-foreground font-medium px-3">
-            Trang {page}/{totalPages} ({total} đánh giá)
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="border-border text-xs h-8"
-          >
-            Sau
-          </Button>
+            ✕
+          </button>
+          <img
+            src={activeLightboxImage}
+            alt="Preview"
+            className="max-w-full max-h-[85vh] object-contain rounded-lg"
+          />
         </div>
       )}
     </div>

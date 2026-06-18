@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
-import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Utensils, AlertTriangle, ArrowUpDown, DollarSign, Calendar, Heart } from 'lucide-react';
+import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Heart } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { useChatWidget } from '../../context/useChatWidget';
 import { Button } from '../../components/ui/button';

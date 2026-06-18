@@ -22,6 +22,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Proxy socket.io → http://localhost:3001 with WebSocket support
+      '/socket.io': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
     },
   },
 })

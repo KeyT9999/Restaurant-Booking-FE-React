@@ -1,16 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search, Star, MapPin, Loader2, Compass, RotateCcw, AlertCircle } from 'lucide-react';
+import { Heart, Search, Star, MapPin, Loader2, Compass, RotateCcw } from 'lucide-react';
 import Header from '../../components/Header';
 import { useAuth } from '../../context/useAuth';
 import { getMyFavorites, removeFavorite } from '../../api/favoriteApi';
 import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import toast from 'react-hot-toast';
 
-const formatMoney = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(v || 0);
 
 export default function MyFavoritesPage() {
   const { isAuthenticated, user } = useAuth();

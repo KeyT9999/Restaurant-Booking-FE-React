@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Zap, Star, Check, Clock, CreditCard, ChevronRight, Loader2, AlertCircle, Wallet, Send, History, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
+import { Crown, Zap, Star, Check, Clock, CreditCard, ChevronRight, Loader2, AlertCircle, Wallet, Send, History, CheckCircle2, HelpCircle } from 'lucide-react';
 import OwnerLayout from '../../components/owner/OwnerLayout';
 import { useRestaurantContext } from '../../context/useRestaurantContext';
 import { getCurrentSubscription, getBillingHistory, createPayment, checkPaymentStatus } from '../../api/paymentApi';
@@ -44,21 +44,6 @@ export default function OwnerBilling() {
   const [withdrawalPage, setWithdrawalPage] = useState(1);
   const [withdrawalTotalPages, setWithdrawalTotalPages] = useState(1);
 
-  useEffect(() => {
-    if (!selectedRestaurantId) return;
-    if (activeTab === 'billing') {
-      loadData();
-      loadHistory();
-    } else {
-      loadWithdrawals();
-    }
-  }, [selectedRestaurantId, activeTab, withdrawalPage]);
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, []);
-
   const loadData = async () => {
     try {
       setLoading(true);
@@ -76,7 +61,7 @@ export default function OwnerBilling() {
     try {
       const res = await getBillingHistory({ limit: 10 });
       setHistory(res.data || []);
-    } catch (e) {}
+    } catch { /* ignored */ }
   };
 
   const loadWithdrawals = async () => {
@@ -98,6 +83,21 @@ export default function OwnerBilling() {
       setWithdrawalLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!selectedRestaurantId) return;
+    if (activeTab === 'billing') {
+      loadData();
+      loadHistory();
+    } else {
+      loadWithdrawals();
+    }
+  }, [selectedRestaurantId, activeTab, withdrawalPage]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
 
   const handleSelectPlan = async (planKey) => {
     if (!selectedRestaurantId) return;
@@ -129,7 +129,7 @@ export default function OwnerBilling() {
           setShowQR(false);
           navigate('/payment-success?targetType=subscription');
         }
-      } catch (e) {}
+      } catch { /* ignored */ }
     }, 5000);
   };
 

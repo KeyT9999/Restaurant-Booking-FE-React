@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Star, Send, X } from 'lucide-react';
+import { Star, Send, X, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
-import * as reviewApi from '../../api/reviewApi';
+import { createReview } from '../../api/reviewApi';
+import { uploadImage } from '../../api/uploadApi';
 import toast from 'react-hot-toast';
 
-export default function ReviewForm({ bookingId, onSuccess, onCancel, existingReview }) {
-  const isEditing = !!existingReview;
-  const [rating, setRating] = useState(existingReview?.rating || 0);
+export default function ReviewForm({ bookingId, onSuccess, onCancel }) {
+  const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [title, setTitle] = useState(existingReview?.title || '');
-  const [comment, setComment] = useState(existingReview?.comment || '');
+  const [title, setTitle] = useState('');
+  const [comment, setComment] = useState('');
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const displayRating = hoverRating || rating;
@@ -22,6 +24,35 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel, existingRev
     3: 'Bình thường',
     4: 'Tốt',
     5: 'Tuyệt vời',
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    if (images.length + files.length > 5) {
+      toast.error('Tối đa 5 ảnh cho mỗi đánh giá');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await uploadImage(formData);
+        return res.data?.url || res.data?.data?.url;
+      });
+      const urls = await Promise.all(uploadPromises);
+      setImages((prev) => [...prev, ...urls.filter(Boolean)]);
+    } catch {
+      toast.error('Lỗi tải ảnh lên');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -38,21 +69,25 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel, existingRev
 
     setLoading(true);
     try {
-      const payload = { rating, title: title.trim() || null, comment: comment.trim() };
-
-      let res;
-      if (isEditing) {
-        res = await reviewApi.updateReview(existingReview.id, payload);
-      } else {
-        res = await reviewApi.createReview({ ...payload, bookingId });
+      const payload = {
+        bookingId,
+        rating,
+        title: title.trim() || undefined,
+        comment: comment.trim(),
+      };
+      if (images.length > 0) {
+        payload.images = images;
       }
 
-      if (res?.success) {
-        toast.success(isEditing ? 'Cập nhật đánh giá thành công!' : 'Đánh giá đã được gửi!');
+      const res = await createReview(payload);
+      if (res.data?.success || res?.success) {
+        toast.success('Đánh giá đã được gửi thành công!');
         onSuccess?.(res.data);
+      } else {
+        toast.error(res.data?.message || 'Không thể gửi đánh giá');
       }
     } catch (err) {
-      toast.error(err.message || 'Không thể gửi đánh giá');
+      toast.error(err.response?.data?.message || err.message || 'Không thể gửi đánh giá');
     } finally {
       setLoading(false);
     }
@@ -64,7 +99,7 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel, existingRev
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {isEditing ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá'}
+            Viết đánh giá
           </h3>
           {onCancel && (
             <button type="button" onClick={onCancel} className="text-muted-foreground hover:text-white transition">
@@ -142,8 +177,46 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel, existingRev
           </div>
         </div>
 
+        {/* Image Upload */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+            Hình ảnh <span className="text-muted-foreground/50">(tối đa 5)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {images.map((url, i) => (
+              <div key={i} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border group">
+                <img src={url} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removeImage(i)}
+                  className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                >
+                  <X size={14} className="text-white" />
+                </button>
+              </div>
+            ))}
+            {images.length < 5 && (
+              <label className="h-16 w-16 rounded-lg border border-dashed border-border/60 flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition">
+                {uploading ? (
+                  <Loader2 size={16} className="animate-spin text-primary" />
+                ) : (
+                  <ImagePlus size={16} className="text-muted-foreground" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={uploading}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+
         {/* Actions */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end pt-3 border-t border-border/40">
           {onCancel && (
             <Button
               type="button"
@@ -156,11 +229,11 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel, existingRev
           )}
           <Button
             type="submit"
-            disabled={loading || rating === 0 || comment.trim().length < 10}
+            disabled={loading || uploading || rating === 0 || comment.trim().length < 10}
             className="bg-primary hover:bg-primary/90 text-background font-bold text-xs h-10 px-6 gap-2 shadow-lg shadow-primary/15"
           >
             <Send size={14} />
-            {loading ? 'Đang gửi...' : isEditing ? 'Cập nhật' : 'Gửi đánh giá'}
+            {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
           </Button>
         </div>
       </form>

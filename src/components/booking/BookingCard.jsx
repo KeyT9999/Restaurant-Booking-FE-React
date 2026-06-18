@@ -2,11 +2,18 @@ import { Calendar, Clock, Users, ShieldAlert } from 'lucide-react';
 import { StatusBadge } from '../bookeat/StatusBadge';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { cn } from '../ui/utils';
 
 const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return '0đ';
   return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+};
+
+const formatAddress = (address) => {
+  if (!address) return 'Chưa cập nhật địa chỉ';
+  if (typeof address === 'string') return address;
+  return address.fullAddress
+    || [address.street, address.ward, address.district, address.city].filter(Boolean).join(', ')
+    || 'Chưa cập nhật địa chỉ';
 };
 
 export default function BookingCard({ booking, onViewDetail, onCancel, onReview }) {
@@ -65,7 +72,7 @@ export default function BookingCard({ booking, onViewDetail, onCancel, onReview 
         </div>
 
         <p className="text-xs text-muted-foreground truncate leading-relaxed">
-          {restaurant?.address}
+          {formatAddress(restaurant?.address)}
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-1.5 text-xs text-muted-foreground">

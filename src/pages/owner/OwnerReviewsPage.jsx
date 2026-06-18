@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Star, MessageSquare, Loader2, AlertCircle, X } from 'lucide-react';
 import OwnerLayout from '../../components/owner/OwnerLayout';

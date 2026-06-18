@@ -175,8 +175,7 @@ export default function EditRestaurantPage() {
         
         // Mark all steps as complete initially since it is editing existing valid data
         setCompletedSteps([1, 2, 3, 4, 5]);
-      } catch (err) {
-        toast.error('Không thể tải thông tin nhà hàng cần chỉnh sửa');
+      } catch { toast.error('Không thể tải thông tin nhà hàng cần chỉnh sửa');
         navigate('/owner/restaurants');
       } finally {
         setLoading(false);

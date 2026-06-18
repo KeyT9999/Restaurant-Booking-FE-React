@@ -4,7 +4,7 @@ import { getBookingById, cancelBooking } from '../../api/bookingApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
 import ReviewForm from '../../components/review/ReviewForm';
-import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Info, Star } from 'lucide-react';
+import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Star } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -71,7 +71,7 @@ export default function BookingDetailPage() {
       if (res.success) {
         toast.success('Hủy đặt bàn thành công');
         setShowCancelDialog(false);
-        fetchBooking(); // refresh details
+        fetchBooking();
       } else {
         toast.error(res.message || 'Lỗi khi hủy đặt bàn');
       }
@@ -147,7 +147,7 @@ export default function BookingDetailPage() {
               {booking.status === 'cancelled' && (
                 <div className="mt-3 p-3.5 rounded-lg bg-rose-500/5 border border-rose-500/15 text-xs text-rose-400 leading-relaxed flex flex-col gap-1">
                   <span className="font-bold">Lý do hủy đặt bàn:</span>
-                  <p className="text-white italic">"{booking.cancellationReason || 'Không có lý do chi tiết'}"</p>
+                  <p className="text-white italic">&quot;{booking.cancellationReason || 'Không có lý do chi tiết'}&quot;</p>
                   <span className="text-[10px] text-muted-foreground mt-1 capitalize">
                     Yêu cầu hủy thực hiện bởi: {booking.cancelledBy === 'customer' ? 'Khách hàng' : booking.cancelledBy === 'restaurant' ? 'Nhà hàng' : 'Quản trị viên'}
                   </span>
@@ -210,7 +210,7 @@ export default function BookingDetailPage() {
                 {booking.specialRequests && (
                   <div className="flex flex-col gap-1 py-1 text-left">
                     <span className="text-muted-foreground flex items-center gap-1.5"><MessageSquare size={14} className="text-primary" /> Yêu cầu đặc biệt:</span>
-                    <span className="text-white italic bg-secondary/30 p-2.5 border border-border rounded mt-1 leading-relaxed">"{booking.specialRequests}"</span>
+                    <span className="text-white italic bg-secondary/30 p-2.5 border border-border rounded mt-1 leading-relaxed">&quot;{booking.specialRequests}&quot;</span>
                   </div>
                 )}
 

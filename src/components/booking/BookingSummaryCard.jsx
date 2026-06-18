@@ -1,4 +1,4 @@
-import { Store, Calendar, Clock, Users, Tag, MessageSquare, Landmark } from 'lucide-react';
+import { Store, Calendar, Clock, Users } from 'lucide-react';
 import { Card } from '../ui/card';
 
 const formatCurrency = (amount) => {

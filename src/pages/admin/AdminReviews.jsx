@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Star, EyeOff, CheckCircle, Loader2, AlertCircle, X, Shield } from 'lucide-react';
+import { EyeOff, CheckCircle, Loader2, AlertCircle, X, Shield } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { adminGetReviews, updateReviewStatus } from '../../api/reviewApi';
 import { RatingStars } from '../../components/ui/RatingStars';
@@ -100,7 +100,6 @@ export default function AdminReviews() {
   };
 
   // Tính thống kê nhanh trên Client
-  const approvedCount = reviews.filter(r => r.status === 'approved').length;
   const hiddenCount = reviews.filter(r => r.status === 'hidden').length;
 
   return (

@@ -13,13 +13,10 @@ import {
   MessageCircle,
   CalendarDays,
   ArrowLeft,
-  Tag,
   Check,
   ChevronRight,
   ShieldAlert,
   Info,
-  X,
-  MessageSquareText
 } from 'lucide-react';
 import ReviewSection from '../../components/review/ReviewSection';
 import Header from '../../components/Header';
@@ -53,6 +50,8 @@ export default function RestaurantDetailPage() {
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' | 'tables' | 'info'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+
+
 
   const fetchVouchers = useCallback(async () => {
     try {

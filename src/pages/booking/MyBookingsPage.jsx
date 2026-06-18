@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyBookings, cancelBooking } from '../../api/bookingApi';
 import BookingCard from '../../components/booking/BookingCard';
-import { AlertTriangle, X, Compass, RefreshCw } from 'lucide-react';
+import { AlertTriangle, X, Compass } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
 import toast from 'react-hot-toast';
 import { ReviewFormModal } from '../../components/booking/ReviewFormModal';
 

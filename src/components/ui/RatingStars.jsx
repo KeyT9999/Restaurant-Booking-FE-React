@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Star, StarHalf } from 'lucide-react';
+import { useState } from 'react';
+import { Star } from 'lucide-react';
 import { cn } from './utils';
 
 export function RatingStars({
