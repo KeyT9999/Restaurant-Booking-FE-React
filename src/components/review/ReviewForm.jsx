@@ -1,18 +1,30 @@
 import { useState } from 'react';
-import { Star, Loader2, X, ImagePlus } from 'lucide-react';
-import { createReview } from '../../api/reviewApi';
-import { uploadImage } from '../../api/uploadApi';
+import { Star, Send, X, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { Input } from '../ui/input';
+import { createReview } from '../../api/reviewApi';
+import { uploadImage } from '../../api/uploadApi';
 import toast from 'react-hot-toast';
 
 export default function ReviewForm({ bookingId, onSuccess, onCancel }) {
   const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const displayRating = hoverRating || rating;
+
+  const ratingLabels = {
+    1: 'Rất tệ',
+    2: 'Tệ',
+    3: 'Bình thường',
+    4: 'Tốt',
+    5: 'Tuyệt vời',
+  };
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -45,104 +57,131 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (rating === 0) {
       toast.error('Vui lòng chọn số sao đánh giá');
       return;
     }
-    if (!comment.trim()) {
-      toast.error('Vui lòng nhập nội dung đánh giá');
+    if (comment.trim().length < 10) {
+      toast.error('Nội dung đánh giá phải có ít nhất 10 ký tự');
       return;
     }
 
-    setSubmitting(true);
+    setLoading(true);
     try {
       const payload = {
         bookingId,
         rating,
+        title: title.trim() || undefined,
         comment: comment.trim(),
       };
       if (images.length > 0) {
         payload.images = images;
       }
+
       const res = await createReview(payload);
-      if (res.data?.success) {
+      if (res.data?.success || res?.success) {
         toast.success('Đánh giá đã được gửi thành công!');
-        onSuccess?.();
+        onSuccess?.(res.data);
       } else {
         toast.error(res.data?.message || 'Không thể gửi đánh giá');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Lỗi khi gửi đánh giá');
+      toast.error(err.response?.data?.message || err.message || 'Không thể gửi đánh giá');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Card className="p-5 bg-card border-border flex flex-col gap-5 text-left">
-      <div className="flex items-center justify-between border-b border-border/40 pb-3">
-        <h4 className="font-bold text-white text-sm flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-          <Star size={16} className="text-primary" /> Viết đánh giá
-        </h4>
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="p-1 rounded text-muted-foreground hover:text-white hover:bg-secondary transition"
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
+    <Card className="p-6 bg-card border-border">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Viết đánh giá
+          </h3>
+          {onCancel && (
+            <button type="button" onClick={onCancel} className="text-muted-foreground hover:text-white transition">
+              <X size={18} />
+            </button>
+          )}
+        </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Star Rating */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs text-muted-foreground font-semibold">Đánh giá sao *</label>
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onMouseEnter={() => setHoveredRating(star)}
-                onMouseLeave={() => setHoveredRating(0)}
-                onClick={() => setRating(star)}
-                className="p-0.5 transition-transform hover:scale-110"
-              >
-                <Star
-                  size={28}
-                  className={`transition-colors ${
-                    star <= (hoveredRating || rating)
-                      ? 'fill-primary text-primary'
-                      : 'text-muted-foreground/30'
-                  }`}
-                />
-              </button>
-            ))}
-            {rating > 0 && (
-              <span className="text-xs text-primary font-semibold ml-2 self-center">
-                {rating === 5 ? 'Xuất sắc' : rating === 4 ? 'Rất tốt' : rating === 3 ? 'Tốt' : rating === 2 ? 'Tạm được' : 'Kém'}
+          <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+            Đánh giá của bạn
+          </label>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <Star
+                    size={28}
+                    className={`transition-colors ${
+                      star <= displayRating
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-border hover:text-amber-400/40'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            {displayRating > 0 && (
+              <span className="text-xs font-semibold text-amber-400">
+                {ratingLabels[displayRating]}
               </span>
             )}
           </div>
         </div>
 
+        {/* Title */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+            Tiêu đề <span className="text-muted-foreground/50">(tùy chọn)</span>
+          </label>
+          <Input
+            type="text"
+            placeholder="Ví dụ: Trải nghiệm tuyệt vời!"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+            className="bg-secondary/40 border-border text-sm h-10 focus-visible:ring-1 focus-visible:ring-primary"
+          />
+        </div>
+
         {/* Comment */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs text-muted-foreground font-semibold">Nhận xét của bạn *</label>
+          <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+            Nội dung đánh giá <span className="text-rose-400">*</span>
+          </label>
           <textarea
-            rows="4"
-            maxLength="1000"
-            placeholder="Chia sẻ trải nghiệm ẩm thực của bạn tại nhà hàng..."
+            placeholder="Chia sẻ trải nghiệm của bạn về nhà hàng (tối thiểu 10 ký tự)..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="w-full bg-secondary/40 border border-border rounded-lg p-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed resize-none"
+            rows={4}
+            maxLength={2000}
+            className="w-full bg-secondary/40 border border-border rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />
-          <span className="text-[10px] text-muted-foreground text-right">{comment.length}/1000</span>
+          <div className="flex justify-between text-[10px] text-muted-foreground/60">
+            <span>{comment.length < 10 ? `Tối thiểu ${10 - comment.length} ký tự nữa` : '✓ Đủ độ dài'}</span>
+            <span>{comment.length}/2000</span>
+          </div>
         </div>
 
         {/* Image Upload */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs text-muted-foreground font-semibold">Hình ảnh (tối đa 5)</label>
+          <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+            Hình ảnh <span className="text-muted-foreground/50">(tối đa 5)</span>
+          </label>
           <div className="flex flex-wrap gap-2">
             {images.map((url, i) => (
               <div key={i} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border group">
@@ -176,26 +215,25 @@ export default function ReviewForm({ bookingId, onSuccess, onCancel }) {
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-border/40">
+        {/* Actions */}
+        <div className="flex gap-3 justify-end pt-3 border-t border-border/40">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="border-border text-white hover:bg-secondary h-9 text-xs font-semibold">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="border-border text-muted-foreground hover:bg-secondary hover:text-white text-xs h-10 px-5"
+            >
               Hủy
             </Button>
           )}
           <Button
             type="submit"
-            disabled={submitting || rating === 0}
-            className="bg-primary hover:bg-primary/95 text-background h-9 text-xs font-bold px-5"
+            disabled={loading || uploading || rating === 0 || comment.trim().length < 10}
+            className="bg-primary hover:bg-primary/90 text-background font-bold text-xs h-10 px-6 gap-2 shadow-lg shadow-primary/15"
           >
-            {submitting ? (
-              <>
-                <Loader2 size={14} className="animate-spin mr-1" />
-                Đang gửi...
-              </>
-            ) : (
-              'Gửi đánh giá'
-            )}
+            <Send size={14} />
+            {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
           </Button>
         </div>
       </form>

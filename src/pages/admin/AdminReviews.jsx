@@ -67,15 +67,25 @@ export default function AdminReviews() {
   }, [statusFilter]);
 
   const handleUpdateStatus = async (reviewId, newStatus) => {
+    let reason = '';
+    if (newStatus === 'hidden') {
+      reason = window.prompt('Nhập lý do ẩn đánh giá này (bắt buộc):', 'Vi phạm quy chuẩn cộng đồng');
+      if (reason === null) return; // User cancelled
+      if (!reason.trim()) {
+        toast.error('Lý do ẩn đánh giá là bắt buộc');
+        return;
+      }
+    }
+
     setActionLoadingId(reviewId);
     try {
-      const res = await updateReviewStatus(reviewId, newStatus);
+      const res = await updateReviewStatus(reviewId, newStatus, reason);
       if (res.data?.success) {
         toast.success(`Đã cập nhật trạng thái đánh giá thành công`);
         // Cập nhật reviews state cục bộ
         setReviews((prev) =>
           prev.map((rev) =>
-            rev._id === reviewId ? { ...rev, status: newStatus } : rev
+            rev._id === reviewId ? { ...rev, status: newStatus, hideReason: newStatus === 'hidden' ? reason : null } : rev
           )
         );
       } else {
@@ -132,6 +142,7 @@ export default function AdminReviews() {
           <div className="flex flex-wrap gap-1 bg-[#20242D] border border-border p-1 rounded-lg text-xs font-semibold">
             {[
               { value: '', label: 'Tất cả' },
+              { value: 'reported', label: 'Bị báo cáo' },
               { value: 'approved', label: 'Công khai' },
               { value: 'hidden', label: 'Đã ẩn' },
             ].map((tab) => (
@@ -205,7 +216,17 @@ export default function AdminReviews() {
                         <span className="text-[10px] font-bold text-primary mt-1 block">{rev.rating} sao</span>
                       </TableCell>
                       <TableCell className="align-top py-4 flex flex-col gap-2">
-                        <p className="text-xs text-white leading-relaxed whitespace-pre-line pr-4">{rev.comment}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs text-white leading-relaxed whitespace-pre-line pr-4">{rev.comment}</p>
+                          {rev.reportCount > 0 && (
+                            <Badge variant="destructive" className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[9px] font-bold uppercase">
+                              {rev.reportCount} Báo cáo
+                            </Badge>
+                          )}
+                        </div>
+                        {rev.status === 'hidden' && rev.hideReason && (
+                          <p className="text-[10px] text-rose-400 italic mt-0.5">Lý do ẩn: {rev.hideReason}</p>
+                        )}
                         {rev.images && rev.images.length > 0 && (
                           <div className="flex gap-2.5 mt-1">
                             {rev.images.map((imgUrl, i) => (
@@ -294,7 +315,17 @@ export default function AdminReviews() {
                     <span className="text-[10px] text-muted-foreground">({rev.rating} sao)</span>
                   </div>
 
-                  <p className="text-xs text-white leading-relaxed">{rev.comment}</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-white leading-relaxed">{rev.comment}</p>
+                    {rev.reportCount > 0 && (
+                      <span className="text-[9px] font-bold text-rose-400 bg-rose-500/5 p-0.5 px-1.5 rounded border border-rose-500/10 self-start">
+                        ⚠️ {rev.reportCount} Báo cáo
+                      </span>
+                    )}
+                    {rev.status === 'hidden' && rev.hideReason && (
+                      <span className="text-[9px] italic text-rose-400">Lý do ẩn: {rev.hideReason}</span>
+                    )}
+                  </div>
 
                   {rev.images && rev.images.length > 0 && (
                     <div className="flex gap-2">
