@@ -13,7 +13,6 @@ import {
   MessageCircle,
   CalendarDays,
   ArrowLeft,
-  Tag,
   Check,
   ChevronRight,
   ShieldAlert,
@@ -58,7 +57,7 @@ export default function RestaurantDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [reviewsPage, setReviewsPage] = useState(1);
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
-  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [, setReviewsTotal] = useState(0);
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('');
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);

@@ -23,6 +23,9 @@ import AdminChatPage from './pages/admin/AdminChatPage';
 import OwnerProtectedRoute from './components/owner/OwnerProtectedRoute';
 import { ChatWidgetProvider } from './context/ChatWidgetProvider';
 import MiniChatWidget from './components/chat-widget/MiniChatWidget';
+import CustomerAIWidget from './components/ai-chat/CustomerAIWidget';
+import OwnerAIWidget from './components/ai-chat/OwnerAIWidget';
+import AdminAIWidget from './components/ai-chat/AdminAIWidget';
 import { RestaurantProvider } from './context/RestaurantProvider';
 import { NotificationProvider } from './context/NotificationProvider';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
@@ -172,6 +175,7 @@ function AppRoutes() {
                 <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
+              <OwnerAIWidget />
             </RestaurantProvider>
           </OwnerProtectedRoute>
         }
@@ -199,6 +203,7 @@ function AppRoutes() {
               <Route path="reviews" element={<AdminReviews />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
+            <AdminAIWidget />
           </AdminProtectedRoute>
         }
       />
@@ -227,6 +232,7 @@ function App() {
           <AppRoutes />
           <MiniChatWidget />
         </ChatWidgetProvider>
+        <CustomerAIWidget />
       </NotificationProvider>
     </AuthProvider>
   );

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams, Link } from 'react-router-dom';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
@@ -24,8 +24,8 @@ import { useAuth } from '../../context/useAuth';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
+import { cn } from '../../components/ui/utils';
 
 const currency = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
@@ -326,7 +326,7 @@ export default function WaitlistFormPage() {
         {/* Steps navigation bar */}
         <div className="flex justify-between items-center w-full px-2 sm:px-8 py-4 bg-secondary/25 border border-border rounded-xl">
           {steps.map((s, idx) => (
-            <React.Fragment key={s.num}>
+            <Fragment key={s.num}>
               {idx > 0 && <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${step >= s.num ? 'bg-primary' : 'bg-border/60'}`} />}
               <button
                 type="button"
@@ -346,7 +346,7 @@ export default function WaitlistFormPage() {
                   {s.label}
                 </span>
               </button>
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
 

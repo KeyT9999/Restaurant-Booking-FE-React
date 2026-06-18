@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { RefreshCw, SearchX, Compass } from 'lucide-react';
+import { RefreshCw, Compass } from 'lucide-react';
 import { cancelWaitlist, getMyWaitlists } from '../../api/waitlistApi';
 import WaitlistCard from '../../components/waitlist/WaitlistCard';
 import Header from '../../components/Header';

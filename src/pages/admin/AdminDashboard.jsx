@@ -4,8 +4,8 @@ import { adminApi } from '../../api/adminApi';
 import AdminLayout from '../../components/admin/AdminLayout';
 import RestaurantStatsCards from '../../components/admin/RestaurantStatsCards';
 import {
-  Users, UserCheck, UserX, TrendingUp,
-  MailCheck, RefreshCw, Loader2, ShieldCheck, Mail
+  Users, UserCheck, UserX,
+  MailCheck, Loader2, RefreshCw
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 

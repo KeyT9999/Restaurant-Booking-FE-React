@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, CheckCircle, Clock, LogIn, Mail, RefreshCw, Utensils } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, LogIn, RefreshCw, Utensils } from 'lucide-react';
 import { authApi } from '../../api/authApi';
 
 /**

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/useAuth';
 import { useChatSocket } from './useChatSocket';
@@ -18,7 +17,7 @@ export default function useBookingNotifications() {
     const isAdmin = user?.role === 'admin';
     const isCustomer = user?.role === 'customer';
 
-    const { bookingId, customerName, restaurantName, status, message, reason } = payload || {};
+    const { bookingId, customerName, restaurantName, message, reason } = payload || {};
 
     switch (eventName) {
       case 'booking:created':
@@ -49,7 +48,7 @@ export default function useBookingNotifications() {
         }
         break;
 
-      case 'booking:cancelled':
+      case 'booking:cancelled': {
         const cancelReasonMsg = reason ? ` Lý do: "${reason}"` : '';
         if (isCustomer) {
           toast.error(
@@ -63,6 +62,7 @@ export default function useBookingNotifications() {
           );
         }
         break;
+      }
 
       case 'booking:completed':
         if (isCustomer) {
