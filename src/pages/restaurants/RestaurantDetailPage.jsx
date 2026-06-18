@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ShieldAlert,
   Info,
+  X,
   MessageSquareText
 } from 'lucide-react';
 import ReviewSection from '../../components/review/ReviewSection';
@@ -314,7 +315,7 @@ export default function RestaurantDetailPage() {
                     <Globe size={14} /> Giới thiệu chi tiết
                   </TabsTrigger>
                   <TabsTrigger value="reviews" className="flex items-center gap-1.5 text-xs font-semibold px-4 rounded-md h-9 data-[state=active]:bg-primary data-[state=active]:text-background transition-all">
-                    <MessageSquareText size={14} /> Đánh giá {restaurant.stats?.totalReviews > 0 ? `(${restaurant.stats.totalReviews})` : ''}
+                    <Star size={14} /> Đánh giá ({restaurant.stats?.totalReviews || 0})
                   </TabsTrigger>
                 </TabsList>
 

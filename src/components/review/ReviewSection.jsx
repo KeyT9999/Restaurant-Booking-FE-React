@@ -32,6 +32,17 @@ export default function ReviewSection({ restaurantId }) {
   const [sortBy, setSortBy] = useState('newest');
   const [filterRating, setFilterRating] = useState(null);
 
+  const fetchSummary = useCallback(async () => {
+    try {
+      const res = await reviewApi.getRatingSummary(restaurantId);
+      if (res?.success) {
+        setSummary(res.data);
+      }
+    } catch (err) {
+      console.error('Error loading summary:', err);
+    }
+  }, [restaurantId]);
+
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
@@ -40,10 +51,9 @@ export default function ReviewSection({ restaurantId }) {
 
       const res = await reviewApi.getRestaurantReviews(restaurantId, params);
       if (res?.success) {
-        setReviews(res.data.reviews);
-        setSummary(res.data.summary);
-        setTotalPages(res.data.totalPages);
-        setTotal(res.data.total);
+        setReviews(res.data || []);
+        setTotalPages(res.pagination?.totalPages || 1);
+        setTotal(res.pagination?.total || 0);
       }
     } catch (err) {
       console.error('Error loading reviews:', err);
@@ -52,6 +62,15 @@ export default function ReviewSection({ restaurantId }) {
       setLoading(false);
     }
   }, [restaurantId, page, sortBy, filterRating]);
+
+  const handleRefresh = useCallback(() => {
+    fetchReviews();
+    fetchSummary();
+  }, [fetchReviews, fetchSummary]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   useEffect(() => {
     fetchReviews();
@@ -160,7 +179,7 @@ export default function ReviewSection({ restaurantId }) {
       {reviews.length > 0 ? (
         <div className="flex flex-col gap-4">
           {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} onUpdate={fetchReviews} />
+            <ReviewCard key={review.id || review._id} review={review} onUpdate={handleRefresh} />
           ))}
         </div>
       ) : (

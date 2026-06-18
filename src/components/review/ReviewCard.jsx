@@ -37,7 +37,7 @@ export default function ReviewCard({ review, onUpdate }) {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await reviewApi.toggleHelpful(review.id);
+      const res = await reviewApi.toggleHelpful(review.id || review._id);
       if (res?.success) {
         setIsHelpful(res.data.helpful);
         setHelpfulCount(res.data.helpfulCount);
@@ -57,7 +57,7 @@ export default function ReviewCard({ review, onUpdate }) {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await reviewApi.reportReview(review.id);
+      const res = await reviewApi.reportReview(review.id || review._id);
       if (res?.success) {
         if (res.data.alreadyReported) {
           toast('Bạn đã báo cáo đánh giá này trước đó', { icon: '⚠️' });
@@ -105,9 +105,9 @@ export default function ReviewCard({ review, onUpdate }) {
       <p className="text-xs text-muted-foreground leading-relaxed">{review.comment}</p>
 
       {/* Media */}
-      {review.mediaUrls && review.mediaUrls.length > 0 && (
+      {(review.images || review.mediaUrls) && (review.images || review.mediaUrls).length > 0 && (
         <div className="flex gap-2 flex-wrap">
-          {review.mediaUrls.map((url, i) => (
+          {(review.images || review.mediaUrls).map((url, i) => (
             <img
               key={i}
               src={url}
@@ -125,7 +125,7 @@ export default function ReviewCard({ review, onUpdate }) {
             <MessageSquare size={12} className="text-primary" />
             <span className="text-[10px] text-primary font-bold uppercase tracking-wider">Phản hồi từ nhà hàng</span>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{review.ownerReply.content}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{review.ownerReply.comment || review.ownerReply.content}</p>
           {review.ownerReply.repliedAt && (
             <p className="text-[10px] text-muted-foreground/60 mt-1.5">{formatDate(review.ownerReply.repliedAt)}</p>
           )}
@@ -147,7 +147,7 @@ export default function ReviewCard({ review, onUpdate }) {
           Hữu ích{helpfulCount > 0 ? ` (${helpfulCount})` : ''}
         </button>
 
-        {isAuthenticated && user?._id !== review.customerId && (
+        {isAuthenticated && user?._id !== (review.userId || review.customerId) && (
           <button
             onClick={handleReport}
             disabled={loading}

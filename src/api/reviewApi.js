@@ -1,9 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-// ─────────────────────────────────────────────
-// Customer Review APIs
-// ─────────────────────────────────────────────
-
+// ─── Customer Review APIs ───
 export const createReview = (data) =>
   axiosInstance.post('/reviews', data);
 
@@ -14,7 +11,7 @@ export const deleteReview = (id) =>
   axiosInstance.delete(`/reviews/${id}`);
 
 export const getMyReviews = (params = {}) =>
-  axiosInstance.get('/reviews/my', { params });
+  axiosInstance.get('/reviews/my-reviews', { params });
 
 export const toggleHelpful = (id) =>
   axiosInstance.post(`/reviews/${id}/helpful`);
@@ -22,35 +19,34 @@ export const toggleHelpful = (id) =>
 export const reportReview = (id) =>
   axiosInstance.post(`/reviews/${id}/report`);
 
-// ─────────────────────────────────────────────
-// Public Review APIs
-// ─────────────────────────────────────────────
-
+// ─── Public Review APIs ───
 export const getRestaurantReviews = (restaurantId, params = {}) =>
-  axiosInstance.get(`/restaurants/${restaurantId}/reviews`, { params });
+  axiosInstance.get(`/reviews/restaurant/${restaurantId}`, { params });
 
 export const getRatingSummary = (restaurantId) =>
-  axiosInstance.get(`/restaurants/${restaurantId}/rating-summary`);
+  axiosInstance.get(`/reviews/restaurant/${restaurantId}/rating-summary`);
 
-// ─────────────────────────────────────────────
-// Owner Review APIs
-// ─────────────────────────────────────────────
+// ─── Owner Review APIs ───
+// Hỗ trợ cả hai hàm reply để tương thích ngược với các trang Owner cũ và mới
+export const replyReview = (id, comment) =>
+  axiosInstance.patch(`/reviews/${id}/reply`, { comment });
 
-export const getOwnerReviews = (params = {}) =>
-  axiosInstance.get('/owner/reviews', { params });
+export const replyToReview = (id, comment) =>
+  axiosInstance.patch(`/reviews/${id}/reply`, { comment });
 
-export const replyToReview = (id, content) =>
-  axiosInstance.post(`/owner/reviews/${id}/reply`, { content });
+// ─── Admin Review APIs ───
+export const updateReviewStatus = (id, status, reason = '') =>
+  axiosInstance.patch(`/reviews/${id}/status`, { status, reason });
 
-// ─────────────────────────────────────────────
-// Admin Review APIs
-// ─────────────────────────────────────────────
+export const adminGetReviews = (params = {}) =>
+  axiosInstance.get('/reviews/admin/all', { params });
 
+// Tương thích ngược với các trang Admin cũ
 export const getReportedReviews = (params = {}) =>
-  axiosInstance.get('/admin/reviews/reported', { params });
+  axiosInstance.get('/reviews/admin/all', { params: { ...params, status: 'reported' } });
 
 export const hideReview = (id, reason) =>
-  axiosInstance.put(`/admin/reviews/${id}/hide`, { reason });
+  axiosInstance.patch(`/reviews/${id}/status`, { status: 'hidden', reason });
 
 export const restoreReview = (id) =>
-  axiosInstance.put(`/admin/reviews/${id}/restore`);
+  axiosInstance.patch(`/reviews/${id}/status`, { status: 'approved' });
