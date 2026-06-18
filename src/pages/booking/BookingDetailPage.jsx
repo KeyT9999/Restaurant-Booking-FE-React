@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getBookingById, cancelBooking } from '../../api/bookingApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
-import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Info } from 'lucide-react';
+import ReviewForm from '../../components/review/ReviewForm';
+import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Info, Star } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -29,6 +30,7 @@ export default function BookingDetailPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const fetchBooking = useCallback(async () => {
     setLoading(true);
@@ -232,6 +234,37 @@ export default function BookingDetailPage() {
               >
                 Hủy đơn đặt bàn này
               </Button>
+            )}
+
+            {/* Review Section */}
+            {booking.status === 'completed' && !booking.reviewed && (
+              <div className="flex flex-col gap-3">
+                {showReviewForm ? (
+                  <ReviewForm
+                    bookingId={booking.id}
+                    onSuccess={() => {
+                      setShowReviewForm(false);
+                      fetchBooking();
+                    }}
+                    onCancel={() => setShowReviewForm(false)}
+                  />
+                ) : (
+                  <Button
+                    onClick={() => setShowReviewForm(true)}
+                    className="bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-white h-11 w-full text-xs font-bold uppercase tracking-wider gap-2"
+                  >
+                    <Star size={14} />
+                    Viết đánh giá cho nhà hàng
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {booking.status === 'completed' && booking.reviewed && (
+              <div className="flex items-center gap-2 p-3.5 bg-emerald-500/5 border border-emerald-500/15 rounded-lg text-xs text-emerald-400">
+                <Star size={14} className="fill-emerald-400" />
+                <span className="font-semibold">Bạn đã đánh giá đơn đặt bàn này</span>
+              </div>
             )}
           </div>
 

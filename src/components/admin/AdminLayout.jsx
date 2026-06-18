@@ -35,6 +35,7 @@ const NAV_ITEMS = [
   { to: '/admin/refunds', icon: RefreshCcw, label: 'Hoàn tiền' },
   { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
   { to: '/admin/chat', icon: MessageSquare, label: 'Tin nhắn' },
+  { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];
 
 export default function AdminLayout({ children, title, subtitle, action }) {
