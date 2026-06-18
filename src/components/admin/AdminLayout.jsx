@@ -16,7 +16,8 @@ import {
   Search,
   ChevronLeft,
   Menu,
-  Shield
+  Shield,
+  Star
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { to: '/admin/revenue', icon: DollarSign, label: 'Doanh thu' },
   { to: '/admin/refunds', icon: RefreshCcw, label: 'Hoàn tiền' },
   { to: '/admin/chat', icon: MessageSquare, label: 'Tin nhắn' },
+  { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];
 
 export default function AdminLayout({ children, title, subtitle, action }) {

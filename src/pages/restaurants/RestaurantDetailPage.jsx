@@ -17,8 +17,10 @@ import {
   Check,
   ChevronRight,
   ShieldAlert,
-  Info
+  Info,
+  MessageSquareText
 } from 'lucide-react';
+import ReviewSection from '../../components/review/ReviewSection';
 import Header from '../../components/Header';
 import { getPublicRestaurantDetail } from '../../api/restaurantApi';
 import * as menuApi from '../../api/menuApi';
@@ -311,6 +313,9 @@ export default function RestaurantDetailPage() {
                   <TabsTrigger value="info" className="flex items-center gap-1.5 text-xs font-semibold px-4 rounded-md h-9 data-[state=active]:bg-primary data-[state=active]:text-background transition-all">
                     <Globe size={14} /> Giới thiệu chi tiết
                   </TabsTrigger>
+                  <TabsTrigger value="reviews" className="flex items-center gap-1.5 text-xs font-semibold px-4 rounded-md h-9 data-[state=active]:bg-primary data-[state=active]:text-background transition-all">
+                    <MessageSquareText size={14} /> Đánh giá {restaurant.stats?.totalReviews > 0 ? `(${restaurant.stats.totalReviews})` : ''}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Tab content area */}
@@ -532,6 +537,11 @@ export default function RestaurantDetailPage() {
                         </div>
                       </div>
                     </div>
+                  </TabsContent>
+
+                  {/* Reviews Panel */}
+                  <TabsContent value="reviews" className="focus-visible:outline-none">
+                    <ReviewSection restaurantId={id} />
                   </TabsContent>
                 </div>
               </Tabs>

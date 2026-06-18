@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   { to: '/owner/menu', icon: Utensils, label: 'Menu' },
   { to: '/owner/tables', icon: Armchair, label: 'Tables & Floor' },
   { to: '/owner/vouchers', icon: Ticket, label: 'Vouchers' },
-  { to: '/owner/dashboard', icon: Star, label: 'Reviews', muted: true },
+  { to: '/owner/reviews', icon: Star, label: 'Reviews' },
   { to: '/owner/billing', icon: Wallet, label: 'Withdrawals' },
   { to: '/owner/chat', icon: MessageSquare, label: 'Messages' },
   { to: '/owner/restaurants', icon: Settings, label: 'Settings', muted: true },
