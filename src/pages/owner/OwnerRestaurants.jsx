@@ -6,6 +6,8 @@ import { useRestaurantContext } from '../../context/useRestaurantContext';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { getRestaurantCoverImage } from '../../utils/restaurantImages';
+import SafeImage from '../../components/common/SafeImage';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1600&q=80';
@@ -81,7 +83,7 @@ export default function OwnerRestaurants() {
   const status = STATUS_CONFIG[restaurant?.approvalStatus] || STATUS_CONFIG.pending;
   const address = useMemo(() => formatAddress(restaurant?.address), [restaurant?.address]);
   const cuisine = useMemo(() => formatCuisine(restaurant), [restaurant]);
-  const heroImage = restaurant?.primaryImage || restaurant?.coverImage || restaurant?.logo || restaurant?.images?.[0] || FALLBACK_IMAGE;
+  const heroImage = getRestaurantCoverImage(restaurant) || FALLBACK_IMAGE;
 
   const action = restaurant ? (
     <Button
@@ -135,7 +137,12 @@ export default function OwnerRestaurants() {
             </div>
 
             <div className="overflow-hidden rounded-xl bg-secondary">
-              <img src={heroImage} alt={restaurant.name} className="aspect-[2/1] w-full object-cover" />
+              <SafeImage
+                src={heroImage}
+                alt={restaurant.name}
+                className="aspect-[2/1] w-full object-cover"
+                fallback={<div className="aspect-[2/1] w-full flex items-center justify-center bg-secondary"><Store className="h-10 w-10 text-muted-foreground/70" /></div>}
+              />
             </div>
 
             <div className="mt-12 grid gap-5 md:grid-cols-2">

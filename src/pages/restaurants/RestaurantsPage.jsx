@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
-import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Heart } from 'lucide-react';
+import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Heart, Utensils } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { useChatWidget } from '../../context/useChatWidget';
 import { Button } from '../../components/ui/button';
@@ -11,6 +11,8 @@ import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import toast from 'react-hot-toast';
 import { getFavoriteIds, addFavorite, removeFavorite } from '../../api/favoriteApi';
+import { getRestaurantCardImage } from '../../utils/restaurantImages';
+import SafeImage from '../../components/common/SafeImage';
 
 export default function RestaurantsPage() {
   const navigate = useNavigate();
@@ -374,16 +376,13 @@ export default function RestaurantsPage() {
                     >
                       {/* Image block */}
                       <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                        {res.coverImageUrl || res.logo ? (
-                          <img
-                            src={res.coverImageUrl || res.logo}
-                            alt={res.name}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
-                        )}
+                        <SafeImage
+                          src={getRestaurantCardImage(res)}
+                          alt={res.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          fallback={<div className="w-full h-full flex items-center justify-center"><Utensils className="h-9 w-9 text-muted-foreground/70" /></div>}
+                        />
                         {res.featured && (
                           <Badge className="absolute top-3.5 left-3.5 bg-primary text-background border-none py-1 font-semibold">
                             NỔI BẬT
@@ -401,7 +400,7 @@ export default function RestaurantsPage() {
                             className={`transition duration-300 ${
                               favoriteIds.includes(res.id)
                                 ? 'fill-rose-500 text-rose-500 scale-110'
-                                : 'text-zinc-300 hover:text-rose-455'
+                                : 'text-zinc-300 hover:text-rose-400'
                             }`}
                           />
                         </button>

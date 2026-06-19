@@ -17,6 +17,8 @@ import {
   ChevronRight,
   ShieldAlert,
   Info,
+  Image as ImageIcon,
+  Images,
 } from 'lucide-react';
 import ReviewSection from '../../components/review/ReviewSection';
 import Header from '../../components/Header';
@@ -33,6 +35,12 @@ import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import SafeImage from '../../components/common/SafeImage';
+import {
+  getRestaurantCoverImage,
+  getRestaurantGalleryImages,
+  getRestaurantLogoImage,
+} from '../../utils/restaurantImages';
 
 export default function RestaurantDetailPage() {
   const { id } = useParams();
@@ -193,6 +201,9 @@ export default function RestaurantDetailPage() {
     total: tables.length,
     available: tables.filter(t => t.status === 'available').length,
   };
+  const heroImage = getRestaurantCoverImage(restaurant);
+  const logoImage = getRestaurantLogoImage(restaurant);
+  const galleryImages = getRestaurantGalleryImages(restaurant);
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
@@ -201,11 +212,18 @@ export default function RestaurantDetailPage() {
       {/* Banner Area */}
       <section className="relative h-80 sm:h-[400px] bg-secondary overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-black/35 z-10" />
-        {restaurant.coverImageUrl ? (
-          <img className="w-full h-full object-cover" src={restaurant.coverImageUrl} alt={restaurant.name} />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-6xl">🍽️</div>
-        )}
+        <SafeImage
+          className="w-full h-full object-cover"
+          src={heroImage}
+          alt={restaurant.name}
+          fallback={(
+            <div className="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(212,150,83,0.18),transparent_30%),linear-gradient(135deg,#20242D,#0F1115)]">
+              <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                <ImageIcon className="h-9 w-9" />
+              </div>
+            </div>
+          )}
+        />
 
         <div className="absolute inset-x-0 bottom-0 z-20 mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-8 flex flex-col justify-end h-full">
           {/* Breadcrumbs */}
@@ -219,9 +237,16 @@ export default function RestaurantDetailPage() {
 
           {/* Title and details block */}
           <div className="flex items-end gap-5">
-            {restaurant.logo && (
-              <img className="h-20 w-20 sm:h-24 sm:w-24 rounded-xl object-cover bg-card border border-border/80 shadow-2xl flex-shrink-0" src={restaurant.logo} alt="Logo" />
-            )}
+            <SafeImage
+              className="h-20 w-20 sm:h-24 sm:w-24 rounded-xl object-cover bg-card border border-border/80 shadow-2xl flex-shrink-0"
+              src={logoImage}
+              alt={`${restaurant.name} logo`}
+              fallback={(
+                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-xl bg-card border border-border/80 shadow-2xl flex-shrink-0 flex items-center justify-center text-primary">
+                  <ImageIcon className="h-7 w-7" />
+                </div>
+              )}
+            />
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {restaurant.name}
@@ -470,6 +495,28 @@ export default function RestaurantDetailPage() {
                         <h4 className="text-sm font-bold text-white border-l-2 border-primary pl-2 uppercase tracking-wide">Giới thiệu về chúng tôi</h4>
                         <p className="text-xs text-muted-foreground leading-relaxed mt-1">{restaurant.description || 'Chưa có bài viết giới thiệu chi tiết cho nhà hàng này.'}</p>
                       </div>
+
+                      {galleryImages.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center gap-2">
+                            <Images className="h-4 w-4 text-primary" />
+                            <h4 className="text-sm font-bold text-white uppercase tracking-wide">Thu vien anh</h4>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {galleryImages.slice(0, 6).map((url, index) => (
+                              <div key={`${url}-${index}`} className="aspect-[4/3] overflow-hidden rounded-xl border border-border bg-secondary">
+                                <SafeImage
+                                  src={url}
+                                  alt={`${restaurant.name} anh ${index + 1}`}
+                                  className="h-full w-full object-cover hover:scale-105 transition duration-300"
+                                  loading="lazy"
+                                  fallback={<div className="h-full w-full flex items-center justify-center bg-secondary"><Images className="h-6 w-6 text-muted-foreground/70" /></div>}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {restaurant.signatureDishes && restaurant.signatureDishes.length > 0 && (
                         <div className="flex flex-col gap-2">

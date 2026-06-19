@@ -108,6 +108,8 @@ const INITIAL_DATA = {
   coordinates: { latitude: null, longitude: null },
   operatingHours: {},
   logo: '',
+  coverImage: '',
+  galleryImages: [],
   averagePrice: '',
   priceRangeMin: '',
   priceRangeMax: '',
@@ -194,13 +196,13 @@ export default function CreateRestaurantPage() {
       else payload.priceRangeMax = Number(payload.priceRangeMax);
 
       const optionalStrings = [
-        'logo', 'statusMessage', 'summaryHighlights', 'bookingNotes',
+        'logo', 'coverImage', 'statusMessage', 'summaryHighlights', 'bookingNotes',
       ];
       for (const key of optionalStrings) {
         if (!payload[key] || !payload[key].trim()) delete payload[key];
       }
 
-      const arrayFields = ['suitableFor', 'signatureDishes', 'amenities', 'policyRules'];
+      const arrayFields = ['galleryImages', 'suitableFor', 'signatureDishes', 'amenities', 'policyRules'];
       for (const key of arrayFields) {
         if (Array.isArray(payload[key])) {
           const cleaned = payload[key].map(s => s.trim()).filter(Boolean);

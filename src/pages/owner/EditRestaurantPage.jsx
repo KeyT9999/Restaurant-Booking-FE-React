@@ -108,6 +108,8 @@ const INITIAL_DATA = {
   coordinates: { latitude: null, longitude: null },
   operatingHours: {},
   logo: '',
+  coverImage: '',
+  galleryImages: [],
   averagePrice: '',
   priceRangeMin: '',
   priceRangeMax: '',
@@ -159,6 +161,8 @@ export default function EditRestaurantPage() {
           },
           operatingHours: r.operatingHours || {},
           logo: r.logo || '',
+          coverImage: r.coverImage || r.coverImageUrl || '',
+          galleryImages: r.galleryImages || [],
           averagePrice: r.averagePrice ?? '',
           priceRangeMin: r.priceRangeMin ?? '',
           priceRangeMax: r.priceRangeMax ?? '',
@@ -249,7 +253,7 @@ export default function EditRestaurantPage() {
       if (payload.priceRangeMax === '') payload.priceRangeMax = null;
       else payload.priceRangeMax = Number(payload.priceRangeMax);
 
-      const arrayFields = ['suitableFor', 'signatureDishes', 'amenities', 'policyRules'];
+      const arrayFields = ['galleryImages', 'suitableFor', 'signatureDishes', 'amenities', 'policyRules'];
       for (const key of arrayFields) {
         if (Array.isArray(payload[key])) {
           payload[key] = payload[key].map(s => s.trim()).filter(Boolean);
