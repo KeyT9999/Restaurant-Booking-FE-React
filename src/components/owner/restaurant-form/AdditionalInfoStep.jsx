@@ -1,6 +1,40 @@
 import { useState } from 'react';
 import { uploadImage } from '../../../api/uploadApi';
-import { Plus, Upload } from 'lucide-react';
+import { Image as ImageIcon, Images, Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
+import SafeImage from '../../common/SafeImage';
+
+const MAX_GALLERY_IMAGES = 10;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+const getUploadResponseBody = (response) => {
+  if (response?.success !== undefined || response?.data?.url) return response;
+  if (response?.data?.success !== undefined || response?.data?.data?.url) return response.data;
+  return response || {};
+};
+
+const getUploadUrl = (response) => {
+  const body = getUploadResponseBody(response);
+  return body?.data?.url || body?.url || null;
+};
+
+const getUploadErrorMessage = (error) => (
+  error?.raw?.response?.data?.message
+  || error?.response?.data?.message
+  || error?.message
+  || 'Loi ket noi khi upload anh.'
+);
+
+const validateImageFile = (file) => {
+  if (!file) return 'Vui long chon file anh.';
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return 'Chi nhan anh JPEG, PNG, GIF hoac WebP.';
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return 'File qua lon. Vui long chon file duoi 5MB.';
+  }
+  return '';
+};
 
 function MultiInputList({ label, items = [], placeholder, onChange }) {
   const listItems = Array.isArray(items) ? (items.length === 0 ? [''] : items) : [''];
@@ -58,15 +92,242 @@ function MultiInputList({ label, items = [], placeholder, onChange }) {
   );
 }
 
+function SingleImageUploader({
+  id,
+  label,
+  description,
+  recommendation,
+  value,
+  variant = 'square',
+  uploading,
+  onUpload,
+  onRemove,
+}) {
+  const hasImage = Boolean(value);
+  const isCover = variant === 'cover';
+  const previewClass = isCover ? 'aspect-[21/9] w-full' : 'aspect-square w-36';
+  const Icon = isCover ? ImageIcon : Upload;
+
+  return (
+    <div className="rounded-xl border border-border bg-[#0F1115]/35 p-4 sm:p-5 space-y-4">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor={id}>
+          {label}
+        </label>
+        <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
+        <p className="text-[11px] font-medium text-primary/90">{recommendation}</p>
+      </div>
+
+      <div className={`relative overflow-hidden rounded-xl border border-border bg-secondary/40 ${previewClass}`}>
+        {hasImage ? (
+          <SafeImage
+            src={value}
+            alt={label}
+            className={`h-full w-full ${isCover ? 'object-cover' : 'object-contain bg-[#0F1115]'}`}
+            loading="lazy"
+            fallback={(
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+                <ImageIcon className="h-7 w-7 text-muted-foreground/70" />
+                <span className="text-[11px] font-medium">Khong tai duoc anh</span>
+              </div>
+            )}
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+            {uploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <Icon className="h-7 w-7 text-muted-foreground/70" />}
+            <span className="text-[11px] font-medium">{uploading ? 'Dang tai anh...' : 'Chua co anh'}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label
+          htmlFor={id}
+          className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-semibold text-background transition hover:bg-primary/95"
+        >
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : hasImage ? <RefreshCw className="h-3.5 w-3.5" /> : <Upload className="h-3.5 w-3.5" />}
+          {hasImage ? 'Thay anh' : 'Tai anh len'}
+        </label>
+        {hasImage && (
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-destructive/25 bg-destructive/10 px-3 text-xs font-semibold text-destructive transition hover:bg-destructive/20"
+            onClick={onRemove}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Xoa anh
+          </button>
+        )}
+        <input
+          id={id}
+          type="file"
+          accept="image/*"
+          onChange={onUpload}
+          disabled={uploading}
+          className="hidden"
+        />
+      </div>
+    </div>
+  );
+}
+
+function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
+  const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+  const remaining = Math.max(0, MAX_GALLERY_IMAGES - safeImages.length);
+
+  return (
+    <div className="rounded-xl border border-border bg-[#0F1115]/35 p-4 sm:p-5 space-y-4">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="gallery-images-input">
+          Anh khac
+        </label>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Them anh khong gian, mon an, ban ghe hoac mat tien nha hang.
+        </p>
+        <p className="text-[11px] font-medium text-primary/90">Toi da {MAX_GALLERY_IMAGES} anh, con lai {remaining} anh.</p>
+      </div>
+
+      {safeImages.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {safeImages.map((url, index) => (
+            <div key={`${url}-${index}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-secondary">
+              <SafeImage
+                src={url}
+                alt={`Anh nha hang ${index + 1}`}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                fallback={<div className="flex h-full w-full items-center justify-center bg-secondary"><Images className="h-6 w-6 text-muted-foreground/70" /></div>}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/65 text-white opacity-100 transition hover:bg-destructive sm:opacity-0 sm:group-hover:opacity-100"
+                onClick={() => onRemove(index)}
+                aria-label={`Xoa anh thu ${index + 1}`}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {remaining > 0 ? (
+        <label
+          htmlFor="gallery-images-input"
+          className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-secondary/20 px-4 py-6 text-center transition hover:border-primary/60 hover:bg-primary/5"
+        >
+          {uploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <Images className="h-7 w-7 text-muted-foreground/70" />}
+          <span className="text-xs font-semibold text-white">{uploading ? 'Dang tai thu vien anh...' : 'Tai nhieu anh len'}</span>
+          <span className="text-[11px] text-muted-foreground">JPEG, PNG, GIF, WebP toi da 5MB moi anh</span>
+          <input
+            id="gallery-images-input"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={onUpload}
+            disabled={uploading}
+            className="hidden"
+          />
+        </label>
+      ) : (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs font-medium text-primary">
+          Thu vien anh da dat gioi han {MAX_GALLERY_IMAGES} anh.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdditionalInfoStep({ data, onChange, errors }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadingTarget, setUploadingTarget] = useState(null);
   const [uploadError, setUploadError] = useState('');
 
   const handleChange = (field, value) => {
     onChange({ ...data, [field]: value });
   };
 
-  const handleLogoUpload = async (e) => {
+  const uploadFile = async (file, folder) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+    const response = await uploadImage(formData);
+    const uploadUrl = getUploadUrl(response);
+    if (uploadUrl) return uploadUrl;
+
+    const body = getUploadResponseBody(response);
+    throw new Error(body.message || 'Khong nhan duoc URL anh sau khi upload.');
+  };
+
+  const handleSingleImageUpload = async (field, folder, e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setUploadError(validationError);
+      return;
+    }
+
+    setUploadingTarget(field);
+    setUploadError('');
+
+    try {
+      const url = await uploadFile(file, folder);
+      handleChange(field, url);
+    } catch (err) {
+      const message = getUploadErrorMessage(err);
+      console.error(`Error uploading ${field}: ${message}`, err?.raw || err);
+      setUploadError(message);
+    } finally {
+      setUploadingTarget(null);
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+
+    const currentImages = Array.isArray(data.galleryImages) ? data.galleryImages.filter(Boolean) : [];
+    const remaining = MAX_GALLERY_IMAGES - currentImages.length;
+    if (remaining <= 0) {
+      setUploadError(`Thu vien anh toi da ${MAX_GALLERY_IMAGES} anh.`);
+      return;
+    }
+
+    const selectedFiles = files.slice(0, remaining);
+    const invalidFile = selectedFiles.find((file) => validateImageFile(file));
+    if (invalidFile) {
+      setUploadError(validateImageFile(invalidFile));
+      return;
+    }
+
+    setUploadingTarget('galleryImages');
+    setUploadError('');
+
+    try {
+      const uploadedUrls = [];
+      for (const file of selectedFiles) {
+        uploadedUrls.push(await uploadFile(file, 'bookeat/restaurants/gallery'));
+      }
+      handleChange('galleryImages', [...currentImages, ...uploadedUrls].slice(0, MAX_GALLERY_IMAGES));
+    } catch (err) {
+      const message = getUploadErrorMessage(err);
+      console.error(`Error uploading gallery images: ${message}`, err?.raw || err);
+      setUploadError(message);
+    } finally {
+      setUploadingTarget(null);
+    }
+  };
+
+  const handleRemoveGalleryImage = (indexToRemove) => {
+    const currentImages = Array.isArray(data.galleryImages) ? data.galleryImages.filter(Boolean) : [];
+    handleChange('galleryImages', currentImages.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleLegacyLogoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -97,6 +358,12 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
     }
   };
 
+  const handleLogoUpload = async (e) => {
+    setUploading(true);
+    await handleSingleImageUpload('logo', 'bookeat/logos', e);
+    setUploading(false);
+  };
+
   return (
     <div className="space-y-5 text-left" id="step-additional-info">
       <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
@@ -108,8 +375,41 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
         <span className="text-primary italic font-medium"> (Không bắt buộc)</span>
       </p>
 
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]">
+        <SingleImageUploader
+          id="restaurant-logo-input"
+          label="Logo nha hang"
+          description="Anh vuong dung lam anh dai dien nha hang tren danh sach va tieu de."
+          recommendation="Khuyen nghi 400x400."
+          value={data.logo || ''}
+          uploading={uploading || uploadingTarget === 'logo'}
+          onUpload={handleLogoUpload}
+          onRemove={() => handleChange('logo', '')}
+        />
+        <SingleImageUploader
+          id="restaurant-cover-input"
+          label="Anh bia nha hang"
+          description="Anh ngang hien thi lon o dau trang chi tiet nha hang."
+          recommendation="Khuyen nghi 1600x600 hoac 1200x500."
+          value={data.coverImage || ''}
+          variant="cover"
+          uploading={uploadingTarget === 'coverImage'}
+          onUpload={(e) => handleSingleImageUpload('coverImage', 'bookeat/restaurants/covers', e)}
+          onRemove={() => handleChange('coverImage', '')}
+        />
+      </div>
+
+      <GalleryUploader
+        images={data.galleryImages}
+        uploading={uploadingTarget === 'galleryImages'}
+        onUpload={handleGalleryUpload}
+        onRemove={handleRemoveGalleryImage}
+      />
+
+      {uploadError && <span className="block text-xs text-rose-400 font-medium mt-0.5">{uploadError}</span>}
+
       {/* Logo Upload */}
-      <div className="flex flex-col gap-1.5">
+      <div className="hidden">
         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Logo Nhà Hàng</label>
         
         {data.logo ? (
@@ -143,13 +443,13 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
               id="logo-file-input"
               type="file"
               accept="image/*"
-              onChange={handleLogoUpload}
+              onChange={handleLegacyLogoUpload}
               disabled={uploading}
               className="hidden"
             />
           </div>
         )}
-        {uploadError && <span className="text-xs text-rose-455 font-medium mt-0.5">{uploadError}</span>}
+        {uploadError && <span className="text-xs text-rose-400 font-medium mt-0.5">{uploadError}</span>}
       </div>
 
       {/* Price section */}
@@ -171,7 +471,7 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
             onChange={(e) => handleChange('averagePrice', e.target.value)}
             min={0}
           />
-          {errors?.averagePrice && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.averagePrice}</span>}
+          {errors?.averagePrice && <span className="text-xs text-rose-400 font-medium mt-0.5">{errors.averagePrice}</span>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="price-min">Giá thấp nhất (VNĐ)</label>
@@ -186,7 +486,7 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
             onChange={(e) => handleChange('priceRangeMin', e.target.value)}
             min={0}
           />
-          {errors?.priceRangeMin && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.priceRangeMin}</span>}
+          {errors?.priceRangeMin && <span className="text-xs text-rose-400 font-medium mt-0.5">{errors.priceRangeMin}</span>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="price-max">Giá cao nhất (VNĐ)</label>
@@ -201,7 +501,7 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
             onChange={(e) => handleChange('priceRangeMax', e.target.value)}
             min={0}
           />
-          {errors?.priceRangeMax && <span className="text-xs text-rose-455 font-medium mt-0.5">{errors.priceRangeMax}</span>}
+          {errors?.priceRangeMax && <span className="text-xs text-rose-400 font-medium mt-0.5">{errors.priceRangeMax}</span>}
         </div>
       </div>
 

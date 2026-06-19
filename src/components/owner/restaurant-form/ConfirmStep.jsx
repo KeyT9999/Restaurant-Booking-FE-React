@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SafeImage from '../../common/SafeImage';
 
 const PRICE_LABELS = {
   budget: 'Bình dân',
@@ -140,8 +141,47 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Logo</span>
             <span className="sm:col-span-3">
-              <img src={data.logo} alt="Logo" className="max-w-[60px] max-h-[60px] rounded-lg border border-border/80 object-cover shadow" />
+              <SafeImage
+                src={data.logo}
+                alt="Logo"
+                className="max-w-[60px] max-h-[60px] rounded-lg border border-border/80 object-cover shadow"
+                fallback={<span className="text-xs text-muted-foreground">Anh logo khong tai duoc</span>}
+              />
             </span>
+          </div>
+        ) : null}
+        {data.coverImage ? (
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Anh bia</span>
+            <span className="sm:col-span-3">
+              <SafeImage
+                src={data.coverImage}
+                alt="Anh bia nha hang"
+                className="h-20 w-40 rounded-lg border border-border/80 object-cover shadow"
+                fallback={<span className="text-xs text-muted-foreground">Anh bia khong tai duoc</span>}
+              />
+            </span>
+          </div>
+        ) : null}
+        {Array.isArray(data.galleryImages) && data.galleryImages.filter(Boolean).length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Anh khac</span>
+            <div className="sm:col-span-3 flex flex-wrap gap-2">
+              {data.galleryImages.filter(Boolean).slice(0, 6).map((url, index) => (
+                <SafeImage
+                  key={`${url}-${index}`}
+                  src={url}
+                  alt={`Anh nha hang ${index + 1}`}
+                  className="h-14 w-20 rounded-lg border border-border/80 object-cover shadow"
+                  fallback={<span className="inline-flex h-14 w-20 items-center justify-center rounded-lg border border-border text-[10px] text-muted-foreground">Loi anh</span>}
+                />
+              ))}
+              {data.galleryImages.filter(Boolean).length > 6 && (
+                <span className="inline-flex h-14 items-center rounded-lg border border-border px-3 text-xs font-semibold text-muted-foreground">
+                  +{data.galleryImages.filter(Boolean).length - 6}
+                </span>
+              )}
+            </div>
           </div>
         ) : null}
         <InfoRow label="Giá trung bình" value={formatPrice(data.averagePrice)} />

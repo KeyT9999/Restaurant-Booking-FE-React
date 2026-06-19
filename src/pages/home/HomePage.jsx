@@ -7,6 +7,8 @@ import { Section, PhaseLabel } from '../../components/bookeat/Section';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import { getRestaurantCardImage } from '../../utils/restaurantImages';
+import SafeImage from '../../components/common/SafeImage';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -218,16 +220,13 @@ export default function HomePage() {
                   className="overflow-hidden bg-card border-border hover:border-primary/45 transition-all duration-300 cursor-pointer group flex flex-col focus-within:border-primary/45 focus-within:ring-1 focus-within:ring-primary/20"
                 >
                   <div className="relative aspect-[5/4] overflow-hidden bg-secondary">
-                    {r.coverImageUrl || r.logo ? (
-                      <img
-                        src={r.coverImageUrl || r.logo}
-                        alt={r.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
-                    )}
+                    <SafeImage
+                      src={getRestaurantCardImage(r)}
+                      alt={r.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      fallback={<div className="w-full h-full flex items-center justify-center"><Utensils className="h-9 w-9 text-muted-foreground/70" /></div>}
+                    />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -301,16 +300,13 @@ export default function HomePage() {
                   className="overflow-hidden bg-card border-border hover:border-primary/45 transition duration-300 cursor-pointer group flex flex-col focus-within:border-primary/45 focus-within:ring-1 focus-within:ring-primary/20"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                    {r.coverImageUrl || r.logo ? (
-                      <img
-                        src={r.coverImageUrl || r.logo}
-                        alt={r.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">🍽️</div>
-                    )}
+                    <SafeImage
+                      src={getRestaurantCardImage(r)}
+                      alt={r.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      fallback={<div className="w-full h-full flex items-center justify-center"><Utensils className="h-8 w-8 text-muted-foreground/70" /></div>}
+                    />
                   </div>
                   <div className="p-4 flex-1 flex flex-col">
                     <h4 style={{ fontFamily: "'Playfair Display', serif" }} className="text-base font-bold text-white leading-tight truncate group-hover:text-primary transition-colors">

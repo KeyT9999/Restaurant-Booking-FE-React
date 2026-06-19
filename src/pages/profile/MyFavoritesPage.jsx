@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search, Star, MapPin, Loader2, Compass, RotateCcw } from 'lucide-react';
+import { Heart, Search, Star, MapPin, Loader2, Compass, RotateCcw, Utensils } from 'lucide-react';
 import Header from '../../components/Header';
 import { useAuth } from '../../context/useAuth';
 import { getMyFavorites, removeFavorite } from '../../api/favoriteApi';
@@ -8,6 +8,8 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import toast from 'react-hot-toast';
+import { getRestaurantCardImage } from '../../utils/restaurantImages';
+import SafeImage from '../../components/common/SafeImage';
 
 
 export default function MyFavoritesPage() {
@@ -174,16 +176,13 @@ export default function MyFavoritesPage() {
                   >
                     {/* Image block */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                      {res.coverImageUrl || res.logo ? (
-                        <img
-                          src={res.coverImageUrl || res.logo}
-                          alt={res.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
-                      )}
+                      <SafeImage
+                        src={getRestaurantCardImage(res)}
+                        alt={res.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        fallback={<div className="w-full h-full flex items-center justify-center"><Utensils className="h-9 w-9 text-muted-foreground/70" /></div>}
+                      />
                       
                       {/* Heart Button to Unfavorite */}
                       <button
