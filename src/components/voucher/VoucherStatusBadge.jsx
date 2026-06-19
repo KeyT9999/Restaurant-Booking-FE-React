@@ -1,4 +1,3 @@
-
 const STATUS_CONFIGS = {
   active: {
     label: 'Hoạt động',
@@ -7,6 +6,10 @@ const STATUS_CONFIGS = {
   inactive: {
     label: 'Chờ kích hoạt',
     classes: 'bg-secondary/40 border-border/80 text-muted-foreground',
+  },
+  scheduled: {
+    label: 'Chờ chạy',
+    classes: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
   },
   expired: {
     label: 'Hết hạn',

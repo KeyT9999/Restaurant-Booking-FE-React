@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMyVouchers } from '../../api/voucherApi';
+import { useNavigate } from 'react-router-dom';
+import { getMyVouchers, unsaveVoucher } from '../../api/voucherApi';
 import VoucherCard from '../../components/voucher/VoucherCard';
 import { Ticket, Loader2, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function SavedVouchers() {
+  const navigate = useNavigate();
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,11 +17,11 @@ export default function SavedVouchers() {
     setError(null);
     try {
       const res = await getMyVouchers({ filter: activeTab });
-      if (res.data?.success) {
-        setVouchers(res.data.data);
+      if (res?.success) {
+        setVouchers(res.data || []);
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Không thể tải ví voucher của bạn');
+      setError(err.message || 'Không thể tải ví voucher của bạn');
     } finally {
       setLoading(false);
     }
@@ -27,6 +30,19 @@ export default function SavedVouchers() {
   useEffect(() => {
     loadSavedVouchers();
   }, [loadSavedVouchers]);
+
+  const handleUnsave = async (voucherId) => {
+    try {
+      const res = await unsaveVoucher(voucherId);
+      if (res?.success) {
+        toast.success('🎟️ Đã bỏ lưu voucher khỏi ví.');
+        // Remove from list directly without full reload
+        setVouchers(prev => prev.filter(item => item.voucherId?._id !== voucherId && item.voucherId !== voucherId));
+      }
+    } catch (err) {
+      toast.error(`❌ Lỗi: ${err.message || 'Không thể bỏ lưu'}`);
+    }
+  };
 
   const tabs = [
     { key: 'unused', label: 'Chưa sử dụng' },
@@ -101,14 +117,46 @@ export default function SavedVouchers() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vouchers.map(item => (
-              <VoucherCard
-                key={item._id}
-                voucher={item.voucherId}
-                disabled={activeTab !== 'unused'}
-                isSaved={activeTab === 'unused'}
-              />
-            ))}
+            {vouchers.map(item => {
+              const v = item.voucherId;
+              if (!v) return null;
+
+              const restaurantObj = v.restaurantId;
+              const restaurantName = restaurantObj ? restaurantObj.name : 'Platform Voucher (Toàn Hệ Thống)';
+
+              return (
+                <div key={item._id} className="flex flex-col bg-[#1A1D24] border border-[#2C313C] rounded-xl overflow-hidden shadow-md transition hover:border-primary/20 animate-fade-in">
+                  <div className="px-4 py-2.5 border-b border-border/30 bg-[#20242D] text-xs text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <span>📍 {restaurantName}</span>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between gap-4">
+                    <VoucherCard
+                      voucher={v}
+                      disabled={activeTab !== 'unused'}
+                      isSaved={false}
+                      actionText={activeTab === 'unused' ? 'Dùng ngay' : 'Đã lưu'}
+                      onAction={activeTab === 'unused' ? () => {
+                        const targetId = restaurantObj?._id || restaurantObj;
+                        if (targetId) {
+                          navigate(`/restaurants/${targetId}`);
+                        } else {
+                          navigate('/restaurants');
+                        }
+                      } : null}
+                    />
+                    
+                    {activeTab === 'unused' && (
+                      <button 
+                        className="w-full py-2 px-3 text-center text-xs font-semibold text-rose-400 hover:text-white border border-rose-500/20 hover:border-rose-500 bg-rose-500/5 hover:bg-rose-500/20 rounded-lg transition focus:outline-none" 
+                        onClick={() => handleUnsave(v._id)}
+                      >
+                        Bỏ lưu khỏi ví
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

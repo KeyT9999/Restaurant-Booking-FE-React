@@ -10,21 +10,21 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy /api/v1 → http://localhost:3001/api/v1
+      // Proxy /api/v1 → http://127.0.0.1:3001/api/v1
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://127.0.0.1:3001',
         changeOrigin: true,
         secure: false,
       },
-      // Proxy /health → http://localhost:3001/health
+      // Proxy /health → http://127.0.0.1:3001/health
       '/health': {
-        target: 'http://localhost:3001',
+        target: 'http://127.0.0.1:3001',
         changeOrigin: true,
         secure: false,
       },
-      // Proxy socket.io → http://localhost:3001 with WebSocket support
+      // Proxy socket.io → http://127.0.0.1:3001 with WebSocket support
       '/socket.io': {
-        target: 'http://localhost:3001',
+        target: 'http://127.0.0.1:3001',
         changeOrigin: true,
         secure: false,
         ws: true,

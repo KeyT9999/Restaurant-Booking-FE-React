@@ -1,9 +1,10 @@
 import { Calendar, ShieldCheck, Ticket } from 'lucide-react';
 import { cn } from '../ui/utils';
 
-export default function VoucherCard({ voucher, onAction, actionText, disabled, isSaved }) {
+export default function VoucherCard({ voucher, onAction, actionText, disabled, isSaved, context = 'default' }) {
   const {
     code,
+    name,
     description,
     discountType,
     discountValue,
@@ -20,11 +21,15 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
     return new Date(dateStr).toLocaleDateString('vi-VN');
   };
 
+  // Determine button state and text
+  const isApplyAction = actionText === 'Dùng ngay' || actionText === 'Áp dụng' || context === 'booking';
+  const showButton = !!onAction;
+
   return (
     <div
       className={cn(
         'relative flex overflow-hidden rounded-xl border border-[#2C313C] bg-[#1A1D24] shadow-md transition-all',
-        isSaved && 'border-primary/40 bg-primary/5',
+        isSaved && !isApplyAction && 'border-primary/40 bg-primary/5',
         disabled && 'pointer-events-none opacity-50'
       )}
     >
@@ -39,7 +44,9 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
               {discountType === 'percentage' ? `${discountValue}% OFF` : formatCurrency(discountValue)}
             </span>
           </div>
-          <h4 className="mt-1.5 truncate text-sm font-bold text-white">Mã: {code}</h4>
+          <h4 className="mt-1.5 truncate text-sm font-bold text-white">
+            {name ? `${name} (${code})` : `Mã: ${code}`}
+          </h4>
           {description && <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{description}</p>}
         </div>
 
@@ -67,20 +74,20 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
       </div>
 
       <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-black/10 p-3 pr-5">
-        {onAction ? (
+        {showButton ? (
           <button
             type="button"
-            onClick={() => !disabled && !isSaved && onAction(voucher)}
-            disabled={disabled || isSaved}
+            onClick={() => !disabled && (!isSaved || isApplyAction) && onAction(voucher)}
+            disabled={disabled || (isSaved && !isApplyAction)}
             className={cn(
               'w-full rounded-lg px-2.5 py-2 text-center text-xs font-bold transition focus:outline-none',
-              isSaved
+              isSaved && !isApplyAction
                 ? 'flex items-center justify-center gap-1 border border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
                 : 'bg-primary text-background hover:bg-primary/90'
             )}
             aria-label={`Voucher ${code}`}
           >
-            {isSaved ? (
+            {isSaved && !isApplyAction ? (
               <>
                 <ShieldCheck className="h-3.5 w-3.5" />
                 <span>Đã lưu</span>
