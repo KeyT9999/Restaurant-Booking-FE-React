@@ -1,73 +1,41 @@
-import React from 'react';
+const STATUS_CONFIGS = {
+  active: {
+    label: 'Hoạt động',
+    classes: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+  },
+  inactive: {
+    label: 'Chờ kích hoạt',
+    classes: 'bg-secondary/40 border-border/80 text-muted-foreground',
+  },
+  scheduled: {
+    label: 'Chờ chạy',
+    classes: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+  },
+  expired: {
+    label: 'Hết hạn',
+    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+  },
+  disabled: {
+    label: 'Đã hủy',
+    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+  },
+  paused: {
+    label: 'Tạm dừng',
+    classes: 'bg-primary/10 border-primary/20 text-primary',
+  },
+};
 
 const VoucherStatusBadge = ({ status }) => {
-  const getBadgeStyle = () => {
-    switch (status) {
-      case 'active':
-        return {
-          border: '1px solid var(--color-success)',
-          color: 'var(--color-success-text)',
-          background: 'var(--color-success-bg)',
-        };
-      case 'inactive':
-      case 'scheduled':
-        return {
-          border: '1px solid var(--color-warning)',
-          color: 'var(--color-warning-text)',
-          background: 'var(--color-warning-bg)',
-        };
-      case 'expired':
-      case 'disabled':
-        return {
-          border: '1px solid var(--color-error)',
-          color: 'var(--color-error-text)',
-          background: 'var(--color-error-bg)',
-        };
-      case 'paused':
-        return {
-          border: '1px solid var(--border-accent)',
-          color: 'var(--color-amber-glow)',
-          background: 'rgba(212, 150, 83, 0.08)',
-        };
-      default:
-        return {
-          border: '1px solid var(--border-subtle)',
-          color: 'var(--color-faded-stone)',
-          background: 'rgba(216, 203, 184, 0.04)',
-        };
-    }
+  const config = STATUS_CONFIGS[status] || {
+    label: status,
+    classes: 'bg-secondary border-border text-muted-foreground',
   };
 
-  const getStatusLabel = () => {
-    switch (status) {
-      case 'active':
-        return 'Hoạt động';
-      case 'inactive':
-      case 'scheduled':
-        return 'Chờ chạy';
-      case 'expired':
-        return 'Hết hạn';
-      case 'paused':
-        return 'Tạm dừng';
-      case 'disabled':
-        return 'Đã hủy';
-      default:
-        return status;
-    }
-  };
-
-  const baseStyle = {
-    display: 'inline-block',
-    padding: '4px 8px',
-    fontSize: '11px',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    borderRadius: 'var(--radius-sm)', /* 3px */
-    ...getBadgeStyle(),
-  };
-
-  return <span style={baseStyle}>{getStatusLabel()}</span>;
+  return (
+    <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${config.classes}`}>
+      {config.label}
+    </span>
+  );
 };
 
 export default VoucherStatusBadge;

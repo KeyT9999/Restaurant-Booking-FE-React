@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
 import VoucherCard from './VoucherCard';
-import './VoucherFormModal.css';
 
 const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
   const [formData, setFormData] = useState({
@@ -85,10 +85,7 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
     
     setFormData(prev => {
       const updated = { ...prev, [name]: formattedValue };
-      // validate against the updated data
       validateField(name, formattedValue, updated);
-      
-      // Additional cross-field validation: if discount type changes, re-validate discountValue
       if (name === 'discountType') {
         validateField('discountValue', prev.discountValue, updated);
       }
@@ -137,7 +134,7 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
 
   // Preview data
   const previewVoucher = {
-    code: formData.code || 'MÃVOUCHER',
+    code: formData.code || 'SUMMER50',
     name: formData.name || 'Tên Voucher của bạn',
     description: formData.description || 'Mô tả chi tiết chương trình khuyến mại...',
     discountType: formData.discountType,
@@ -148,191 +145,239 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
   };
 
   return (
-    <div className="voucher-modal-overlay">
-      <div className="voucher-modal-container">
-        <div className="voucher-modal-header">
-          <h3 className="voucher-modal-title">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200" onClick={onClose}>
+      <div 
+        className="w-full max-w-4xl bg-card border border-border rounded-2xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center border-b border-border/40 pb-4">
+          <h3 className="font-serif text-lg md:text-xl text-white font-bold tracking-tight">
             {voucher ? `Chỉnh sửa Voucher: ${voucher.code}` : 'Tạo ưu đãi Voucher mới'}
           </h3>
-          <button className="voucher-modal-close-btn" onClick={onClose} aria-label="Close modal">&times;</button>
+          <button 
+            onClick={onClose} 
+            className="text-muted-foreground hover:text-white transition-colors cursor-pointer outline-none"
+            aria-label="Đóng"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <div className="voucher-modal-content-grid">
-          {/* Form Section */}
-          <form onSubmit={handleSubmit} className="voucher-modal-form">
-            <div className="form-group">
-              <label className="form-label">Tên hiển thị Voucher *</label>
+        {/* Two column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="lg:col-span-7 flex flex-col gap-5 text-left">
+            
+            {/* Display Name */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Tên hiển thị Voucher <span className="text-primary">*</span>
+              </label>
               <input
                 type="text"
                 name="name"
-                className={`form-input ${errors.name ? 'input-error' : ''}`}
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Ví dụ: Giảm giá hè 2026"
+                className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all ${
+                  errors.name ? 'border-destructive' : 'border-border'
+                }`}
               />
-              {errors.name && <span className="error-text">{errors.name}</span>}
+              {errors.name && <span className="text-xs text-destructive font-medium mt-0.5">{errors.name}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Mã Voucher *</label>
+            {/* Voucher Code */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Mã Voucher <span className="text-primary">*</span> <span className="text-[10px] text-muted-foreground/60">(Ví dụ: SUMMER50)</span>
+              </label>
               <input
                 type="text"
                 name="code"
-                className={`form-input ${errors.code ? 'input-error' : ''}`}
                 value={formData.code}
                 onChange={handleChange}
                 disabled={!!voucher}
-                placeholder="Ví dụ: SUMMER50"
+                placeholder="Nhập mã viết hoa không dấu"
+                className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all ${
+                  errors.code ? 'border-destructive' : 'border-border'
+                }`}
               />
-              {errors.code && <span className="error-text">{errors.code}</span>}
+              {errors.code && <span className="text-xs text-destructive font-medium mt-0.5">{errors.code}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Mô tả khuyến mại</label>
+            {/* Description */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mô tả chương trình khuyến mại</label>
               <textarea
                 name="description"
-                className="form-textarea"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Ví dụ: Áp dụng khi đặt bàn từ 4 người..."
+                placeholder="Ví dụ: Giảm giá đặt cọc bàn tiệc nhân dịp hè..."
                 maxLength={255}
+                className="w-full min-h-[72px] rounded-xl border border-border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y"
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group col-6">
-                <label className="form-label">Hình thức giảm *</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Discount Type */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hình thức giảm <span className="text-primary">*</span></label>
                 <select
                   name="discountType"
-                  className="form-input"
                   value={formData.discountType}
                   onChange={handleChange}
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                 >
                   <option value="percentage">Phần trăm (%)</option>
                   <option value="fixed_amount">Số tiền cố định (đ)</option>
                 </select>
               </div>
 
-              <div className="form-group col-6">
-                <label className="form-label">Mức giảm *</label>
+              {/* Discount Value */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mức giảm <span className="text-primary">*</span></label>
                 <input
                   type="number"
                   name="discountValue"
-                  className={`form-input ${errors.discountValue ? 'input-error' : ''}`}
                   value={formData.discountValue}
                   onChange={handleChange}
                   placeholder={formData.discountType === 'percentage' ? 'Ví dụ: 15' : 'Ví dụ: 50000'}
+                  className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all ${
+                    errors.discountValue ? 'border-destructive' : 'border-border'
+                  }`}
                 />
-                {errors.discountValue && <span className="error-text">{errors.discountValue}</span>}
+                {errors.discountValue && <span className="text-xs text-destructive font-medium mt-0.5">{errors.discountValue}</span>}
               </div>
             </div>
 
+            {/* Max Discount Amount */}
             {formData.discountType === 'percentage' && (
-              <div className="form-group">
-                <label className="form-label">Mức giảm tối đa (đ) - bỏ trống nếu không giới hạn</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mức giảm tối đa (đ) <span className="text-[10px] text-muted-foreground/60">(để trống nếu không giới hạn)</span></label>
                 <input
                   type="number"
                   name="maxDiscountAmount"
-                  className="form-input"
                   value={formData.maxDiscountAmount}
                   onChange={handleChange}
                   placeholder="Ví dụ: 100000"
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
             )}
 
-            <div className="form-row">
-              <div className="form-group col-6">
-                <label className="form-label">Đơn tối thiểu (đ)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Min Order Amount */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Đơn đặt tối thiểu (đ)</label>
                 <input
                   type="number"
                   name="minOrderAmount"
-                  className={`form-input ${errors.minOrderAmount ? 'input-error' : ''}`}
                   value={formData.minOrderAmount}
                   onChange={handleChange}
                   placeholder="Ví dụ: 200000"
+                  className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all ${
+                    errors.minOrderAmount ? 'border-destructive' : 'border-border'
+                  }`}
                 />
-                {errors.minOrderAmount && <span className="error-text">{errors.minOrderAmount}</span>}
+                {errors.minOrderAmount && <span className="text-xs text-destructive font-medium mt-0.5">{errors.minOrderAmount}</span>}
               </div>
 
-              <div className="form-group col-6">
-                <label className="form-label">Lượt / Khách hàng</label>
+              {/* Per Customer Limit */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lượt dùng tối đa / khách</label>
                 <input
                   type="number"
                   name="perCustomerLimit"
-                  className="form-input"
                   value={formData.perCustomerLimit}
                   onChange={handleChange}
                   min="1"
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group col-6">
-                <label className="form-label">Lượt dùng tối đa hệ thống</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Global Usage Limit */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tổng lượt dùng hệ thống <span className="text-[10px] text-muted-foreground/60">(để trống nếu không giới hạn)</span></label>
                 <input
                   type="number"
                   name="globalUsageLimit"
-                  className="form-input"
                   value={formData.globalUsageLimit}
                   onChange={handleChange}
                   placeholder="Ví dụ: 100"
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
 
-              <div className="form-group col-6">
-                <label className="form-label">Ngày bắt đầu</label>
+              {/* Start Date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ngày bắt đầu</label>
                 <input
                   type="date"
                   name="startDate"
-                  className="form-input"
                   value={formData.startDate}
                   onChange={handleChange}
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-4 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Ngày kết thúc *</label>
+            {/* End Date */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ngày kết thúc <span className="text-[10px] text-muted-foreground/60">(để trống nếu không thời hạn)</span></label>
               <input
                 type="date"
                 name="endDate"
-                className={`form-input ${errors.endDate ? 'input-error' : ''}`}
                 value={formData.endDate}
                 onChange={handleChange}
-                required
+                className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all ${
+                  errors.endDate ? 'border-destructive' : 'border-border'
+                }`}
               />
-              {errors.endDate && <span className="error-text">{errors.endDate}</span>}
+              {errors.endDate && <span className="text-xs text-destructive font-medium mt-0.5">{errors.endDate}</span>}
             </div>
 
-            <div className="voucher-modal-actions">
-              <button type="button" className="voucher-btn-secondary" onClick={onClose}>
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 border-t border-border/40 pt-4 mt-2">
+              <button
+                type="submit"
+                className="flex-1 h-11 rounded-xl bg-primary text-[#0F1115] font-bold text-xs uppercase tracking-wider hover:bg-primary/95 transition-all flex items-center justify-center gap-1.5 cursor-pointer order-last sm:order-first"
+              >
+                <Save size={14} />
+                <span>{voucher ? 'Cập nhật' : 'Tạo mới'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 h-11 rounded-xl border border-border bg-transparent text-muted-foreground hover:text-white hover:bg-white/5 transition-all flex items-center justify-center text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
                 Hủy bỏ
               </button>
-              <button type="submit" className="voucher-btn-primary">
-                {voucher ? 'Cập nhật' : 'Tạo mới'}
-              </button>
             </div>
+
           </form>
 
           {/* Live Preview Section */}
-          <div className="voucher-modal-preview-section">
-            <h4 className="preview-header-title">Xem trước hiển thị</h4>
-            <p className="preview-subtitle">Giao diện voucher khi hiển thị với khách hàng lúc đặt bàn:</p>
-            <div className="preview-card-wrapper">
+          <div className="lg:col-span-5 flex flex-col gap-4 border-t lg:border-t-0 lg:border-l border-border/40 pt-6 lg:pt-0 lg:pl-8">
+            <h4 className="font-serif text-sm font-bold text-white uppercase tracking-wider">Xem trước hiển thị</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">Giao diện voucher khi hiển thị với khách hàng lúc đặt bàn:</p>
+            <div className="my-2">
               <VoucherCard voucher={previewVoucher} isSaved={false} />
             </div>
             
-            <div className="preview-tips">
-              <h5>💡 Mẹo thiết kế ưu đãi:</h5>
-              <ul>
+            <div className="rounded-xl border border-border bg-[#1A1D24] p-4 text-[11px] leading-relaxed text-muted-foreground flex flex-col gap-2 mt-4">
+              <h5 className="font-bold text-primary flex items-center gap-1">💡 Mẹo thiết kế ưu đãi:</h5>
+              <ul className="list-disc pl-4 space-y-1.5">
                 <li>Đặt mã ngắn gọn, dễ nhớ (Ví dụ: BAN10, KHAIXIANG).</li>
                 <li>Nên đặt mức đơn tối thiểu hợp lý với giá món trung bình.</li>
                 <li>Mức giảm phần trăm (10% - 20%) thường thu hút khách hơn giảm tiền cố định.</li>
               </ul>
             </div>
           </div>
+
         </div>
       </div>
     </div>

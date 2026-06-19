@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
-// Data tỉnh/thành, quận/huyện, phường/xã Việt Nam (simplified)
-// Trong thực tế nên dùng API hoặc file JSON đầy đủ
 const CITIES = [
   'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
   'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Kạn', 'Bạc Liêu',
@@ -47,21 +45,23 @@ export default function AddressStep({ data, onChange, errors }) {
   }, [address.street, address.ward, address.district, address.city]);
 
   return (
-    <div className="form-step" id="step-address">
-      <h2 className="step-title">
-        <span className="step-icon">📍</span>
+    <div className="space-y-4 text-left" id="step-address">
+      <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+        <span className="text-lg">📍</span>
         Địa chỉ nhà hàng
       </h2>
-      <p className="step-desc">Xác định vị trí chính xác để khách hàng dễ dàng tìm thấy.</p>
+      <p className="text-xs text-muted-foreground">Xác định vị trí chính xác để khách hàng dễ dàng tìm thấy.</p>
 
       {/* City */}
-      <div className={`form-group ${errors?.['address.city'] ? 'has-error' : ''}`}>
-        <label className="form-label" htmlFor="address-city">
-          Tỉnh/Thành phố <span className="required">*</span>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-city">
+          Tỉnh/Thành phố <span className="text-destructive">*</span>
         </label>
         <select
           id="address-city"
-          className="form-select"
+          className={`bg-[#0F1115] border text-white text-xs rounded-xl px-3 py-2.5 h-11 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all cursor-pointer ${
+            errors?.['address.city'] ? 'border-destructive' : 'border-border'
+          }`}
           value={address.city || ''}
           onChange={(e) => handleAddressChange('city', e.target.value)}
         >
@@ -70,105 +70,121 @@ export default function AddressStep({ data, onChange, errors }) {
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
-        {errors?.['address.city'] && <span className="field-error">{errors['address.city']}</span>}
+        {errors?.['address.city'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['address.city']}</span>}
       </div>
 
       {/* District */}
-      <div className={`form-group ${errors?.['address.district'] ? 'has-error' : ''}`}>
-        <label className="form-label" htmlFor="address-district">
-          Quận/Huyện <span className="required">*</span>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-district">
+          Quận/Huyện <span className="text-destructive">*</span>
         </label>
         <input
           id="address-district"
           type="text"
-          className="form-input"
-          placeholder="VD: Hai Bà Trưng"
+          className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+            errors?.['address.district'] ? 'border-destructive' : 'border-border'
+          }`}
+          placeholder="Ví dụ: Hai Bà Trưng, Cầu Giấy"
           value={address.district || ''}
           onChange={(e) => handleAddressChange('district', e.target.value)}
         />
-        {errors?.['address.district'] && <span className="field-error">{errors['address.district']}</span>}
+        {errors?.['address.district'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['address.district']}</span>}
       </div>
 
       {/* Ward */}
-      <div className={`form-group ${errors?.['address.ward'] ? 'has-error' : ''}`}>
-        <label className="form-label" htmlFor="address-ward">
-          Phường/Xã <span className="required">*</span>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-ward">
+          Phường/Xã <span className="text-destructive">*</span>
         </label>
         <input
           id="address-ward"
           type="text"
-          className="form-input"
-          placeholder="VD: Phạm Đình Hổ"
+          className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+            errors?.['address.ward'] ? 'border-destructive' : 'border-border'
+          }`}
+          placeholder="Ví dụ: Phạm Đình Hổ, Dịch Vọng Hậu"
           value={address.ward || ''}
           onChange={(e) => handleAddressChange('ward', e.target.value)}
         />
-        {errors?.['address.ward'] && <span className="field-error">{errors['address.ward']}</span>}
+        {errors?.['address.ward'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['address.ward']}</span>}
       </div>
 
       {/* Street */}
-      <div className={`form-group ${errors?.['address.street'] ? 'has-error' : ''}`}>
-        <label className="form-label" htmlFor="address-street">
-          Số nhà, tên đường <span className="required">*</span>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-street">
+          Số nhà, tên đường <span className="text-destructive">*</span>
         </label>
         <input
           id="address-street"
           type="text"
-          className="form-input"
-          placeholder="VD: 13 Lò Đúc"
+          className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+            errors?.['address.street'] ? 'border-destructive' : 'border-border'
+          }`}
+          placeholder="Ví dụ: 13 Lò Đúc"
           value={address.street || ''}
           onChange={(e) => handleAddressChange('street', e.target.value)}
         />
-        {errors?.['address.street'] && <span className="field-error">{errors['address.street']}</span>}
+        {errors?.['address.street'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['address.street']}</span>}
       </div>
 
-      {/* Full Address (auto-generated, read-only) */}
-      <div className="form-group">
-        <label className="form-label">Địa chỉ đầy đủ</label>
-        <div className="full-address-preview">{fullAddress}</div>
+      {/* Full Address */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Địa chỉ đầy đủ hiển thị</label>
+        <div className="bg-[#0F1115]/50 border border-border/80 border-dashed text-xs text-muted-foreground italic rounded-xl px-4 py-3">
+          {fullAddress}
+        </div>
       </div>
 
       {/* Coordinates toggle */}
-      <div className="form-group">
+      <div className="pt-2">
         <button
           type="button"
-          className="btn-toggle-coords"
+          className="text-xs text-muted-foreground hover:text-primary transition-all flex items-center gap-1 cursor-pointer bg-transparent"
           onClick={() => setShowCoordinates(!showCoordinates)}
         >
-          {showCoordinates ? '▲ Ẩn tọa độ' : '▼ Thêm tọa độ (nâng cao)'}
+          {showCoordinates ? '▲ Ẩn tọa độ bản đồ' : '▼ Thêm tọa độ GPS (nâng cao)'}
         </button>
       </div>
 
       {showCoordinates && (
-        <div className="coords-row">
-          <div className={`form-group ${errors?.['coordinates.latitude'] ? 'has-error' : ''}`}>
-            <label className="form-label" htmlFor="coord-lat">Vĩ độ (Latitude)</label>
+        <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-200">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="coord-lat">
+              Vĩ độ (Latitude)
+            </label>
             <input
               id="coord-lat"
               type="number"
-              className="form-input"
-              placeholder="VD: 21.0285"
+              className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+                errors?.['coordinates.latitude'] ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="Ví dụ: 21.0285"
               value={coordinates.latitude ?? ''}
               onChange={(e) => handleCoordChange('latitude', e.target.value)}
               step="0.0000001"
               min={-90}
               max={90}
             />
-            {errors?.['coordinates.latitude'] && <span className="field-error">{errors['coordinates.latitude']}</span>}
+            {errors?.['coordinates.latitude'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['coordinates.latitude']}</span>}
           </div>
-          <div className={`form-group ${errors?.['coordinates.longitude'] ? 'has-error' : ''}`}>
-            <label className="form-label" htmlFor="coord-lng">Kinh độ (Longitude)</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="coord-lng">
+              Kinh độ (Longitude)
+            </label>
             <input
               id="coord-lng"
               type="number"
-              className="form-input"
-              placeholder="VD: 105.8542"
+              className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all ${
+                errors?.['coordinates.longitude'] ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="Ví dụ: 105.8542"
               value={coordinates.longitude ?? ''}
               onChange={(e) => handleCoordChange('longitude', e.target.value)}
               step="0.0000001"
               min={-180}
               max={180}
             />
-            {errors?.['coordinates.longitude'] && <span className="field-error">{errors['coordinates.longitude']}</span>}
+            {errors?.['coordinates.longitude'] && <span className="text-xs text-rose-450 font-medium mt-0.5">{errors['coordinates.longitude']}</span>}
           </div>
         </div>
       )}

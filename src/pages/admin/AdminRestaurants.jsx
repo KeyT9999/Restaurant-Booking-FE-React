@@ -7,7 +7,6 @@ import {
   Search, Eye, EyeOff, CheckCircle, XCircle, PauseCircle, Play,
   RefreshCw, ChevronLeft, ChevronRight, Store, Star, Trash2, Undo
 } from 'lucide-react';
-import './AdminRestaurants.css';
 
 // Badge & Modals Components
 import RestaurantStatusBadge from '../../components/admin/RestaurantStatusBadge';
@@ -94,7 +93,7 @@ export default function AdminRestaurants() {
   const handleToggleFeatured = async (restaurant) => {
     try {
       const targetState = !restaurant.featured;
-      const res = await adminApi.updateRestaurant(restaurant.id, { featured: targetState });
+      await adminApi.updateRestaurant(restaurant.id, { featured: targetState });
       toast.success(targetState ? 'Đã ghim nổi bật nhà hàng' : 'Đã hủy ghim nổi bật');
       
       // Update state locally to avoid full refetch stutter
@@ -209,7 +208,7 @@ export default function AdminRestaurants() {
   return (
     <AdminLayout title="Quản lý Nhà hàng" subtitle={`Tổng cộng ${pagination.total} nhà hàng`}>
       {/* Tabs Filter */}
-      <div className="status-tabs-container">
+      <div className="flex border-b border-zinc-800 mb-6 overflow-x-auto whitespace-nowrap scrollbar-none gap-2">
         {STATUS_TABS.map((tab) => {
           const isActive = filters.deleted === 'true' 
             ? tab.value === 'deleted' 
@@ -217,7 +216,11 @@ export default function AdminRestaurants() {
           return (
             <button
               key={tab.value}
-              className={`status-tab-btn ${isActive ? 'active' : ''}`}
+              className={`px-4 py-2 text-xs font-semibold tracking-wide uppercase border-b-2 transition duration-200 outline-none ${
+                isActive 
+                  ? 'border-amber-500 text-amber-500' 
+                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              }`}
               onClick={() => handleTabChange(tab.value)}
             >
               {tab.label}
@@ -227,21 +230,25 @@ export default function AdminRestaurants() {
       </div>
 
       {/* Toolbar */}
-      <div className="restaurants-toolbar">
-        <form onSubmit={handleSearchSubmit} className="search-bar">
-          <Search size={16} />
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center mb-6">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+            <Search size={16} />
+          </span>
           <input
             type="text"
             placeholder="Tìm theo tên, email, sđt..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full bg-[#1A1D24] border border-zinc-800 text-zinc-200 placeholder-zinc-500 rounded-lg text-sm pl-10 pr-4 py-2 outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
           />
         </form>
 
-        <div className="filter-group">
+        <div className="flex items-center gap-3">
           <select
             value={filters.sortBy}
             onChange={(e) => setFilters((p) => ({ ...p, sortBy: e.target.value }))}
+            className="bg-[#1A1D24] border border-zinc-800 text-zinc-300 rounded-lg text-sm px-3 py-2 outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
           >
             <option value="createdAt">Đăng ký mới nhất</option>
             <option value="name">Tên nhà hàng A-Z</option>
@@ -251,6 +258,7 @@ export default function AdminRestaurants() {
           <select
             value={filters.sortOrder}
             onChange={(e) => setFilters((p) => ({ ...p, sortOrder: e.target.value }))}
+            className="bg-[#1A1D24] border border-zinc-800 text-zinc-300 rounded-lg text-sm px-3 py-2 outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
           >
             <option value="desc">Giảm dần</option>
             <option value="asc">Tăng dần</option>
@@ -260,208 +268,213 @@ export default function AdminRestaurants() {
 
       {/* Table */}
       {loading ? (
-        <div className="admin-loading">
-          <div className="admin-spinner" />
-          <span>Đang tải danh sách...</span>
+        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 space-y-3 bg-[#1A1D24] border border-zinc-800 rounded-xl">
+          <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Đang tải danh sách...</span>
         </div>
       ) : restaurants.length === 0 ? (
-        <div className="admin-empty">
-          <Store size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-          <p>Không tìm thấy nhà hàng nào phù hợp với bộ lọc</p>
-          <button onClick={() => { setFilters({ search: '', approvalStatus: '', deleted: 'false', sortBy: 'createdAt', sortOrder: 'desc' }); setSearchInput(''); }}>
+        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 space-y-4 bg-[#1A1D24] border border-zinc-800 rounded-xl">
+          <Store size={48} className="opacity-40 text-amber-500" />
+          <p className="text-sm">Không tìm thấy nhà hàng nào phù hợp với bộ lọc</p>
+          <button 
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-lg transition"
+            onClick={() => { setFilters({ search: '', approvalStatus: '', deleted: 'false', sortBy: 'createdAt', sortOrder: 'desc' }); setSearchInput(''); }}
+          >
             <RefreshCw size={14} /> Xóa bộ lọc
           </button>
         </div>
       ) : (
         <>
-          <div className="restaurants-table-wrap">
-            <table className="restaurants-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '80px', textAlign: 'center' }}>Hiển thị</th>
-                  <th>Nhà hàng</th>
-                  <th>Chủ sở hữu</th>
-                  <th>Trạng thái</th>
-                  <th>Tỉnh/Thành phố</th>
-                  <th>Đánh giá</th>
-                  <th>Ngày đăng ký</th>
-                  <th style={{ textAlign: 'right' }}>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {restaurants.map((restaurant) => {
-                  const isDeleted = !!restaurant.deletedAt;
-                  return (
-                    <tr key={restaurant.id}>
-                      <td style={{ textAlign: 'center' }}>
-                        {!isDeleted && (
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                            <button
-                              className={`btn-featured-toggle ${restaurant.featured ? 'featured' : ''}`}
-                              onClick={() => handleToggleFeatured(restaurant)}
-                              title={restaurant.featured ? 'Hủy ghim nổi bật' : 'Ghim nổi bật'}
-                            >
-                              <Star size={16} />
-                            </button>
-                            <button
-                              className="btn-active-toggle"
-                              onClick={() => handleToggleActive(restaurant)}
-                              style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                cursor: 'pointer', 
-                                padding: '4px',
-                                color: restaurant.active ? '#10b981' : '#94a3b8',
-                                transition: 'color 0.2s'
-                              }}
-                              title={restaurant.active ? 'Đang hiển thị - Nhấn để ẩn' : 'Đang ẩn - Nhấn để hiển thị'}
-                            >
-                              {restaurant.active ? <Eye size={16} /> : <EyeOff size={16} />}
-                            </button>
+          <div className="bg-[#1A1D24] border border-zinc-800 rounded-xl overflow-hidden shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-zinc-350 text-sm">
+                <thead>
+                  <tr className="bg-zinc-900/50 border-b border-zinc-800 text-zinc-450 font-medium">
+                    <th className="p-4 text-center w-20">Hiển thị</th>
+                    <th className="p-4">Nhà hàng</th>
+                    <th className="p-4">Chủ sở hữu</th>
+                    <th className="p-4">Trạng thái</th>
+                    <th className="p-4">Tỉnh/Thành phố</th>
+                    <th className="p-4">Đánh giá</th>
+                    <th className="p-4">Ngày đăng ký</th>
+                    <th className="p-4 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60">
+                  {restaurants.map((restaurant) => {
+                    const isDeleted = !!restaurant.deletedAt;
+                    return (
+                      <tr key={restaurant.id} className="hover:bg-zinc-850/30 transition-colors">
+                        <td className="p-4 text-center">
+                          {!isDeleted && (
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                className={`p-1.5 rounded-lg border transition ${
+                                  restaurant.featured 
+                                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
+                                    : 'border-zinc-800 text-zinc-500 hover:text-zinc-350'
+                                }`}
+                                onClick={() => handleToggleFeatured(restaurant)}
+                                title={restaurant.featured ? 'Hủy ghim nổi bật' : 'Ghim nổi bật'}
+                              >
+                                <Star size={14} fill={restaurant.featured ? 'currentColor' : 'none'} />
+                              </button>
+                              <button
+                                className={`p-1.5 rounded-lg border transition ${
+                                  restaurant.active 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                    : 'border-zinc-805 text-zinc-500 hover:text-zinc-350'
+                                }`}
+                                onClick={() => handleToggleActive(restaurant)}
+                                title={restaurant.active ? 'Đang hiển thị - Nhấn để ẩn' : 'Đang ẩn - Nhấn để hiển thị'}
+                              >
+                                {restaurant.active ? <Eye size={14} /> : <EyeOff size={14} />}
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-zinc-805 border border-zinc-800 overflow-hidden flex items-center justify-center text-zinc-400">
+                              {restaurant.logo ? (
+                                <img src={restaurant.logo} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <Store size={18} />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-zinc-200">{restaurant.name}</div>
+                              <div className="text-xs text-zinc-400 font-mono">{restaurant.phoneNumber}</div>
+                            </div>
                           </div>
-                        )}
-                      </td>
-                      <td>
-                        <div className="restaurant-cell">
-                          <div className="restaurant-cell-logo">
-                            {restaurant.logo ? (
-                              <img src={restaurant.logo} alt="" />
-                            ) : (
-                              <Store size={18} />
-                            )}
-                          </div>
+                        </td>
+                        <td className="p-4">
                           <div>
-                            <div className="restaurant-cell-name">{restaurant.name}</div>
-                            <div className="restaurant-cell-phone">{restaurant.phoneNumber}</div>
+                            <div className="font-medium text-zinc-300">{restaurant.ownerId?.fullName || 'N/A'}</div>
+                            <div className="text-xs text-zinc-500">{restaurant.ownerId?.email || 'N/A'}</div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="owner-cell">
-                          <div className="owner-name">{restaurant.ownerId?.fullName || 'N/A'}</div>
-                          <div className="owner-email">{restaurant.ownerId?.email || 'N/A'}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <RestaurantStatusBadge status={isDeleted ? 'deleted' : restaurant.approvalStatus} />
-                      </td>
-                      <td>
-                        <div className="address-city">
+                        </td>
+                        <td className="p-4">
+                          <RestaurantStatusBadge status={isDeleted ? 'deleted' : restaurant.approvalStatus} />
+                        </td>
+                        <td className="p-4 text-xs text-zinc-300">
                           {restaurant.address?.city || 'N/A'}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="rating-cell" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Star size={13} fill="#fbbf24" color="#fbbf24" />
-                          <span>{restaurant.stats?.averageRating ? restaurant.stats.averageRating.toFixed(1) : '0.0'}</span>
-                        </div>
-                      </td>
-                      <td className="date-cell">
-                        {new Date(restaurant.createdAt).toLocaleDateString('vi-VN')}
-                      </td>
-                      <td>
-                        <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
-                          <button
-                            className="action-btn view"
-                            title="Xem chi tiết"
-                            onClick={() => navigate(`/admin/restaurants/${restaurant.id}`)}
-                          >
-                            <Eye size={16} />
-                          </button>
-
-                          {/* Dynamic Actions based on Status */}
-                          {isDeleted ? (
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1 text-xs text-zinc-350 font-medium">
+                            <Star size={13} fill="#fbbf24" color="#fbbf24" />
+                            <span>{restaurant.stats?.averageRating ? restaurant.stats.averageRating.toFixed(1) : '0.0'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-xs text-zinc-400 font-mono">
+                          {new Date(restaurant.createdAt).toLocaleDateString('vi-VN')}
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
-                              className="action-btn activate"
-                              title="Khôi phục nhà hàng"
-                              onClick={() => openActionModal('restore', restaurant)}
+                              className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-amber-500 rounded-lg transition"
+                              title="Xem chi tiết"
+                              onClick={() => navigate(`/admin/restaurants/${restaurant.id}`)}
                             >
-                              <Undo size={16} />
+                              <Eye size={14} />
                             </button>
-                          ) : (
-                            <>
-                              {restaurant.approvalStatus === 'pending' && (
-                                <>
+
+                            {/* Dynamic Actions based on Status */}
+                            {isDeleted ? (
+                              <button
+                                className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-emerald-500 rounded-lg transition"
+                                title="Khôi phục nhà hàng"
+                                onClick={() => openActionModal('restore', restaurant)}
+                              >
+                                <Undo size={14} />
+                              </button>
+                            ) : (
+                              <>
+                                {restaurant.approvalStatus === 'pending' && (
+                                  <>
+                                    <button
+                                      className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-emerald-500 rounded-lg transition"
+                                      title="Duyệt"
+                                      onClick={() => openActionModal('approve', restaurant)}
+                                    >
+                                      <CheckCircle size={14} />
+                                    </button>
+                                    <button
+                                      className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-rose-500 rounded-lg transition"
+                                      title="Từ chối"
+                                      onClick={() => openActionModal('reject', restaurant)}
+                                    >
+                                      <XCircle size={14} />
+                                    </button>
+                                  </>
+                                )}
+
+                                {restaurant.approvalStatus === 'approved' && (
                                   <button
-                                    className="action-btn approve"
-                                    title="Duyệt"
+                                    className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-orange-500 rounded-lg transition"
+                                    title="Tạm ngưng hoạt động"
+                                    onClick={() => openActionModal('suspend', restaurant)}
+                                  >
+                                    <PauseCircle size={14} />
+                                  </button>
+                                )}
+                                
+                                {restaurant.approvalStatus === 'suspended' && (
+                                  <button
+                                    className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-emerald-500 rounded-lg transition"
+                                    title="Gỡ tạm ngưng"
+                                    onClick={() => openActionModal('unsuspend', restaurant)}
+                                  >
+                                    <Play size={14} />
+                                  </button>
+                                )}
+
+                                {restaurant.approvalStatus === 'rejected' && (
+                                  <button
+                                    className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-emerald-500 rounded-lg transition"
+                                    title="Duyệt lại"
                                     onClick={() => openActionModal('approve', restaurant)}
                                   >
-                                    <CheckCircle size={16} />
+                                    <CheckCircle size={14} />
                                   </button>
-                                  <button
-                                    className="action-btn reject"
-                                    title="Từ chối"
-                                    onClick={() => openActionModal('reject', restaurant)}
-                                  >
-                                    <XCircle size={16} />
-                                  </button>
-                                </>
-                              )}
+                                )}
 
-                              {restaurant.approvalStatus === 'approved' && (
                                 <button
-                                  className="action-btn suspend"
-                                  title="Tạm ngưng hoạt động"
-                                  onClick={() => openActionModal('suspend', restaurant)}
+                                  className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-rose-505 rounded-lg transition"
+                                  title="Xóa nhà hàng"
+                                  onClick={() => openActionModal('delete', restaurant)}
                                 >
-                                  <PauseCircle size={16} />
+                                  <Trash2 size={14} />
                                 </button>
-                              )}
-                              
-                              {restaurant.approvalStatus === 'suspended' && (
-                                <button
-                                  className="action-btn approve"
-                                  title="Gỡ tạm ngưng"
-                                  onClick={() => openActionModal('unsuspend', restaurant)}
-                                >
-                                  <Play size={16} />
-                                </button>
-                              )}
-
-                              {restaurant.approvalStatus === 'rejected' && (
-                                <button
-                                  className="action-btn approve"
-                                  title="Duyệt lại"
-                                  onClick={() => openActionModal('approve', restaurant)}
-                                >
-                                  <CheckCircle size={16} />
-                                </button>
-                              )}
-
-                              <button
-                                className="action-btn delete"
-                                title="Xóa nhà hàng"
-                                onClick={() => openActionModal('delete', restaurant)}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="pagination">
+            <div className="flex items-center justify-center gap-4 mt-6">
               <button
                 disabled={pagination.page <= 1}
                 onClick={() => fetchRestaurants(pagination.page - 1)}
+                className="p-2 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 disabled:opacity-50 rounded-lg transition"
               >
                 <ChevronLeft size={16} />
               </button>
-              <span className="page-info">
+              <span className="text-xs text-zinc-400">
                 Trang {pagination.page} / {pagination.totalPages}
               </span>
               <button
                 disabled={pagination.page >= pagination.totalPages}
                 onClick={() => fetchRestaurants(pagination.page + 1)}
+                className="p-2 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 disabled:opacity-50 rounded-lg transition"
               >
                 <ChevronRight size={16} />
               </button>

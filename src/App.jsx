@@ -23,7 +23,11 @@ import AdminChatPage from './pages/admin/AdminChatPage';
 import OwnerProtectedRoute from './components/owner/OwnerProtectedRoute';
 import { ChatWidgetProvider } from './context/ChatWidgetProvider';
 import MiniChatWidget from './components/chat-widget/MiniChatWidget';
+import CustomerAIWidget from './components/ai-chat/CustomerAIWidget';
+import OwnerAIWidget from './components/ai-chat/OwnerAIWidget';
+import AdminAIWidget from './components/ai-chat/AdminAIWidget';
 import { RestaurantProvider } from './context/RestaurantProvider';
+import { NotificationProvider } from './context/NotificationProvider';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import OwnerChatPage from './pages/owner/OwnerChatPage';
 import OwnerRestaurants from './pages/owner/OwnerRestaurants';
@@ -44,6 +48,7 @@ import AdminRevenue from './pages/admin/AdminRevenue';
 import AdminRefunds from './pages/admin/AdminRefunds';
 import OwnerVouchers from './pages/owner/OwnerVouchers';
 import SavedVouchers from './pages/profile/SavedVouchers';
+import MyFavoritesPage from './pages/profile/MyFavoritesPage';
 import AdminVouchers from './pages/admin/AdminVouchers';
 import VoucherCenter from './pages/restaurants/VoucherCenter';
 import VoucherDetail from './pages/restaurants/VoucherDetail';
@@ -51,13 +56,13 @@ import WaitlistFormPage from './pages/waitlist/WaitlistFormPage';
 import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
 import OwnerWaitlistPage from './pages/owner/OwnerWaitlistPage';
+import OwnerReviewsPage from './pages/owner/OwnerReviewsPage';
+import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
-import useBookingNotifications from './hooks/useBookingNotifications';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
 import './App.css';
 
 function AppRoutes() {
-  useBookingNotifications();
   useWaitlistNotifications();
   return (
     <Routes>
@@ -139,6 +144,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/my-favorites"
+        element={
+          <ProtectedRoute>
+            <MyFavoritesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/bookings/:id"
         element={
           <ProtectedRoute>
@@ -177,8 +190,10 @@ function AppRoutes() {
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
+                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
+              <OwnerAIWidget />
             </RestaurantProvider>
           </OwnerProtectedRoute>
         }
@@ -203,8 +218,10 @@ function AppRoutes() {
               <Route path="revenue" element={<AdminRevenue />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
+              <Route path="reviews" element={<AdminReviews />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
+            <AdminAIWidget />
           </AdminProtectedRoute>
         }
       />
@@ -228,10 +245,13 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <ChatWidgetProvider>
-        <AppRoutes />
-        <MiniChatWidget />
-      </ChatWidgetProvider>
+      <NotificationProvider>
+        <ChatWidgetProvider>
+          <AppRoutes />
+          <MiniChatWidget />
+        </ChatWidgetProvider>
+        <CustomerAIWidget />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

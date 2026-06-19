@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-
-const getSocketUrl = () => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL;
-  if (!apiBase) return window.location.origin;
-  return apiBase.replace(/\/api\/v1\/?$/, '');
-};
+import { getSocketUrl } from '../utils/socketUrl';
 
 export function useChatSocket({
   enabled = true,

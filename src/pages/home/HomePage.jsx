@@ -1,188 +1,382 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
-import './HomePage.css';
-
-const FEATURES = [
-  {
-    icon: '🍽️',
-    title: 'Đặt bàn tức thì',
-    desc: 'Chọn nhà hàng, chọn giờ, xác nhận trong vài giây. Không cần gọi điện chờ đợi.',
-  },
-  {
-    icon: '📍',
-    title: 'Tìm kiếm thông minh',
-    desc: 'Khám phá hàng nghìn nhà hàng xung quanh bạn với đánh giá thực tế từ cộng đồng.',
-  },
-  {
-    icon: '⚡',
-    title: 'Xác nhận ngay lập tức',
-    desc: 'Nhận xác nhận đặt bàn tức thì. Không lo chờ đợi hay bỏ lỡ cơ hội.',
-  },
-  {
-    icon: '🎁',
-    title: 'Ưu đãi độc quyền',
-    desc: 'Hàng loạt ưu đãi và combo đặc biệt chỉ dành riêng cho thành viên BookEat.',
-  },
-];
-
-const CATEGORIES = [
-  { emoji: '🍜', name: 'Món Việt' },
-  { emoji: '🍣', name: 'Nhật Bản' },
-  { emoji: '🍕', name: 'Ý & Pizza' },
-  { emoji: '🥩', name: 'BBQ & Lẩu' },
-  { emoji: '🍱', name: 'Hàn Quốc' },
-  { emoji: '🍛', name: 'Ấn Độ' },
-  { emoji: '🥗', name: 'Thuần Chay' },
-  { emoji: '☕', name: 'Cafe & Bánh' },
-];
+import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
+import { Search, MapPin, Users, Star, Heart, ChevronRight, Utensils, Sparkles, AlertTriangle } from 'lucide-react';
+import { Section, PhaseLabel } from '../../components/bookeat/Section';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // API Data states
+  const [featuredRestaurants, setFeaturedRestaurants] = useState([]);
+  const [tonightRestaurants, setTonightRestaurants] = useState([]);
+  const [cuisines, setCuisines] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Search Fields states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCuisine, setSelectedCuisine] = useState('');
+  const [guestsCount, setGuestsCount] = useState('2');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // Fetch cuisine types
+        const cuisineRes = await getPublicCuisineTypes();
+        if (cuisineRes && cuisineRes.success) {
+          setCuisines(cuisineRes.data.slice(0, 6) || []);
+        }
+
+        // Fetch featured restaurants (highest rating)
+        const featuredRes = await getPublicRestaurants({ limit: 3, sortBy: 'averageRating', sortDir: 'desc' });
+        if (featuredRes && featuredRes.success) {
+          setFeaturedRestaurants(featuredRes.data.restaurants || []);
+        }
+
+        // Fetch tonight's restaurants (most bookings/active)
+        const tonightRes = await getPublicRestaurants({ limit: 4, sortBy: 'totalBookings', sortDir: 'desc' });
+        if (tonightRes && tonightRes.success) {
+          setTonightRestaurants(tonightRes.data.restaurants || []);
+        }
+      } catch (err) {
+        console.error('Failed to load homepage data:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('search', searchQuery);
+    if (selectedCuisine) params.append('cuisineType', selectedCuisine);
+    navigate(`/restaurants?${params.toString()}`);
+  };
+
+  const selectCuisineAndSearch = (cuisine) => {
+    navigate(`/restaurants?cuisineType=${encodeURIComponent(cuisine)}`);
+  };
 
   return (
-    <div className="home-root">
+    <div className="min-h-screen bg-background text-white flex flex-col">
       <Header />
 
-      {/* ══ Hero ══ */}
-      <section className="hero" aria-label="Hero">
-        <div className="hero-bg" aria-hidden="true" />
-        <div className="hero-content">
-          {/* Left */}
-          <div className="hero-left">
-            <span className="hero-eyebrow">Nền tảng đặt bàn hàng đầu</span>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-20 pb-28 md:pt-28 md:pb-40" aria-label="Hero">
+        {/* Background Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=1800&q=80"
+            alt="Hero background"
+            className="w-full h-full object-cover opacity-20"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/30 via-[#0F1115]/80 to-[#0F1115]" />
+        </div>
 
-            <h1 className="hero-title">
-              Trải nghiệm<br />
-              ẩm thực <em>đỉnh cao</em>
+        <div className="relative z-10 mx-auto max-w-[1280px] px-6 text-left">
+          <div className="max-w-4xl">
+            <PhaseLabel>Nghệ thuật ẩm thực · từ 2026</PhaseLabel>
+
+            <h1
+              className="mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.05]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Đặt bàn tại những nhà hàng <br className="hidden sm:inline" />
+              <span className="text-primary italic">đẳng cấp</span> nhất thế giới.
             </h1>
 
-            <p className="hero-desc">
-              Khám phá và đặt bàn tại hàng nghìn nhà hàng hàng đầu Việt Nam. Nhanh chóng, tiện lợi và hoàn toàn miễn phí.
+            <p className="mt-6 max-w-2xl text-sm md:text-base text-[#A5ADBA] leading-relaxed">
+              Từ nhà hàng sao Michelin danh giá đến quán ăn quen thuộc tinh tế —
+              giữ chỗ hoàn hảo chỉ trong vài giây với xác nhận tức thời từ hệ thống BookEat.
             </p>
 
-            <div className="hero-actions">
-              {isAuthenticated ? (
-                <Link to="/restaurants" className="btn-primary" id="btn-explore">
-                  Khám phá ngay
-                </Link>
-              ) : (
-                <>
-                  <Link to="/auth/register" className="btn-primary" id="btn-start">
-                    Bắt đầu ngay
-                  </Link>
-                  <Link to="/auth/login" className="btn-outline" id="btn-hero-login">
-                    Đăng nhập
-                  </Link>
-                </>
-              )}
-            </div>
+            {/* Floating Search Card */}
+            <Card className="mt-16 p-2.5 bg-card/95 border-border backdrop-blur-md max-w-4xl shadow-2xl hover:border-primary/20 transition-all duration-300">
+              <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-[1.4fr_1.1fr_1.1fr_auto] gap-2 items-center">
+                {/* Search query */}
+                <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg hover:bg-white/5 border border-border/40 md:border-none focus-within:ring-1 focus-within:ring-primary/40 focus-within:bg-white/5 transition duration-150">
+                  <Search className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="hero-search-input" className="block text-[10px] uppercase tracking-wider text-[#A5ADBA] font-semibold">Địa điểm / Nhà hàng</label>
+                    <input
+                      id="hero-search-input"
+                      aria-label="Nhập tên nhà hàng hoặc thành phố"
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Tìm tên nhà hàng, thành phố..."
+                      className="w-full bg-transparent text-xs text-white placeholder-[#A5ADBA] focus:outline-none border-none p-0 mt-0.5"
+                    />
+                  </div>
+                </div>
 
-            <div className="hero-stats">
-              <div className="stat">
-                <strong>2,000+</strong>
-                <span>Nhà hàng</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat">
-                <strong>50K+</strong>
-                <span>Khách hàng</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat">
-                <strong>4.9 ★</strong>
-                <span>Đánh giá</span>
-              </div>
-            </div>
-          </div>
+                {/* Cuisine Selector */}
+                <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg hover:bg-white/5 border border-border/40 md:border-none focus-within:ring-1 focus-within:ring-primary/40 focus-within:bg-white/5 transition duration-150">
+                  <Utensils className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="hero-cuisine-select" className="block text-[10px] uppercase tracking-wider text-[#A5ADBA] font-semibold">Ẩm thực</label>
+                    <select
+                      id="hero-cuisine-select"
+                      aria-label="Chọn loại hình ẩm thực"
+                      value={selectedCuisine}
+                      onChange={(e) => setSelectedCuisine(e.target.value)}
+                      className="w-full bg-transparent text-xs text-white focus:outline-none border-none p-0 mt-0.5 cursor-pointer focus:ring-0"
+                    >
+                      <option value="" className="bg-[#1A1D24] text-white">Tất cả phong cách</option>
+                      {cuisines.map((c) => (
+                        <option key={c} value={c} className="bg-[#1A1D24] text-white">{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-          {/* Right — floating cards */}
-          <div className="hero-visual" aria-hidden="true">
-            <div className="hero-card-stack">
-              <div className="hcard hcard-1">
-                <span className="hcard-emoji">🍜</span>
-                <div>
-                  <strong>Phở Thìn Bờ Hồ</strong>
-                  <small>Hà Nội · ★ 4.9</small>
+                {/* Guests */}
+                <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg hover:bg-white/5 border border-border/40 md:border-none focus-within:ring-1 focus-within:ring-primary/40 focus-within:bg-white/5 transition duration-150">
+                  <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="hero-guests-select" className="block text-[10px] uppercase tracking-wider text-[#A5ADBA] font-semibold">Số khách</label>
+                    <select
+                      id="hero-guests-select"
+                      aria-label="Chọn số lượng khách đặt bàn"
+                      value={guestsCount}
+                      onChange={(e) => setGuestsCount(e.target.value)}
+                      className="w-full bg-transparent text-xs text-white focus:outline-none border-none p-0 mt-0.5 cursor-pointer focus:ring-0"
+                    >
+                      <option value="1" className="bg-[#1A1D24] text-white">1 người</option>
+                      <option value="2" className="bg-[#1A1D24] text-white">2 người</option>
+                      <option value="4" className="bg-[#1A1D24] text-white">4 người</option>
+                      <option value="6" className="bg-[#1A1D24] text-white">6 người</option>
+                      <option value="8" className="bg-[#1A1D24] text-white">8+ người</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div className="hcard hcard-2">
-                <span className="hcard-emoji">🍣</span>
-                <div>
-                  <strong>Sushi Hokkaido</strong>
-                  <small>TP.HCM · ★ 4.8</small>
-                </div>
-              </div>
-              <div className="hcard hcard-3">
-                <span className="hcard-emoji">🥩</span>
-                <div>
-                  <strong>King BBQ Premium</strong>
-                  <small>Đà Nẵng · ★ 4.7</small>
-                </div>
-              </div>
+
+                <Button type="submit" className="bg-primary hover:bg-[#E0A968] text-background font-semibold h-11 px-6 rounded-lg transition-all duration-200 focus:ring-1 focus:ring-primary/50 w-full md:w-auto">
+                  Tìm kiếm bàn
+                </Button>
+              </form>
+            </Card>
+
+            {/* Quick Suggestions */}
+            <div className="mt-6 flex flex-wrap gap-2 items-center">
+              <span className="text-xs text-muted-foreground mr-1">Gợi ý tìm nhanh:</span>
+              {['Món Việt', 'Hải sản', 'Bít tết', 'Món Pháp', 'Thuần chay'].map((cuisine) => (
+                <button
+                  key={cuisine}
+                  onClick={() => selectCuisineAndSearch(cuisine)}
+                  className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-muted-foreground hover:text-white transition duration-200"
+                >
+                  {cuisine}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ Categories ══ */}
-      <section className="section categories-section" aria-label="Thể loại ẩm thực">
-        <div className="container">
-          <span className="section-eyebrow">Thực đơn theo phong cách</span>
-          <h2 className="section-title">Khám phá thể loại</h2>
-          <div className="categories-grid">
-            {CATEGORIES.map((cat) => (
-              <button key={cat.name} className="category-card" type="button">
-                <span className="cat-emoji">{cat.emoji}</span>
-                <span className="cat-name">{cat.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ Features ══ */}
-      <section className="section features-section" aria-label="Tính năng">
-        <div className="container">
-          <span className="section-eyebrow">Tại sao chọn chúng tôi</span>
-          <h2 className="section-title">Dịch vụ vượt trội</h2>
-          <p className="section-sub">Chúng tôi mang lại trải nghiệm đặt bàn hoàn hảo và đẳng cấp nhất</p>
-          <div className="features-grid">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="feature-card">
-                <span className="feature-icon-big">{f.icon}</span>
-                <h3 className="feature-card-title">{f.title}</h3>
-                <p>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ CTA ══ */}
-      {!isAuthenticated && (
-        <section className="cta-section" aria-label="Đăng ký">
-          <div className="container cta-inner">
-            <span className="section-eyebrow">Tham gia cùng chúng tôi</span>
-            <h2>Sẵn sàng<br /><em style={{ fontStyle: 'italic' }}>trải nghiệm?</em></h2>
-            <p>Tạo tài khoản miễn phí và đặt bàn ngay hôm nay</p>
-            <div className="cta-actions">
-              <Link to="/auth/register" className="btn-primary" id="btn-cta-register">
-                Đăng ký miễn phí
-              </Link>
-              <Link to="/auth/login" className="btn-ghost" id="btn-cta-login">
-                Đã có tài khoản? Đăng nhập
-              </Link>
+      {/* Main Page Body */}
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-16 space-y-24 flex-1 w-full">
+        {/* Featured Section */}
+        <Section
+          title="Nổi bật tuần này"
+          subtitle="Những địa điểm ẩm thực đặc sắc do biên tập viên tuyển chọn"
+          action={
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/restaurants')}
+              className="text-primary hover:text-[#D49653] hover:bg-[#20242D] focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-2 gap-1.5 text-xs font-semibold px-3 py-2 rounded-md transition-all"
+            >
+              Xem tất cả <ChevronRight className="h-4 w-4" />
+            </Button>
+          }
+        >
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((n) => (
+                <Card key={n} className="overflow-hidden bg-card border-border animate-pulse h-[340px]" />
+              ))}
             </div>
-          </div>
-        </section>
-      )}
+          ) : featuredRestaurants.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-border rounded-xl">
+              <AlertTriangle className="mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">Hiện chưa có nhà hàng nào được đánh giá nổi bật.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredRestaurants.map((r) => (
+                <Card
+                  key={r.id}
+                  onClick={() => navigate(`/restaurants/${r.id}`)}
+                  className="overflow-hidden bg-card border-border hover:border-primary/45 transition-all duration-300 cursor-pointer group flex flex-col focus-within:border-primary/45 focus-within:ring-1 focus-within:ring-primary/20"
+                >
+                  <div className="relative aspect-[5/4] overflow-hidden bg-secondary">
+                    {r.coverImageUrl || r.logo ? (
+                      <img
+                        src={r.coverImageUrl || r.logo}
+                        alt={r.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle wishlist
+                      }}
+                      className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm grid place-items-center text-white hover:text-red-500 hover:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
+                      aria-label={`Thêm ${r.name} vào mục yêu thích`}
+                    >
+                      <Heart className="h-4.5 w-4.5" />
+                    </button>
+                    {r.featured && (
+                      <Badge className="absolute top-3.5 left-3.5 bg-primary text-background border-none gap-1 py-1 font-semibold">
+                        <Sparkles className="h-3 w-3" /> Editor's pick
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 style={{ fontFamily: "'Playfair Display', serif" }} className="text-lg font-bold text-white leading-snug truncate group-hover:text-primary transition-colors">
+                          {r.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                          {r.cuisineType} · {r.averagePrice ? `~ ${r.averagePrice.toLocaleString('vi-VN')} đ` : 'Giá liên hệ'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm font-semibold shrink-0 text-primary">
+                        <Star className="h-4 w-4 fill-primary text-primary" />
+                        <span>{r.averageRating ? r.averageRating.toFixed(1) : '0.0'}</span>
+                      </div>
+                    </div>
 
-      {/* ══ Footer ══ */}
-      <footer className="home-footer">
-        <div className="container">
-          <span className="footer-brand">BookEat</span>
-          <span className="footer-copy">© 2026 BookEat. Mọi quyền được bảo lưu.</span>
+                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2 leading-relaxed flex-1">
+                      {r.description || 'Khám phá không gian sang trọng và các món ăn đặc sắc được chuẩn bị bởi đầu bếp tài năng.'}
+                    </p>
+
+                    <div className="mt-4 pt-4 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1 truncate max-w-[70%]">
+                        <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        <span className="truncate">{r.address}</span>
+                      </div>
+                      <Button size="sm" className="h-8 text-xs bg-primary hover:bg-[#E0A968] text-background font-semibold px-3 transition-colors duration-200">
+                        Đặt chỗ
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Tonight's Reservation Section */}
+        <Section title="Khám phá ẩm thực quanh bạn" subtitle="Các nhà hàng phục vụ đặt bàn ngay tối nay cực hot">
+          {loading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <Card key={n} className="overflow-hidden bg-card border-border animate-pulse h-[280px]" />
+              ))}
+            </div>
+          ) : tonightRestaurants.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-border rounded-xl">
+              <p className="text-muted-foreground text-sm">Hiện chưa có thêm nhà hàng nào sẵn sàng.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {tonightRestaurants.map((r) => (
+                <Card
+                  key={r.id}
+                  onClick={() => navigate(`/restaurants/${r.id}`)}
+                  className="overflow-hidden bg-card border-border hover:border-primary/45 transition duration-300 cursor-pointer group flex flex-col focus-within:border-primary/45 focus-within:ring-1 focus-within:ring-primary/20"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+                    {r.coverImageUrl || r.logo ? (
+                      <img
+                        src={r.coverImageUrl || r.logo}
+                        alt={r.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">🍽️</div>
+                    )}
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h4 style={{ fontFamily: "'Playfair Display', serif" }} className="text-base font-bold text-white leading-tight truncate group-hover:text-primary transition-colors">
+                      {r.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                      {r.cuisineType} · {r.address}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between text-xs pt-3 border-t border-border/40">
+                      <div className="flex items-center gap-1 text-primary font-semibold">
+                        <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                        <span>{r.averageRating ? r.averageRating.toFixed(1) : '0.0'}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                        Đang hoạt động
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Browse by Cuisine Category */}
+        <Section title="Khám phá theo thể loại" subtitle="Tìm kiếm các trải nghiệm hương vị ẩm thực phong phú khác nhau">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {cuisines.length === 0 ? (
+              ['Hải sản', 'Bít tết', 'Món Việt', 'Món Nhật', 'Món Ý', 'Thuần chay'].map((cuisine) => (
+                <Card
+                  key={cuisine}
+                  onClick={() => selectCuisineAndSearch(cuisine)}
+                  className="p-5 bg-card border-border hover:border-primary/50 transition cursor-pointer text-center group"
+                >
+                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3.5 group-hover:scale-110 transition duration-200">
+                    <Utensils className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold">{cuisine}</p>
+                </Card>
+              ))
+            ) : (
+              cuisines.map((cuisine) => (
+                <Card
+                  key={cuisine}
+                  onClick={() => selectCuisineAndSearch(cuisine)}
+                  className="p-5 bg-card border-border hover:border-primary/50 transition cursor-pointer text-center group"
+                >
+                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3.5 group-hover:scale-110 transition duration-200">
+                    <Utensils className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold">{cuisine}</p>
+                </Card>
+              ))
+            )}
+          </div>
+        </Section>
+      </div>
+
+      {/* Basic Custom Footer */}
+      <footer className="mt-auto border-t border-border bg-[#090B0E] py-8 text-center text-xs text-muted-foreground">
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: "'Playfair Display', serif" }} className="text-sm font-bold text-white tracking-wider">BookEat</span>
+            <span>— Trải nghiệm đặt bàn hoàn hảo.</span>
+          </div>
+          <span>© 2026 BookEat. Mọi quyền được bảo lưu.</span>
         </div>
       </footer>
     </div>

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import { 
   Ticket, Plus, ToggleLeft, ToggleRight, Trash2, BarChart2, Calendar, 
-  ShieldAlert, TrendingUp, RefreshCw, Gift, Search, Edit, Eye, UserCheck, Activity
+  ShieldAlert, TrendingUp, RefreshCw, Gift, Search, Edit, Eye, UserCheck, Activity, Loader2, X, AlertTriangle
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { 
@@ -20,7 +21,10 @@ import {
 } from '../../api/voucherApi';
 import VoucherFormModal from '../../components/voucher/VoucherFormModal';
 import VoucherStatusBadge from '../../components/voucher/VoucherStatusBadge';
-import './AdminVouchers.css';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { cn } from '../../components/ui/utils';
 
 const formatMoney = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(v || 0);
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : 'Không giới hạn';
@@ -85,6 +89,16 @@ export default function AdminVouchers() {
   const [fraudData, setFraudData] = useState(null);
   const [loadingFraud, setLoadingFraud] = useState(false);
 
+  // Single Voucher Stats Drawer State
+  const [statsVoucher, setStatsVoucher] = useState(null);
+  const [statsData, setStatsData] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  // Derived KPI Stats
+  const globalVouchers = useMemo(() => vouchers.filter(v => !v.restaurantId), [vouchers]);
+  const restaurantVouchers = useMemo(() => vouchers.filter(v => !!v.restaurantId), [vouchers]);
+  const activeCount = useMemo(() => vouchers.filter(v => v.status === 'active').length, [vouchers]);
+
   useEffect(() => {
     if (activeTab === 'list') {
       loadVouchers(pagination.page);
@@ -112,9 +126,6 @@ export default function AdminVouchers() {
       
       if (filters.scope === 'platform') {
         queryParams.restaurantId = 'null';
-      } else if (filters.scope === 'restaurant') {
-        // We want only restaurant ones, we filter by setting non-null on restaurantId, 
-        // the backend supports sending restaurantId filter.
       }
 
       const res = await getAdminVouchers(queryParams);
@@ -129,9 +140,9 @@ export default function AdminVouchers() {
 
         setVouchers(list);
         setPagination({
-          page: res.pagination.page,
-          limit: res.pagination.limit,
-          totalPages: res.pagination.totalPages
+          page: res.pagination?.page || pageNumber,
+          limit: res.pagination?.limit || 10,
+          totalPages: res.pagination?.totalPages || 1
         });
       }
     } catch (err) {
@@ -150,14 +161,15 @@ export default function AdminVouchers() {
         res = await createPlatformVoucher({ ...data, type: 'platform', restaurantId: null });
       }
       if (res?.success) {
-        alert(editingVoucher ? 'Cập nhật voucher thành công!' : 'Tạo mới voucher platform thành công!');
+        toast.success(editingVoucher ? 'Cập nhật voucher thành công!' : 'Tạo mới voucher platform thành công!');
         setIsVoucherModalOpen(false);
+        setEditingVoucher(null);
         loadVouchers(pagination.page);
       } else {
-        alert(res?.message || 'Lỗi lưu thông tin voucher');
+        toast.error(res?.message || 'Lỗi lưu thông tin voucher');
       }
     } catch (err) {
-      alert(err.message || 'Lỗi lưu thông tin voucher');
+      toast.error(err.message || 'Lỗi lưu thông tin voucher');
     }
   };
 
@@ -166,10 +178,11 @@ export default function AdminVouchers() {
     try {
       const res = await changeAdminVoucherStatus(voucher._id, nextStatus);
       if (res?.success) {
+        toast.success(nextStatus === 'active' ? 'Voucher đã hoạt động trở lại.' : 'Voucher đã tạm dừng.');
         loadVouchers(pagination.page);
       }
     } catch (err) {
-      alert(err.message || 'Lỗi thay đổi trạng thái');
+      toast.error(err.message || 'Lỗi thay đổi trạng thái');
     }
   };
 
@@ -178,10 +191,11 @@ export default function AdminVouchers() {
     try {
       const res = await deleteAdminVoucher(id, force);
       if (res?.success) {
+        toast.success(force ? 'Đã xóa vĩnh viễn voucher!' : 'Đã vô hiệu hóa voucher!');
         loadVouchers(pagination.page);
       }
     } catch (err) {
-      alert(err.message || 'Lỗi xử lý xóa voucher');
+      toast.error(err.message || 'Lỗi xử lý xóa voucher');
     }
   };
 
@@ -193,10 +207,10 @@ export default function AdminVouchers() {
       if (res?.success) {
         setResetModalVoucher(null);
         loadVouchers(pagination.page);
-        alert('Đã cập nhật số lượt sử dụng voucher thành công.');
+        toast.success('Đã cập nhật số lượt sử dụng voucher thành công.');
       }
     } catch (err) {
-      alert(err.message || 'Lỗi reset lượt sử dụng');
+      toast.error(err.message || 'Lỗi reset lượt sử dụng');
     }
   };
 
@@ -230,12 +244,13 @@ export default function AdminVouchers() {
         res = await createAdminCampaign(payload);
       }
       if (res?.success) {
-        alert(editingCampaign ? 'Cập nhật chiến dịch thành công!' : 'Tạo mới chiến dịch thành công!');
+        toast.success(editingCampaign ? 'Cập nhật chiến dịch thành công!' : 'Tạo mới chiến dịch thành công!');
         setIsCampaignModalOpen(false);
+        setEditingCampaign(null);
         loadCampaigns();
       }
     } catch (err) {
-      alert(err.message || 'Lỗi lưu chiến dịch');
+      toast.error(err.message || 'Lỗi lưu chiến dịch');
     }
   };
 
@@ -244,10 +259,11 @@ export default function AdminVouchers() {
     try {
       const res = await updateAdminCampaign(campaign._id, { status: nextStatus });
       if (res?.success) {
+        toast.success(nextStatus === 'active' ? 'Kích hoạt chiến dịch thành công' : 'Đã đóng chiến dịch');
         loadCampaigns();
       }
     } catch (err) {
-      alert(err.message || 'Lỗi cập nhật chiến dịch');
+      toast.error(err.message || 'Lỗi cập nhật chiến dịch');
     }
   };
 
@@ -255,11 +271,11 @@ export default function AdminVouchers() {
   const handleCompSubmit = async (e) => {
     e.preventDefault();
     if (!compForm.customerId) {
-      alert('Vui lòng nhập Customer ID');
+      toast.error('Vui lòng nhập Customer ID');
       return;
     }
     if (!compForm.discountValue || Number(compForm.discountValue) <= 0) {
-      alert('Mức giảm giá phải lớn hơn 0');
+      toast.error('Mức giảm giá phải lớn hơn 0');
       return;
     }
     try {
@@ -281,11 +297,11 @@ export default function AdminVouchers() {
           minOrderAmount: '0',
           daysValid: '30'
         });
-        alert('Phát hành voucher đền bù thành công và đã tự động thêm vào ví khách hàng.');
+        toast.success('Phát hành voucher đền bù thành công và đã tự động thêm vào ví khách hàng.');
         if (activeTab === 'list') loadVouchers(1);
       }
     } catch (err) {
-      alert(err.message || 'Lỗi phát hành voucher đền bù. Vui lòng kiểm tra lại Customer ID.');
+      toast.error(err.message || 'Lỗi phát hành voucher đền bù. Vui lòng kiểm tra lại Customer ID.');
     }
   };
 
@@ -319,78 +335,133 @@ export default function AdminVouchers() {
     }
   };
 
+  // --- SINGLE VOUCHER STATS FLOW ---
+  const handleShowStats = async (voucher) => {
+    setStatsVoucher(voucher);
+    setLoadingStats(true);
+    setStatsData(null);
+    try {
+      const res = await getAdminVouchersAnalytics({ voucherId: voucher._id });
+      if (res?.success) {
+        setStatsData(res.data);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi lấy báo cáo thống kê');
+      setStatsVoucher(null);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
   return (
-    <AdminLayout>
-      <div className="admin-vouchers-container">
+    <AdminLayout title="Quản lý Voucher Khuyến Mại" subtitle="Quản trị mã giảm giá toàn sàn và theo dõi mã của các nhà hàng">
+      <div className="flex flex-col gap-6">
         
         {/* Navigation Tabs */}
-        <div className="admin-vouchers-tabs">
+        <div className="flex gap-6 border-b border-border/40 pb-px">
           <button 
-            className={`tab-btn ${activeTab === 'list' ? 'active' : ''}`}
+            className={cn(
+              "pb-3 text-sm font-medium transition-all relative cursor-pointer outline-none flex items-center gap-2",
+              activeTab === 'list' ? 'text-primary' : 'text-zinc-400 hover:text-white'
+            )}
             onClick={() => setActiveTab('list')}
           >
-            <Ticket size={16} /> Vouchers Hệ Thống
+            <Ticket size={16} />
+            <span>Vouchers Hệ Thống</span>
+            {activeTab === 'list' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
+            className={cn(
+              "pb-3 text-sm font-medium transition-all relative cursor-pointer outline-none flex items-center gap-2",
+              activeTab === 'campaigns' ? 'text-primary' : 'text-zinc-400 hover:text-white'
+            )}
             onClick={() => setActiveTab('campaigns')}
           >
-            <Calendar size={16} /> Quản Lý Chiến Dịch
+            <Calendar size={16} />
+            <span>Quản Lý Chiến Dịch</span>
+            {activeTab === 'campaigns' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+            className={cn(
+              "pb-3 text-sm font-medium transition-all relative cursor-pointer outline-none flex items-center gap-2",
+              activeTab === 'analytics' ? 'text-primary' : 'text-zinc-400 hover:text-white'
+            )}
             onClick={() => setActiveTab('analytics')}
           >
-            <TrendingUp size={16} /> Báo Cáo Hiệu Năng
+            <TrendingUp size={16} />
+            <span>Báo Cáo Hiệu Năng</span>
+            {activeTab === 'analytics' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'fraud' ? 'active' : ''}`}
+            className={cn(
+              "pb-3 text-sm font-medium transition-all relative cursor-pointer outline-none flex items-center gap-2",
+              activeTab === 'fraud' ? 'text-primary' : 'text-zinc-400 hover:text-white'
+            )}
             onClick={() => setActiveTab('fraud')}
           >
-            <ShieldAlert size={16} /> Bảo Mật & Gian Lận
+            <ShieldAlert size={16} />
+            <span>Bảo Mật & Gian Lận</span>
+            {activeTab === 'fraud' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
           </button>
         </div>
 
         {/* TAB 1: Vouchers List */}
         {activeTab === 'list' && (
-          <div className="tab-pane">
-            <div className="tab-pane-header">
-              <h2>Quản Lý Danh Sách Voucher</h2>
-              <div className="action-buttons-group">
-                <button 
-                  className="btn-admin-action btn-issue-comp" 
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <h2 className="text-lg font-bold text-white uppercase tracking-wide">Danh Sách Voucher Hệ Thống & Nhà Hàng</h2>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="h-10 border-border text-white hover:bg-secondary/60 text-xs font-semibold gap-1.5"
                   onClick={() => setIsCompModalOpen(true)}
                 >
-                  <Gift size={16} /> Phát hành đền bù
-                </button>
-                <button 
-                  className="btn-admin-action btn-create-global" 
+                  <Gift size={15} className="text-primary" /> Phát hành đền bù
+                </Button>
+                <Button 
+                  className="h-10 bg-primary px-5 text-background hover:bg-primary/95 font-semibold text-xs gap-1.5"
                   onClick={() => {
                     setEditingVoucher(null);
                     setIsVoucherModalOpen(true);
                   }}
                 >
-                  <Plus size={16} /> Tạo Voucher Global
-                </button>
+                  <Plus size={15} /> Tạo Voucher Global
+                </Button>
               </div>
             </div>
 
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-5 bg-card border-border flex flex-col justify-between">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Voucher Hệ Thống</span>
+                <strong className="text-3xl font-extrabold text-white mt-1.5">{vouchers.length}</strong>
+                <span className="text-xs text-zinc-500 mt-2 font-medium">{globalVouchers.length} Global | {restaurantVouchers.length} Nhà hàng</span>
+              </Card>
+              <Card className="p-5 bg-card border-border border-l-4 border-l-emerald-500 flex flex-col justify-between">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Đang hoạt động</span>
+                <strong className="text-3xl font-extrabold text-emerald-400 mt-1.5">{activeCount}</strong>
+                <span className="text-xs text-zinc-500 mt-2 font-medium">Đang phân phối tới ví khách hàng</span>
+              </Card>
+            </div>
+
             {/* Filter Bar */}
-            <div className="admin-filters-bar">
-              <div className="filter-input-wrap">
-                <Search size={16} className="search-icon" />
+            <div className="flex flex-wrap gap-3 items-center bg-card border border-border/40 p-4 rounded-xl">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input 
                   type="text" 
                   placeholder="Tìm theo tên hoặc mã code..." 
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                   onKeyDown={(e) => { if (e.key === 'Enter') loadVouchers(1); }}
+                  className="w-full pl-9 pr-3 py-2 bg-secondary/30 border border-border/60 rounded-lg text-xs text-white focus:outline-none focus:border-primary"
                 />
               </div>
 
               <select 
                 value={filters.scope} 
                 onChange={(e) => setFilters(prev => ({ ...prev, scope: e.target.value }))}
+                className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
               >
                 <option value="all">Tất cả phạm vi</option>
                 <option value="platform">Voucher Global (Toàn sàn)</option>
@@ -400,6 +471,7 @@ export default function AdminVouchers() {
               <select 
                 value={filters.type} 
                 onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
               >
                 <option value="">Tất cả loại hình</option>
                 <option value="platform">Platform</option>
@@ -412,6 +484,7 @@ export default function AdminVouchers() {
               <select 
                 value={filters.status} 
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
               >
                 <option value="">Tất cả trạng thái</option>
                 <option value="active">Đang hoạt động</option>
@@ -420,100 +493,100 @@ export default function AdminVouchers() {
                 <option value="disabled">Đã hủy</option>
               </select>
 
-              <button className="btn-filter-apply" onClick={() => loadVouchers(1)}>Lọc</button>
+              <Button className="bg-primary text-background hover:bg-primary/95 text-xs font-bold py-2 px-4 rounded-lg h-9" onClick={() => loadVouchers(1)}>Lọc</Button>
             </div>
 
             {loading ? (
-              <div className="admin-vouchers__loading">Đang tải danh sách voucher hệ thống...</div>
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Đang tải danh sách voucher hệ thống...</p>
+              </div>
             ) : error ? (
-              <div className="admin-vouchers__error">{error}</div>
+              <Card className="border-rose-500/25 bg-rose-500/10 p-5 text-rose-300">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle size={18} />
+                  <span className="text-sm font-semibold">{error}</span>
+                </div>
+              </Card>
             ) : vouchers.length === 0 ? (
-              <div className="admin-vouchers__empty">Không tìm thấy voucher nào phù hợp với bộ lọc.</div>
+              <Card className="border-dashed border-border bg-card/70 p-8 text-center text-muted-foreground text-sm">
+                Không tìm thấy voucher nào phù hợp với bộ lọc.
+              </Card>
             ) : (
-              <>
-                <div className="admin-vouchers__table-wrap">
-                  <table className="admin-vouchers__table">
+              <div className="flex flex-col gap-4">
+                <div className="overflow-x-auto border border-border/40 rounded-xl bg-card">
+                  <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr>
-                        <th>Tên hiển thị</th>
-                        <th>Mã Code</th>
-                        <th>Phạm vi</th>
-                        <th>Loại hình</th>
-                        <th>Chiết khấu</th>
-                        <th>Đơn tối thiểu</th>
-                        <th>Đã dùng / Giới hạn</th>
-                        <th>Trạng thái</th>
-                        <th className="text-center">Hành động</th>
+                      <tr className="border-b border-border/50 bg-secondary/10">
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Tên hiển thị</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Mã Code</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Phạm vi</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Loại hình</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Chiết khấu</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Đơn tối thiểu</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Đã dùng / Giới hạn</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Trạng thái</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider text-center">Hành động</th>
                       </tr>
                     </thead>
                     <tbody>
                       {vouchers.map((v) => (
-                        <tr key={v._id}>
-                          <td>{v.name}</td>
-                          <td className="admin-code-td">{v.code}</td>
-                          <td>
+                        <tr key={v._id} className="border-b border-border/30 hover:bg-secondary/10 transition-colors">
+                          <td className="p-3.5 font-bold text-white">{v.name}</td>
+                          <td className="p-3.5"><code className="px-2 py-1 bg-secondary rounded text-primary border border-border/50 text-[11px] font-mono font-semibold">{v.code}</code></td>
+                          <td className="p-3.5">
                             {v.restaurantId ? (
-                              <span className="scope-badge scope-restaurant" title={v.restaurantId.name}>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 max-w-[180px] truncate" title={v.restaurantId.name}>
                                 NH: {v.restaurantId.name}
                               </span>
                             ) : (
-                              <span className="scope-badge scope-global">Toàn sàn (Global)</span>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Toàn sàn (Global)</span>
                             )}
                           </td>
-                          <td style={{ textTransform: 'capitalize' }}>{v.type}</td>
-                          <td className="admin-val-td text-amber">
+                          <td className="p-3.5 text-muted-foreground capitalize">{v.type}</td>
+                          <td className="p-3.5 font-bold text-primary">
                             {v.discountType === 'percentage' ? `${v.discountValue}%` : formatMoney(v.discountValue)}
                           </td>
-                          <td>{formatMoney(v.minOrderAmount)}</td>
-                          <td>
-                            {v.currentUsage} / {v.globalUsageLimit || '∞'}
+                          <td className="p-3.5 text-muted-foreground">{formatMoney(v.minOrderAmount)}</td>
+                          <td className="p-3.5 text-muted-foreground">
+                            {v.currentUsage || 0} / {v.globalUsageLimit || '∞'}
                           </td>
-                          <td>
+                          <td className="p-3.5">
                             <VoucherStatusBadge status={v.status} />
                           </td>
-                          <td>
-                            <div className="admin-action-buttons-row">
-                              <button 
-                                className="admin-action-btn"
-                                title="Reset/Sửa lượt sử dụng"
-                                onClick={() => {
-                                  setResetModalVoucher(v);
-                                  setResetCount(v.currentUsage);
-                                }}
-                              >
-                                <RefreshCw size={14} />
-                              </button>
+                          <td className="p-3.5 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <IconButton label="Reset/Sửa lượt sử dụng" onClick={() => {
+                                setResetModalVoucher(v);
+                                setResetCount(v.currentUsage || 0);
+                              }}>
+                                <RefreshCw size={15} />
+                              </IconButton>
                               
                               {v.status !== 'disabled' && (
                                 <>
-                                  <button 
-                                    className="admin-action-btn"
-                                    title={v.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
+                                  <IconButton 
+                                    label={v.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
                                     onClick={() => handleToggleVoucherStatus(v)}
                                   >
-                                    {v.status === 'active' ? (
-                                      <ToggleRight size={18} className="text-green" />
-                                    ) : (
-                                      <ToggleLeft size={18} />
-                                    )}
-                                  </button>
-                                  <button 
-                                    className="admin-action-btn"
-                                    title="Chỉnh sửa"
+                                    <Power size={15} className={v.status === 'active' ? 'text-emerald-400' : ''} />
+                                  </IconButton>
+                                  <IconButton 
+                                    label="Chỉnh sửa"
                                     onClick={() => {
                                       setEditingVoucher(v);
                                       setIsVoucherModalOpen(true);
                                     }}
                                   >
-                                    <Edit size={14} />
-                                  </button>
-                                  <button 
-                                    className="admin-action-btn text-red-btn"
-                                    title="Xóa/Vô hiệu hóa"
+                                    <Pencil size={15} />
+                                  </IconButton>
+                                  <IconButton 
+                                    label="Xóa/Vô hiệu hóa"
+                                    danger
                                     onClick={() => handleDeleteVoucher(v._id)}
                                   >
-                                    <Trash2 size={14} />
-                                  </button>
+                                    <Trash2 size={15} />
+                                  </IconButton>
                                 </>
                               )}
                             </div>
@@ -525,34 +598,40 @@ export default function AdminVouchers() {
                 </div>
 
                 {pagination.totalPages > 1 && (
-                  <div className="logs-pagination">
-                    <button 
+                  <div className="flex items-center justify-end gap-3 mt-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-white hover:bg-secondary text-xs h-8"
                       disabled={pagination.page === 1}
                       onClick={() => loadVouchers(pagination.page - 1)}
                     >
                       Trước
-                    </button>
-                    <span>Trang {pagination.page} / {pagination.totalPages}</span>
-                    <button 
+                    </Button>
+                    <span className="text-xs text-muted-foreground">Trang {pagination.page} / {pagination.totalPages}</span>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-white hover:bg-secondary text-xs h-8"
                       disabled={pagination.page === pagination.totalPages}
                       onClick={() => loadVouchers(pagination.page + 1)}
                     >
                       Sau
-                    </button>
+                    </Button>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         )}
 
         {/* TAB 2: Campaigns */}
         {activeTab === 'campaigns' && (
-          <div className="tab-pane">
-            <div className="tab-pane-header">
-              <h2>Chiến Dịch Khuyến Mại Hệ Thống</h2>
-              <button 
-                className="btn-admin-action btn-create-global" 
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-bold text-white uppercase tracking-wide">Chiến Dịch Khuyến Mại Hệ Thống</h2>
+              <Button 
+                className="h-10 bg-primary px-5 text-background hover:bg-primary/95 font-semibold text-xs gap-1.5"
                 onClick={() => {
                   setEditingCampaign(null);
                   setCampaignForm({
@@ -567,69 +646,73 @@ export default function AdminVouchers() {
                   setIsCampaignModalOpen(true);
                 }}
               >
-                <Plus size={16} /> Tạo Chiến Dịch Mới
-              </button>
+                <Plus size={15} /> Tạo Chiến Dịch Mới
+              </Button>
             </div>
 
             {loadingCampaigns ? (
-              <div className="admin-vouchers__loading">Đang tải danh sách chiến dịch...</div>
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Đang tải danh sách chiến dịch...</p>
+              </div>
             ) : campaigns.length === 0 ? (
-              <div className="admin-vouchers__empty">Chưa có chiến dịch khuyến mại nào được tạo.</div>
+              <Card className="border-dashed border-border bg-card/70 p-8 text-center text-muted-foreground text-sm">
+                Chưa có chiến dịch khuyến mại nào được tạo.
+              </Card>
             ) : (
-              <div className="admin-vouchers__table-wrap">
-                <table className="admin-vouchers__table">
+              <div className="overflow-x-auto border border-border/40 rounded-xl bg-card">
+                <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr>
-                      <th>Tên chiến dịch</th>
-                      <th>Loại hình</th>
-                      <th>Thời gian chạy</th>
-                      <th>Đối tượng áp dụng</th>
-                      <th>Phân phối tự động</th>
-                      <th>Trạng thái</th>
-                      <th className="text-center">Hành động</th>
+                    <tr className="border-b border-border/50 bg-secondary/10">
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Tên chiến dịch</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Loại hình</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Thời gian chạy</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Đối tượng áp dụng</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Phân phối tự động</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Trạng thái</th>
+                      <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider text-center">Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
                     {campaigns.map((c) => (
-                      <tr key={c._id}>
-                        <td>
-                          <strong>{c.name}</strong>
-                          <div style={{ fontSize: '11px', color: 'var(--color-faded-stone)' }}>{c.description}</div>
+                      <tr key={c._id} className="border-b border-border/30 hover:bg-secondary/10 transition-colors">
+                        <td className="p-3.5 font-bold text-white">
+                          <div>{c.name}</div>
+                          {c.description && <div className="text-[10px] text-muted-foreground font-normal mt-0.5">{c.description}</div>}
                         </td>
-                        <td style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>{c.type}</td>
-                        <td className="admin-date-td">
-                          <div>Từ: {new Date(c.startDate).toLocaleString('vi-VN')}</div>
-                          <div>Đến: {formatDate(c.endDate)}</div>
+                        <td className="p-3.5 text-muted-foreground uppercase font-semibold text-[10px] tracking-wider">{c.type}</td>
+                        <td className="p-3.5 text-muted-foreground">
+                          <div className="flex flex-col gap-0.5">
+                            <span>Từ: {new Date(c.startDate).toLocaleString('vi-VN')}</span>
+                            <span>Đến: {formatDate(c.endDate)}</span>
+                          </div>
                         </td>
-                        <td>
-                          <span className="segment-badge">{c.targetSegments?.join(', ')}</span>
+                        <td className="p-3.5">
+                          <span className="inline-block bg-secondary px-2 py-0.5 rounded border border-border/50 text-[10px] text-white font-medium capitalize">
+                            {c.targetSegments?.join(', ') || 'Tất cả'}
+                          </span>
                         </td>
-                        <td>
-                          {c.autoDistribute ? (
-                            <span className="yes-no-badge yes">Có</span>
-                          ) : (
-                            <span className="yes-no-badge no">Không</span>
-                          )}
+                        <td className="p-3.5">
+                          <span className={cn(
+                            "inline-block px-2 py-0.5 rounded text-[10px] font-bold border",
+                            c.autoDistribute ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-zinc-500/10 border-zinc-550 text-zinc-400"
+                          )}>
+                            {c.autoDistribute ? 'Có' : 'Không'}
+                          </span>
                         </td>
-                        <td>
+                        <td className="p-3.5">
                           <VoucherStatusBadge status={c.status} />
                         </td>
-                        <td>
-                          <div className="admin-action-buttons-row">
-                            <button 
-                              className="admin-action-btn"
-                              title={c.status === 'active' ? 'Đóng chiến dịch' : 'Kích hoạt'}
+                        <td className="p-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <IconButton 
+                              label={c.status === 'active' ? 'Đóng chiến dịch' : 'Kích hoạt'}
                               onClick={() => handleToggleCampaignStatus(c)}
                             >
-                              {c.status === 'active' ? (
-                                <ToggleRight size={18} className="text-green" />
-                              ) : (
-                                <ToggleLeft size={18} />
-                              )}
-                            </button>
-                            <button 
-                              className="admin-action-btn"
-                              title="Chỉnh sửa chiến dịch"
+                              <Power size={15} className={c.status === 'active' ? 'text-emerald-400' : ''} />
+                            </IconButton>
+                            <IconButton 
+                              label="Chỉnh sửa chiến dịch"
                               onClick={() => {
                                 setEditingCampaign(c);
                                 setCampaignForm({
@@ -644,8 +727,8 @@ export default function AdminVouchers() {
                                 setIsCampaignModalOpen(true);
                               }}
                             >
-                              <Edit size={14} />
-                            </button>
+                              <Pencil size={15} />
+                            </IconButton>
                           </div>
                         </td>
                       </tr>
@@ -659,89 +742,81 @@ export default function AdminVouchers() {
 
         {/* TAB 3: Analytics */}
         {activeTab === 'analytics' && (
-          <div className="tab-pane">
-            <div className="tab-pane-header">
-              <h2>Phân Tích Hiệu Suất Chiến Dịch Toàn Hệ Thống</h2>
-            </div>
+          <div className="flex flex-col gap-6">
+            <h2 className="text-lg font-bold text-white uppercase tracking-wide">Phân Tích Hiệu Suất Chiến Dịch Toàn Hệ Thống</h2>
 
             {/* Date filter */}
-            <div className="analytics-filter-row">
-              <div className="date-input-group">
-                <label>Từ ngày</label>
+            <div className="flex flex-wrap gap-4 items-center bg-card border border-border/40 p-4 rounded-xl">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Từ ngày</label>
                 <input 
                   type="date" 
                   value={analyticsFilter.startDate}
                   onChange={(e) => setAnalyticsFilter(p => ({ ...p, startDate: e.target.value }))}
+                  className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
                 />
               </div>
-              <div className="date-input-group">
-                <label>Đến ngày</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Đến ngày</label>
                 <input 
                   type="date" 
                   value={analyticsFilter.endDate}
-                  onChange={(p) => setAnalyticsFilter(p => ({ ...p, endDate: p.target.value }))}
+                  onChange={(e) => setAnalyticsFilter(p => ({ ...p, endDate: e.target.value }))}
+                  className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
                 />
               </div>
-              <div className="date-input-group">
-                <label>Độ chia</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Độ chia</label>
                 <select 
                   value={analyticsFilter.granularity}
                   onChange={(e) => setAnalyticsFilter(p => ({ ...p, granularity: e.target.value }))}
+                  className="bg-secondary/40 border border-border/60 rounded-lg text-xs text-white p-2 focus:outline-none"
                 >
                   <option value="day">Từng ngày</option>
                   <option value="week">Theo tuần</option>
                   <option value="month">Theo tháng</option>
                 </select>
               </div>
-              <button className="btn-analytics-filter" onClick={loadAnalytics}>Áp dụng</button>
+              <Button className="bg-primary text-background hover:bg-primary/95 text-xs font-bold py-2 px-4 rounded-lg h-9 mt-5" onClick={loadAnalytics}>Áp dụng</Button>
             </div>
 
             {loadingAnalytics ? (
-              <div className="admin-vouchers__loading">Đang tổng hợp dữ liệu thống kê...</div>
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Đang tổng hợp dữ liệu thống kê...</p>
+              </div>
             ) : analyticsData ? (
-              <div className="analytics-pane-grid">
+              <div className="flex flex-col gap-6">
                 
                 {/* KPIs */}
-                <div className="stats-kpi-grid">
-                  <div className="stats-kpi">
-                    <span className="stats-kpi-lbl">Tổng Lượt Sử Dụng</span>
-                    <h4 className="stats-kpi-val">{analyticsData.finance.totalRedeemed}</h4>
-                  </div>
-                  <div className="stats-kpi">
-                    <span className="stats-kpi-lbl">Tổng Chiết Khấu Toàn Sàn</span>
-                    <h4 className="stats-kpi-val text-amber">{formatMoney(analyticsData.finance.totalDiscountIssued)}</h4>
-                  </div>
-                  <div className="stats-kpi">
-                    <span className="stats-kpi-lbl">Tổng Doanh Thu Thu Về</span>
-                    <h4 className="stats-kpi-val">{formatMoney(analyticsData.finance.totalRevenueGenerated)}</h4>
-                  </div>
-                  <div className="stats-kpi">
-                    <span className="stats-kpi-lbl">Chỉ số ROI trung bình</span>
-                    <h4 className="stats-kpi-val text-amber">{analyticsData.finance.roi}x</h4>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatBox label="Tổng Lượt Sử Dụng" value={analyticsData.finance?.totalRedeemed || 0} />
+                  <StatBox label="Tổng Chiết Khấu Toàn Sàn" value={formatMoney(analyticsData.finance?.totalDiscountIssued)} accent />
+                  <StatBox label="Tổng Doanh Thu Thu Về" value={formatMoney(analyticsData.finance?.totalRevenueGenerated)} />
+                  <StatBox label="Chỉ số ROI trung bình" value={`${analyticsData.finance?.roi || 0}x`} accent />
                 </div>
 
-                <div className="charts-flex-row">
-                  {/* SVG Line/Bar Chart for usage trend */}
-                  <div className="chart-card">
-                    <h4>Xu hướng sử dụng mã đặt cọc toàn sàn</h4>
-                    {analyticsData.usageTrend.length === 0 ? (
-                      <p className="no-chart-data">Không có dữ liệu xu hướng trong khoảng thời gian này.</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* SVG Chart for usage trend */}
+                  <Card className="p-6 border-border bg-card">
+                    <h4 className="font-semibold text-white mb-4">Xu hướng sử dụng mã đặt cọc toàn sàn</h4>
+                    {(!analyticsData.usageTrend || analyticsData.usageTrend.length === 0) ? (
+                      <p className="py-12 text-center text-sm text-muted-foreground">Không có dữ liệu xu hướng trong khoảng thời gian này.</p>
                     ) : (
-                      <div className="svg-chart-container">
-                        <svg viewBox="0 0 500 200" className="analytics-svg-chart">
+                      <div className="w-full">
+                        <svg viewBox="0 0 500 200" className="w-full h-auto text-muted-foreground">
                           {/* Gridlines */}
-                          <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(216, 203, 184, 0.08)" />
-                          <line x1="40" y1="70" x2="480" y2="70" stroke="rgba(216, 203, 184, 0.08)" />
-                          <line x1="40" y1="120" x2="480" y2="120" stroke="rgba(216, 203, 184, 0.08)" />
-                          <line x1="40" y1="160" x2="480" y2="160" stroke="var(--border-subtle)" />
+                          <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(216, 203, 184, 0.05)" />
+                          <line x1="40" y1="70" x2="480" y2="70" stroke="rgba(216, 203, 184, 0.05)" />
+                          <line x1="40" y1="120" x2="480" y2="120" stroke="rgba(216, 203, 184, 0.05)" />
+                          <line x1="40" y1="160" x2="480" y2="160" stroke="rgba(255, 255, 255, 0.1)" />
                           
                           {/* Drawing lines or bars */}
                           {analyticsData.usageTrend.map((item, idx) => {
-                            const barWidth = Math.max(10, 380 / analyticsData.usageTrend.length - 8);
+                            const barWidth = Math.max(8, 380 / analyticsData.usageTrend.length - 8);
                             const spacing = 6;
                             const x = 50 + idx * (barWidth + spacing);
-                            const maxVal = Math.max(...analyticsData.usageTrend.map(i => i.count)) || 1;
+                            const maxVal = Math.max(...(analyticsData.usageTrend?.map(i => i.count) || []), 1);
                             const barHeight = (item.count / maxVal) * 120;
                             const y = 160 - barHeight;
                             
@@ -752,23 +827,25 @@ export default function AdminVouchers() {
                                   y={y} 
                                   width={barWidth} 
                                   height={barHeight} 
-                                  fill="var(--color-amber-glow)" 
+                                  fill="hsl(var(--primary))" 
+                                  className="fill-primary opacity-80 hover:opacity-100 transition-opacity"
+                                  rx={1.5}
                                 />
                                 <text 
                                   x={x + barWidth / 2} 
                                   y={175} 
                                   textAnchor="middle" 
                                   fontSize="8" 
-                                  fill="var(--color-faded-stone)"
+                                  className="fill-muted-foreground"
                                 >
-                                  {item.date.slice(-5)}
+                                  {item.date?.slice(-5) || ''}
                                 </text>
                                 <text 
                                   x={x + barWidth / 2} 
                                   y={y - 4} 
                                   textAnchor="middle" 
                                   fontSize="9" 
-                                  fill="var(--color-aged-parchment)"
+                                  className="fill-white font-semibold"
                                 >
                                   {item.count}
                                 </text>
@@ -778,60 +855,89 @@ export default function AdminVouchers() {
                         </svg>
                       </div>
                     )}
-                  </div>
+                  </Card>
 
                   {/* Funnel Conversions */}
-                  <div className="chart-card">
-                    <h4>Phễu chuyển đổi Voucher toàn diện</h4>
-                    <div className="funnel-container">
-                      <div className="funnel-stage">
-                        <span className="stage-label">Lượt Xác Thực Mã (Validate)</span>
-                        <div className="stage-bar stage-1">{analyticsData.conversion.funnel.validates} lượt</div>
-                      </div>
-                      <div className="funnel-stage">
-                        <span className="stage-label">Lượt lưu ví (Save)</span>
-                        <div className="stage-bar stage-2" style={{ width: `${analyticsData.conversion.conversionRates.validateToSave || 100}%` }}>
-                          {analyticsData.conversion.funnel.saves} ({analyticsData.conversion.conversionRates.validateToSave}%)
+                  <Card className="p-6 border-border bg-card">
+                    <h4 className="font-semibold text-white mb-4">Phễu chuyển đổi Voucher toàn diện</h4>
+                    {(!analyticsData.conversion || !analyticsData.conversion.funnel) ? (
+                      <p className="py-12 text-center text-sm text-muted-foreground">Chưa có dữ liệu chuyển đổi.</p>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Lượt Xác Thực Mã (Validate)</span>
+                            <span className="font-semibold text-white">{analyticsData.conversion.funnel.validates || 0} lượt</span>
+                          </div>
+                          <div className="h-6 w-full bg-secondary/50 rounded-lg overflow-hidden border border-border/30">
+                            <div className="h-full bg-muted-foreground/30 text-[10px] text-white font-bold flex items-center pl-3" style={{ width: '100%' }}>
+                              {analyticsData.conversion.funnel.validates || 0} (100%)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Lưu Ví (Save)</span>
+                            <span className="font-semibold text-white">
+                              {analyticsData.conversion.funnel.saves || 0} ({analyticsData.conversion.conversionRates?.validateToSave || 0}%)
+                            </span>
+                          </div>
+                          <div className="h-6 w-full bg-secondary/50 rounded-lg overflow-hidden border border-border/30">
+                            <div className="h-full bg-amber-500/60 text-[10px] text-white font-bold flex items-center pl-3" style={{ width: `${analyticsData.conversion.conversionRates?.validateToSave || 0}%` }}>
+                              {analyticsData.conversion.funnel.saves || 0} ({analyticsData.conversion.conversionRates?.validateToSave || 0}%)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Đặt Thành Công (Redeem)</span>
+                            <span className="font-semibold text-white">
+                              {analyticsData.conversion.funnel.redeems || 0} ({analyticsData.conversion.conversionRates?.validateToRedeem || 0}%)
+                            </span>
+                          </div>
+                          <div className="h-6 w-full bg-secondary/50 rounded-lg overflow-hidden border border-border/30">
+                            <div className="h-full bg-primary/80 text-[10px] text-background font-bold flex items-center pl-3" style={{ width: `${analyticsData.conversion.conversionRates?.validateToRedeem || 0}%` }}>
+                              {analyticsData.conversion.funnel.redeems || 0} ({analyticsData.conversion.conversionRates?.validateToRedeem || 0}%)
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="funnel-stage">
-                        <span className="stage-label">Lượt dùng thành công (Redeem)</span>
-                        <div className="stage-bar stage-3" style={{ width: `${analyticsData.conversion.conversionRates.validateToRedeem || 100}%` }}>
-                          {analyticsData.conversion.funnel.redeems} ({analyticsData.conversion.conversionRates.validateToRedeem}%)
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    )}
+                  </Card>
                 </div>
 
                 {/* Top Vouchers Table */}
-                <div className="admin-vouchers__table-wrap" style={{ marginTop: '24px' }}>
-                  <h3 style={{ padding: '16px', margin: 0, borderBottom: '1px solid rgba(216, 203, 184, 0.1)', fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--color-aged-parchment)' }}>
-                    TOP VOUCHER HIỆU QUẢ CAO NHẤT
-                  </h3>
-                  <table className="admin-vouchers__table">
+                <div className="overflow-x-auto border border-border/40 rounded-xl bg-card">
+                  <div className="p-4 border-b border-border/50 bg-secondary/10 flex justify-between items-center">
+                    <h3 className="font-bold text-white text-xs uppercase tracking-wider">
+                      TOP VOUCHER HIỆU QUẢ CAO NHẤT
+                    </h3>
+                  </div>
+                  <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr>
-                        <th>Tên Voucher</th>
-                        <th>Mã Code</th>
-                        <th>Lượt sử dụng</th>
-                        <th>Tổng số tiền đã giảm</th>
-                        <th>Doanh thu kéo về</th>
+                      <tr className="border-b border-border/50 bg-secondary/5">
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Tên Voucher</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Mã Code</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Lượt sử dụng</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Tổng số tiền đã giảm</th>
+                        <th className="p-3.5 text-muted-foreground font-semibold uppercase tracking-wider">Doanh thu kéo về</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {analyticsData.topVouchers.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.name}</td>
-                          <td className="admin-code-td">{item.code}</td>
-                          <td>{item.usageCount} lượt</td>
-                          <td className="text-amber">-{formatMoney(item.totalDiscount)}</td>
-                          <td>{formatMoney(item.revenueGenerated)}</td>
+                      {(analyticsData.topVouchers || []).map((item, index) => (
+                        <tr key={index} className="border-b border-border/30 hover:bg-secondary/10 transition-colors">
+                          <td className="p-3.5 text-white font-semibold">{item.name}</td>
+                          <td className="p-3.5"><code className="px-2 py-1 bg-secondary rounded text-primary border border-border/50 text-[10px] font-mono font-semibold">{item.code}</code></td>
+                          <td className="p-3.5 text-white">{item.usageCount} lượt</td>
+                          <td className="p-3.5 text-rose-400 font-semibold">-{formatMoney(item.totalDiscount)}</td>
+                          <td className="p-3.5 text-emerald-400 font-bold">{formatMoney(item.revenueGenerated)}</td>
                         </tr>
                       ))}
-                      {analyticsData.topVouchers.length === 0 && (
+                      {(!analyticsData.topVouchers || analyticsData.topVouchers.length === 0) && (
                         <tr>
-                          <td colSpan="5" className="text-center" style={{ padding: '24px', color: 'var(--color-faded-stone)' }}>Chưa có voucher nào phát sinh redemptions.</td>
+                          <td colSpan="5" className="text-center py-8 text-muted-foreground italic">Chưa có voucher nào phát sinh redemptions.</td>
                         </tr>
                       )}
                     </tbody>
@@ -839,57 +945,63 @@ export default function AdminVouchers() {
                 </div>
               </div>
             ) : (
-              <div className="admin-vouchers__empty">Không thể kết xuất dữ liệu báo cáo lúc này.</div>
+              <Card className="border-dashed border-border p-8 text-center text-muted-foreground text-sm">
+                Không thể kết xuất dữ liệu báo cáo lúc này.
+              </Card>
             )}
           </div>
         )}
 
         {/* TAB 4: Fraud & Security */}
         {activeTab === 'fraud' && (
-          <div className="tab-pane">
-            <div className="tab-pane-header">
-              <h2>Phát Hiện Gian Lận & Bảo Mật Voucher</h2>
-            </div>
+          <div className="flex flex-col gap-6">
+            <h2 className="text-lg font-bold text-white uppercase tracking-wide">Phát Hiện Gian Lận & Bảo Mật Voucher</h2>
 
             {loadingFraud ? (
-              <div className="admin-vouchers__loading">Đang phân tích các mẫu hành vi bất thường...</div>
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Đang phân tích các mẫu hành vi bất thường...</p>
+              </div>
             ) : fraudData ? (
-              <div className="fraud-flex-row">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* Suspicious IPs */}
-                <div className="fraud-card">
-                  <div className="fraud-card-header">
-                    <ShieldAlert size={18} className="text-red-btn" />
-                    <h3>IP NHẬP NHIỀU MÃ BẤT THƯỜNG (24H QUA)</h3>
+                <Card className="p-5 border-border bg-card flex flex-col gap-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                    <ShieldAlert className="h-5 w-5 text-rose-500 animate-pulse" />
+                    <h3 className="font-semibold text-white text-sm">IP NHẬP NHIỀU MÃ BẤT THƯỜNG (24H QUA)</h3>
                   </div>
-                  <p className="fraud-card-desc">Cảnh báo các địa chỉ IP liên tục thử nghiệm/áp dụng nhiều mã voucher khác nhau (lớn hơn 3 mã) nhằm spam hoặc dò quét code.</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">Cảnh báo các địa chỉ IP liên tục thử nghiệm/áp dụng nhiều mã voucher khác nhau (lớn hơn 3 mã) nhằm spam hoặc dò quét code.</p>
                   
-                  <div className="admin-vouchers__table-wrap">
-                    <table className="admin-vouchers__table">
+                  <div className="overflow-x-auto border border-border/40 rounded-xl bg-[#13161C]">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr>
-                          <th>Địa chỉ IP</th>
-                          <th>Số mã khác nhau thử nghiệm</th>
-                          <th>Tổng số lượt nhấn</th>
-                          <th>Mức độ cảnh báo</th>
+                        <tr className="border-b border-border/50 bg-secondary/10">
+                          <th className="p-3.5 text-muted-foreground font-semibold">Địa chỉ IP</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Số mã thử nghiệm</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Tổng số lượt nhấn</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Mức độ</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {fraudData.suspiciousIPs.map((ip, idx) => (
-                          <tr key={idx}>
-                            <td className="admin-code-td">{ip.ipAddress}</td>
-                            <td>{ip.distinctVoucherCount} mã</td>
-                            <td>{ip.attempts} lần</td>
-                            <td>
-                              <span className={`alert-indicator ${ip.distinctVoucherCount > 5 ? 'high' : 'medium'}`}>
+                        {(fraudData.suspiciousIPs || []).map((ip, idx) => (
+                          <tr key={idx} className="border-b border-border/30 hover:bg-secondary/10">
+                            <td className="p-3.5 font-mono font-semibold text-white">{ip.ipAddress}</td>
+                            <td className="p-3.5 text-white">{ip.distinctVoucherCount} mã</td>
+                            <td className="p-3.5 text-muted-foreground">{ip.attempts} lần</td>
+                            <td className="p-3.5">
+                              <span className={cn(
+                                "inline-block px-2 py-0.5 rounded text-[9px] font-bold border uppercase",
+                                ip.distinctVoucherCount > 5 ? "bg-rose-500/10 border-rose-500/20 text-rose-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                              )}>
                                 {ip.distinctVoucherCount > 5 ? 'Nguy cấp' : 'Cảnh giác'}
                               </span>
                             </td>
                           </tr>
                         ))}
-                        {fraudData.suspiciousIPs.length === 0 && (
+                        {(!fraudData.suspiciousIPs || fraudData.suspiciousIPs.length === 0) && (
                           <tr>
-                            <td colSpan="4" className="text-center" style={{ padding: '20px', color: 'var(--color-faded-stone)' }}>
+                            <td colSpan="4" className="text-center py-6 text-muted-foreground italic">
                               Chưa phát hiện hành vi spam IP bất thường.
                             </td>
                           </tr>
@@ -897,40 +1009,40 @@ export default function AdminVouchers() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
 
                 {/* Suspicious Customers */}
-                <div className="fraud-card">
-                  <div className="fraud-card-header">
-                    <Activity size={18} className="text-red-btn" />
-                    <h3>KHÁCH HÀNG SPAM THỬ MÃ THẤT BẠI LÊN TIẾP</h3>
+                <Card className="p-5 border-border bg-card flex flex-col gap-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                    <Activity className="h-5 w-5 text-rose-500" />
+                    <h3 className="font-semibold text-white text-sm">KHÁCH HÀNG SPAM THỬ MÃ THẤT BẠI LIÊN TIẾP</h3>
                   </div>
-                  <p className="fraud-card-desc">Danh sách tài khoản khách hàng thực hiện xác thực mã giảm giá bị thất bại trên 5 lần liên tiếp trong 24 giờ qua (hành vi đoán mã).</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">Danh sách tài khoản khách hàng thực hiện xác thực mã giảm giá bị thất bại trên 5 lần liên tiếp trong 24 giờ qua (hành vi đoán mã).</p>
 
-                  <div className="admin-vouchers__table-wrap">
-                    <table className="admin-vouchers__table">
+                  <div className="overflow-x-auto border border-border/40 rounded-xl bg-[#13161C]">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr>
-                          <th>Khách hàng</th>
-                          <th>Email</th>
-                          <th>Lượt thất bại</th>
-                          <th>Các lý do lỗi gặp phải</th>
+                        <tr className="border-b border-border/50 bg-secondary/10">
+                          <th className="p-3.5 text-muted-foreground font-semibold">Khách hàng</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Email</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Lượt thất bại</th>
+                          <th className="p-3.5 text-muted-foreground font-semibold">Các lý do lỗi</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {fraudData.suspiciousCustomers.map((c, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{c.customerName || 'N/A'}</strong></td>
-                            <td className="log-customer-meta">{c.customerEmail || 'N/A'}</td>
-                            <td className="text-red-btn font-bold">{c.failures} lần</td>
-                            <td style={{ fontSize: '11px', color: 'var(--color-faded-stone)' }}>
+                        {(fraudData.suspiciousCustomers || []).map((c, idx) => (
+                          <tr key={idx} className="border-b border-border/30 hover:bg-secondary/10">
+                            <td className="p-3.5 font-bold text-white">{c.customerName || 'N/A'}</td>
+                            <td className="p-3.5 text-muted-foreground">{c.customerEmail || 'N/A'}</td>
+                            <td className="p-3.5 text-rose-400 font-bold font-mono">{c.failures} lần</td>
+                            <td className="p-3.5 text-muted-foreground text-[10px] max-w-[150px] truncate" title={c.reasons?.join(', ')}>
                               {c.reasons?.join(', ') || 'Không rõ'}
                             </td>
                           </tr>
                         ))}
-                        {fraudData.suspiciousCustomers.length === 0 && (
+                        {(!fraudData.suspiciousCustomers || fraudData.suspiciousCustomers.length === 0) && (
                           <tr>
-                            <td colSpan="4" className="text-center" style={{ padding: '20px', color: 'var(--color-faded-stone)' }}>
+                            <td colSpan="4" className="text-center py-6 text-muted-foreground italic">
                               Chưa phát hiện tài khoản dò quét mã nào.
                             </td>
                           </tr>
@@ -938,264 +1050,398 @@ export default function AdminVouchers() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
               </div>
             ) : (
-              <div className="admin-vouchers__empty">Không thể lấy dữ liệu phân tích bảo mật lúc này.</div>
+              <Card className="border-dashed border-border p-8 text-center text-muted-foreground text-sm">
+                Không thể lấy dữ liệu phân tích bảo mật lúc này.
+              </Card>
             )}
           </div>
         )}
 
-        {/* MODAL 1: Create/Edit Platform/Global Voucher */}
-        <VoucherFormModal
-          isOpen={isVoucherModalOpen}
-          onClose={() => setIsVoucherModalOpen(false)}
-          onSubmit={handleCreateOrUpdateVoucher}
-          voucher={editingVoucher}
-        />
+      </div>
 
-        {/* MODAL 2: Create/Edit Campaign */}
-        {isCampaignModalOpen && (
-          <div className="voucher-modal-overlay" onClick={() => setIsCampaignModalOpen(false)}>
-            <div className="voucher-modal-container" onClick={(e) => e.stopPropagation()}>
-              <div className="voucher-modal-header">
-                <h3>{editingCampaign ? 'Chỉnh Sửa Chiến Dịch' : 'Tạo Chiến Dịch Voucher Mới'}</h3>
-                <button className="voucher-modal-close-btn" onClick={() => setIsCampaignModalOpen(false)}>&times;</button>
+      {/* MODAL 1: Create/Edit Platform/Global Voucher */}
+      <VoucherFormModal
+        isOpen={isVoucherModalOpen}
+        onClose={() => {
+          setIsVoucherModalOpen(false);
+          setEditingVoucher(null);
+        }}
+        onSubmit={handleCreateOrUpdateVoucher}
+        voucher={editingVoucher}
+      />
+
+      {/* MODAL 2: Create/Edit Campaign */}
+      {isCampaignModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => setIsCampaignModalOpen(false)}>
+          <Card
+            className="w-full max-w-lg border-border bg-card p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex justify-between items-center pb-4 border-b border-border mb-4">
+              <h3 className="font-serif text-xl font-bold text-white">{editingCampaign ? 'Chỉnh Sửa Chiến Dịch' : 'Tạo Chiến Dịch Voucher Mới'}</h3>
+              <button 
+                type="button" 
+                onClick={() => setIsCampaignModalOpen(false)}
+                className="text-muted-foreground hover:text-white cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCampaignSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Tên chiến dịch *</label>
+                <input 
+                  type="text" 
+                  className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                  value={campaignForm.name}
+                  onChange={(e) => setCampaignForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Ví dụ: Lễ hội ẩm thực hè 2026"
+                  required
+                />
               </div>
-              <form onSubmit={handleCampaignSubmit} className="voucher-modal-form">
-                <div className="form-group">
-                  <label className="form-label">Tên chiến dịch *</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Mô tả chiến dịch</label>
+                <textarea 
+                  className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary min-h-[60px]"
+                  value={campaignForm.description}
+                  onChange={(e) => setCampaignForm(p => ({ ...p, description: e.target.value }))}
+                  placeholder="Mô tả mục tiêu và cách thức phân phối voucher..."
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Loại chiến dịch</label>
+                  <select 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={campaignForm.type}
+                    onChange={(e) => setCampaignForm(p => ({ ...p, type: e.target.value }))}
+                  >
+                    <option value="flash_sale">Flash Sale</option>
+                    <option value="seasonal">Theo Mùa (Seasonal)</option>
+                    <option value="event">Sự Kiện Đặc Biệt</option>
+                    <option value="custom">Tùy Chọn (Custom)</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Nhóm khách hàng mục tiêu</label>
+                  <select 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={campaignForm.targetSegments}
+                    onChange={(e) => setCampaignForm(p => ({ ...p, targetSegments: e.target.value }))}
+                  >
+                    <option value="all">Tất cả khách hàng</option>
+                    <option value="new_user">Khách hàng mới (New Users)</option>
+                    <option value="vip">Khách hàng VIP</option>
+                    <option value="inactive">Khách hàng lâu không đặt bàn</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Ngày bắt đầu *</label>
                   <input 
-                    type="text" 
-                    className="form-input"
-                    value={campaignForm.name}
-                    onChange={(e) => setCampaignForm(p => ({ ...p, name: e.target.value }))}
-                    placeholder="Ví dụ: Lễ hội ẩm thực hè 2026"
+                    type="datetime-local" 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={campaignForm.startDate}
+                    onChange={(e) => setCampaignForm(p => ({ ...p, startDate: e.target.value }))}
                     required
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Mô tả chiến dịch</label>
-                  <textarea 
-                    className="form-textarea"
-                    value={campaignForm.description}
-                    onChange={(e) => setCampaignForm(p => ({ ...p, description: e.target.value }))}
-                    placeholder="Mô tả mục tiêu và cách thức phân phối voucher..."
-                  />
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-6">
-                    <label className="form-label">Loại chiến dịch</label>
-                    <select 
-                      className="form-input"
-                      value={campaignForm.type}
-                      onChange={(e) => setCampaignForm(p => ({ ...p, type: e.target.value }))}
-                    >
-                      <option value="flash_sale">Flash Sale</option>
-                      <option value="seasonal">Theo Mùa (Seasonal)</option>
-                      <option value="event">Sự Kiện Đặc Biệt</option>
-                      <option value="custom">Tùy Chọn (Custom)</option>
-                    </select>
-                  </div>
-                  <div className="form-group col-6">
-                    <label className="form-label">Nhóm khách hàng mục tiêu</label>
-                    <select 
-                      className="form-input"
-                      value={campaignForm.targetSegments}
-                      onChange={(e) => setCampaignForm(p => ({ ...p, targetSegments: e.target.value }))}
-                    >
-                      <option value="all">Tất cả khách hàng</option>
-                      <option value="new_user">Khách hàng mới (New Users)</option>
-                      <option value="vip">Khách hàng VIP</option>
-                      <option value="inactive">Khách hàng lâu không đặt bàn</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-6">
-                    <label className="form-label">Ngày bắt đầu *</label>
-                    <input 
-                      type="datetime-local" 
-                      className="form-input"
-                      value={campaignForm.startDate}
-                      onChange={(e) => setCampaignForm(p => ({ ...p, startDate: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="form-group col-6">
-                    <label className="form-label">Ngày kết thúc *</label>
-                    <input 
-                      type="datetime-local" 
-                      className="form-input"
-                      value={campaignForm.endDate}
-                      onChange={(e) => setCampaignForm(p => ({ ...p, endDate: e.target.value }))}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Ngày kết thúc *</label>
                   <input 
-                    type="checkbox" 
-                    id="autoDistribute"
-                    checked={campaignForm.autoDistribute}
-                    onChange={(e) => setCampaignForm(p => ({ ...p, autoDistribute: e.target.checked }))}
+                    type="datetime-local" 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={campaignForm.endDate}
+                    onChange={(e) => setCampaignForm(p => ({ ...p, endDate: e.target.value }))}
+                    required
                   />
-                  <label htmlFor="autoDistribute" style={{ userSelect: 'none', fontSize: '13px', color: 'var(--color-aged-parchment)', cursor: 'pointer' }}>
-                    Tự động phân phối vào ví khi khách thuộc phân khúc đăng nhập/đặt bàn
-                  </label>
                 </div>
-                <div className="voucher-modal-actions">
-                  <button type="button" className="voucher-btn-secondary" onClick={() => setIsCampaignModalOpen(false)}>
-                    Hủy bỏ
-                  </button>
-                  <button type="submit" className="voucher-btn-primary">
-                    {editingCampaign ? 'Cập nhật' : 'Tạo mới'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL 3: Reset Usage */}
-        {resetModalVoucher && (
-          <div className="voucher-modal-overlay" onClick={() => setResetModalVoucher(null)}>
-            <div className="voucher-modal-container reset-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="voucher-modal-header">
-                <h3>Cập Nhật Số Lượt Sử Dụng</h3>
-                <button className="voucher-modal-close-btn" onClick={() => setResetModalVoucher(null)}>&times;</button>
               </div>
-              <form onSubmit={handleResetUsageSubmit} className="voucher-modal-form">
-                <p style={{ fontSize: '13px', color: 'var(--color-faded-stone)', margin: '0 0 16px 0' }}>
-                  Cập nhật lượt sử dụng của voucher <strong>{resetModalVoucher.code}</strong>. 
-                  Điều này giúp tăng hoặc khôi phục lượt dùng tối đa của mã trên toàn sàn.
-                </p>
-                <div className="form-group">
-                  <label className="form-label">Lượt sử dụng hiện tại</label>
-                  <input 
-                    type="text" 
-                    className="form-input"
-                    value={resetModalVoucher.currentUsage}
-                    disabled
-                  />
+              <div className="flex items-center gap-2 pt-2">
+                <input 
+                  type="checkbox" 
+                  id="autoDistribute"
+                  checked={campaignForm.autoDistribute}
+                  onChange={(e) => setCampaignForm(p => ({ ...p, autoDistribute: e.target.checked }))}
+                  className="rounded border-border bg-[#1A1D24] text-primary focus:ring-0 cursor-pointer h-4 w-4"
+                />
+                <label htmlFor="autoDistribute" className="text-xs text-muted-foreground cursor-pointer select-none">
+                  Tự động phân phối vào ví khi khách thuộc phân khúc đăng nhập/đặt bàn
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border mt-4">
+                <Button type="button" variant="outline" className="border-border text-white hover:bg-secondary" onClick={() => setIsCampaignModalOpen(false)}>
+                  Hủy bỏ
+                </Button>
+                <Button type="submit" className="bg-primary text-background hover:bg-primary/95">
+                  {editingCampaign ? 'Cập nhật' : 'Tạo mới'}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL 3: Reset Usage */}
+      {resetModalVoucher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => setResetModalVoucher(null)}>
+          <Card
+            className="w-full max-w-sm border-border bg-card p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="font-serif text-2xl font-bold text-white mb-2">Cập Nhật Số Lượt Sử Dụng</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Cập nhật lượt sử dụng của voucher <strong className="text-white">{resetModalVoucher.code}</strong>. 
+              Điều này giúp tăng hoặc khôi phục lượt dùng tối đa của mã trên toàn sàn.
+            </p>
+            <form onSubmit={handleResetUsageSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Lượt sử dụng hiện tại</label>
+                <input 
+                  type="text" 
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-zinc-400 cursor-not-allowed"
+                  value={resetModalVoucher.currentUsage || 0}
+                  disabled
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Lượt sử dụng mới đặt lại thành *</label>
+                <input 
+                  type="number" 
+                  className="w-full rounded-lg border border-border bg-secondary/35 px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                  value={resetCount}
+                  onChange={(e) => setResetCount(Number(e.target.value))}
+                  min="0"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button type="button" variant="outline" className="border-border text-white hover:bg-secondary" onClick={() => setResetModalVoucher(null)}>
+                  Quay lại
+                </Button>
+                <Button type="submit" className="bg-primary text-background hover:bg-primary/90">
+                  Xác nhận
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL 4: Issue Compensation */}
+      {isCompModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => setIsCompModalOpen(false)}>
+          <Card
+            className="w-full max-w-lg border-border bg-card p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex justify-between items-center pb-4 border-b border-border mb-4">
+              <h3 className="font-serif text-xl font-bold text-white">Phát Hành Voucher Đền Bù Cho Khách Hàng</h3>
+              <button 
+                type="button" 
+                onClick={() => setIsCompModalOpen(false)}
+                className="text-muted-foreground hover:text-white cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCompSubmit} className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                Phát hành một mã giảm giá cá nhân hóa đặc biệt trực tiếp vào ví voucher của khách hàng nhằm đền bù lỗi hệ thống, sự cố nhà hàng, hoặc chăm sóc đặc biệt.
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Mã ID tài khoản khách hàng (Customer User ID) *</label>
+                <input 
+                  type="text" 
+                  className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                  value={compForm.customerId}
+                  onChange={(e) => setCompForm(p => ({ ...p, customerId: e.target.value }))}
+                  placeholder="Nhập Mongoose ObjectId của tài khoản khách hàng"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">Tên hiển thị voucher</label>
+                <input 
+                  type="text" 
+                  className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                  value={compForm.name}
+                  onChange={(e) => setCompForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Ví dụ: Voucher đền bù đặt bàn ngày 16/06"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Hình thức giảm</label>
+                  <select 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={compForm.discountType}
+                    onChange={(e) => setCompForm(p => ({ ...p, discountType: e.target.value }))}
+                  >
+                    <option value="percentage">Phần trăm (%)</option>
+                    <option value="fixed_amount">Số tiền cố định (đ)</option>
+                  </select>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Lượt sử dụng mới đặt lại thành *</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Mức giảm giá *</label>
                   <input 
                     type="number" 
-                    className="form-input"
-                    value={resetCount}
-                    onChange={(e) => setResetCount(Number(e.target.value))}
-                    min="0"
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={compForm.discountValue}
+                    onChange={(e) => setCompForm(p => ({ ...p, discountValue: e.target.value }))}
+                    placeholder={compForm.discountType === 'percentage' ? 'Ví dụ: 20' : 'Ví dụ: 100000'}
                     required
                   />
                 </div>
-                <div className="voucher-modal-actions">
-                  <button type="button" className="voucher-btn-secondary" onClick={() => setResetModalVoucher(null)}>
-                    Quay lại
-                  </button>
-                  <button type="submit" className="voucher-btn-primary">
-                    Xác nhận
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL 4: Issue Compensation */}
-        {isCompModalOpen && (
-          <div className="voucher-modal-overlay" onClick={() => setIsCompModalOpen(false)}>
-            <div className="voucher-modal-container" onClick={(e) => e.stopPropagation()}>
-              <div className="voucher-modal-header">
-                <h3>Phát Hành Voucher Đền Bù Cho Khách Hàng</h3>
-                <button className="voucher-modal-close-btn" onClick={() => setIsCompModalOpen(false)}>&times;</button>
               </div>
-              <form onSubmit={handleCompSubmit} className="voucher-modal-form">
-                <p style={{ fontSize: '13px', color: 'var(--color-faded-stone)', margin: '0 0 16px 0' }}>
-                  Phát hành một mã giảm giá cá nhân hóa đặc biệt trực tiếp vào ví voucher của khách hàng nhằm đền bù lỗi hệ thống, sự cố nhà hàng, hoặc chăm sóc đặc biệt.
-                </p>
-                <div className="form-group">
-                  <label className="form-label">Mã ID tài khoản khách hàng (Customer User ID) *</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Đơn tối thiểu áp dụng</label>
                   <input 
-                    type="text" 
-                    className="form-input"
-                    value={compForm.customerId}
-                    onChange={(e) => setCompForm(p => ({ ...p, customerId: e.target.value }))}
-                    placeholder="Nhập Mongoose ObjectId của tài khoản khách hàng"
-                    required
+                    type="number" 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={compForm.minOrderAmount}
+                    onChange={(e) => setCompForm(p => ({ ...p, minOrderAmount: e.target.value }))}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Tên hiển thị voucher</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-muted-foreground">Số ngày hiệu lực</label>
                   <input 
-                    type="text" 
-                    className="form-input"
-                    value={compForm.name}
-                    onChange={(e) => setCompForm(p => ({ ...p, name: e.target.value }))}
-                    placeholder="Ví dụ: Voucher đền bù đặt bàn ngày 16/06"
-                    required
+                    type="number" 
+                    className="w-full rounded-lg border border-border bg-[#1A1D24] px-3 py-2 text-sm text-white focus:outline-none"
+                    value={compForm.daysValid}
+                    onChange={(e) => setCompForm(p => ({ ...p, daysValid: e.target.value }))}
+                    min="1"
                   />
                 </div>
-                <div className="form-row">
-                  <div className="form-group col-6">
-                    <label className="form-label">Hình thức giảm</label>
-                    <select 
-                      className="form-input"
-                      value={compForm.discountType}
-                      onChange={(e) => setCompForm(p => ({ ...p, discountType: e.target.value }))}
-                    >
-                      <option value="percentage">Phần trăm (%)</option>
-                      <option value="fixed_amount">Số tiền cố định (đ)</option>
-                    </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border mt-4">
+                <Button type="button" variant="outline" className="border-border text-white hover:bg-secondary" onClick={() => setIsCompModalOpen(false)}>
+                  Hủy bỏ
+                </Button>
+                <Button type="submit" className="bg-primary text-background hover:bg-primary/95">
+                  Phát hành ngay
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Drawer Báo cáo thống kê đơn lẻ */}
+      {statsVoucher && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-end bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" 
+          onClick={() => setStatsVoucher(null)}
+        >
+          <div 
+            className="bg-[#1A1D24] border-l border-zinc-800 w-full max-w-md h-full p-6 shadow-2xl animate-in slide-in-from-right duration-250 flex flex-col justify-between" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center pb-4 border-b border-zinc-800 mb-6">
+              <h4 className="font-bold text-zinc-150 text-sm uppercase tracking-wide">Hiệu quả Voucher: {statsVoucher.code}</h4>
+              <button 
+                className="text-zinc-550 hover:text-zinc-200 text-2xl font-semibold leading-none cursor-pointer" 
+                onClick={() => setStatsVoucher(null)}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-6 scrollbar-none pr-1">
+              {loadingStats ? (
+                <div className="flex flex-col items-center justify-center py-20 text-zinc-450 space-y-2">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs">Đang tính toán số liệu...</span>
+                </div>
+              ) : statsData ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-[#13161C] border border-zinc-800 p-3 rounded-lg flex flex-col">
+                      <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đã lưu</span>
+                      <h4 className="text-lg font-bold text-zinc-200 mt-1">{statsData.savedCount}</h4>
+                    </div>
+                    <div className="bg-[#13161C] border border-zinc-800 p-3 rounded-lg flex flex-col">
+                      <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đã dùng</span>
+                      <h4 className="text-lg font-bold text-zinc-200 mt-1">{statsData.usedCount}</h4>
+                    </div>
+                    <div className="bg-[#13161C] border border-zinc-800 p-3 rounded-lg flex flex-col">
+                      <span className="text-[10px] text-zinc-550 uppercase font-semibold">Đã giảm</span>
+                      <h4 className="text-xs font-bold text-amber-500 mt-1 truncate">{formatMoney(statsData.totalDiscount)}</h4>
+                    </div>
                   </div>
-                  <div className="form-group col-6">
-                    <label className="form-label">Mức giảm giá *</label>
-                    <input 
-                      type="number" 
-                      className="form-input"
-                      value={compForm.discountValue}
-                      onChange={(e) => setCompForm(p => ({ ...p, discountValue: e.target.value }))}
-                      placeholder={compForm.discountType === 'percentage' ? 'Ví dụ: 20' : 'Ví dụ: 100000'}
-                      required
-                    />
+
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-bold text-zinc-300 uppercase tracking-wide">Lịch sử sử dụng chi tiết</h5>
+                    {(!statsData.redemptions || statsData.redemptions.length === 0) ? (
+                      <div className="text-xs text-zinc-500 italic py-4">Chưa có lượt sử dụng nào cho mã này.</div>
+                    ) : (
+                      <div className="divide-y divide-zinc-800/60">
+                        {statsData.redemptions.map((r, idx) => (
+                          <div key={idx} className="py-3 text-xs space-y-1">
+                            <div className="flex justify-between items-center">
+                              <strong className="text-zinc-200">Booking #{r.bookingId?.toString().slice(-6).toUpperCase()}</strong>
+                              <span className="text-zinc-500 font-mono text-[10px]">
+                                {new Date(r.usedAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-zinc-400">
+                              Đơn gốc: {formatMoney(r.amountBefore)} | Giảm: -{formatMoney(r.discountApplied)} | Thanh toán: {formatMoney(r.amountAfter)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group col-6">
-                    <label className="form-label">Đơn tối thiểu áp dụng</label>
-                    <input 
-                      type="number" 
-                      className="form-input"
-                      value={compForm.minOrderAmount}
-                      onChange={(e) => setCompForm(p => ({ ...p, minOrderAmount: e.target.value }))}
-                    />
-                  </div>
-                  <div className="form-group col-6">
-                    <label className="form-label">Số ngày hiệu lực kể từ khi phát</label>
-                    <input 
-                      type="number" 
-                      className="form-input"
-                      value={compForm.daysValid}
-                      onChange={(e) => setCompForm(p => ({ ...p, daysValid: e.target.value }))}
-                      min="1"
-                    />
-                  </div>
-                </div>
-                <div className="voucher-modal-actions">
-                  <button type="button" className="voucher-btn-secondary" onClick={() => setIsCompModalOpen(false)}>
-                    Hủy bỏ
-                  </button>
-                  <button type="submit" className="voucher-btn-primary">
-                    Phát hành ngay
-                  </button>
-                </div>
-              </form>
+              ) : (
+                <div className="text-xs text-rose-450 text-center py-10">Không thể tải báo cáo.</div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-zinc-800 mt-6 flex justify-end">
+              <button 
+                className="px-4 py-2 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs rounded-lg transition cursor-pointer"
+                onClick={() => setStatsVoucher(null)}
+              >
+                Đóng
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
     </AdminLayout>
+  );
+}
+
+function IconButton({ children, label, onClick, danger }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        'flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer',
+        danger && 'hover:border-rose-500/50 hover:text-rose-400'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatBox({ label, value, accent }) {
+  return (
+    <div className="rounded-xl border border-border bg-secondary/30 p-3 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={cn('mt-1 truncate font-serif text-lg font-bold text-white', accent && 'text-primary')}>{value}</p>
+    </div>
   );
 }

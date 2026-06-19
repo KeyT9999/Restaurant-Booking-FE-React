@@ -1,6 +1,4 @@
-import React from 'react';
 import { Store, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
-import './RestaurantStatsCards.css';
 
 export default function RestaurantStatsCards({ stats }) {
   const {
@@ -14,38 +12,42 @@ export default function RestaurantStatsCards({ stats }) {
     {
       title: 'Tổng nhà hàng',
       value: totalRestaurants,
-      icon: <Store size={20} />,
-      className: 'card-total',
+      icon: <Store size={16} />,
+      iconClass: 'text-sky-400 bg-sky-500/10',
+      borderHover: 'hover:border-sky-500/35',
     },
     {
       title: 'Chờ duyệt',
       value: pendingRestaurants,
-      icon: <Clock size={20} />,
-      className: 'card-pending',
+      icon: <Clock size={16} />,
+      iconClass: 'text-amber-550 bg-amber-500/10',
+      borderHover: 'hover:border-amber-500/35',
     },
     {
       title: 'Đang hoạt động',
       value: approvedRestaurants,
-      icon: <CheckCircle2 size={20} />,
-      className: 'card-approved',
+      icon: <CheckCircle2 size={16} />,
+      iconClass: 'text-emerald-500 bg-emerald-500/10',
+      borderHover: 'hover:border-emerald-500/35',
     },
     {
       title: 'Bị tạm ngưng',
       value: suspendedRestaurants,
-      icon: <AlertTriangle size={20} />,
-      className: 'card-suspended',
+      icon: <AlertTriangle size={16} />,
+      iconClass: 'text-rose-500 bg-rose-500/10',
+      borderHover: 'hover:border-rose-500/35',
     },
   ];
 
   return (
-    <div className="restaurant-stats-grid">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {cardData.map((card, idx) => (
-        <div key={idx} className={`stat-card ${card.className}`}>
-          <div className="stat-card-header">
-            <span className="stat-card-title">{card.title}</span>
-            <div className="stat-card-icon">{card.icon}</div>
+        <div key={idx} className={`bg-card border border-border rounded-xl p-4 flex flex-col justify-between transition-all ${card.borderHover}`}>
+          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{card.title}</span>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="text-2xl font-bold text-white">{card.value}</span>
+            <span className={`p-1.5 rounded-lg ${card.iconClass}`}>{card.icon}</span>
           </div>
-          <div className="stat-card-value">{card.value}</div>
         </div>
       ))}
     </div>

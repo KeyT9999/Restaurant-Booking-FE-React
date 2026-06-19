@@ -38,7 +38,11 @@ export default function AdminChatPage() {
 
   return (
     <AdminLayout title="Quản lý Chat" subtitle="Quản lý hội thoại theo từng nhà hàng">
-      {restaurantError && <div className="chat-error">{restaurantError}</div>}
+      {restaurantError && (
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-450 p-4 rounded-xl text-sm mb-4">
+          {restaurantError}
+        </div>
+      )}
       <ChatWorkspace
         mode="admin"
         adminRestaurants={restaurants}

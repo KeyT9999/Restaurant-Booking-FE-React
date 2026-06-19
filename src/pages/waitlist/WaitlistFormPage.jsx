@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -12,6 +12,8 @@ import {
   Plus,
   Users,
   Utensils,
+  MapPin,
+  Info
 } from 'lucide-react';
 import { getPublicRestaurantDetail } from '../../api/restaurantApi';
 import { getPublicMenu } from '../../api/menuApi';
@@ -19,7 +21,11 @@ import { getPublicTables } from '../../api/tableApi';
 import { getPublicServices } from '../../api/restaurantServiceApi';
 import { createWaitlist } from '../../api/waitlistApi';
 import { useAuth } from '../../context/useAuth';
-import './WaitlistFormPage.css';
+import Header from '../../components/Header';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { cn } from '../../components/ui/utils';
 
 const currency = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
@@ -82,7 +88,7 @@ export default function WaitlistFormPage() {
         if (restaurantRes.status === 'fulfilled' && restaurantRes.value.success) {
           setRestaurant(restaurantRes.value.data);
         } else {
-          toast.error('Khong the tai thong tin nha hang');
+          toast.error('Không thể tải thông tin nhà hàng');
           navigate('/restaurants');
           return;
         }
@@ -91,7 +97,7 @@ export default function WaitlistFormPage() {
         if (menuRes.status === 'fulfilled') setMenuItems(menuRes.value.data?.items || []);
         if (servicesRes.status === 'fulfilled') setServices(servicesRes.value.data?.services || []);
       } catch (error) {
-        toast.error(error.message || 'Khong the tai du lieu danh sach cho');
+        toast.error(error.message || 'Không thể tải dữ liệu danh sách chờ');
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -152,12 +158,12 @@ export default function WaitlistFormPage() {
     const nextErrors = {};
 
     if (targetStep === 1) {
-      if (!form.preferredDate) nextErrors.preferredDate = 'Vui long chon ngay';
-      if (!form.preferredTime) nextErrors.preferredTime = 'Vui long chon gio';
-      if (!form.numberOfGuests || Number(form.numberOfGuests) < 1) nextErrors.numberOfGuests = 'So khach phai lon hon 0';
-      if (!form.customerName.trim()) nextErrors.customerName = 'Vui long nhap ho ten';
-      if (!/^(0[35789][0-9]{8}|02[0-9]{9})$/.test(form.customerPhone.trim())) nextErrors.customerPhone = 'So dien thoai khong hop le';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) nextErrors.customerEmail = 'Email khong hop le';
+      if (!form.preferredDate) nextErrors.preferredDate = 'Vui lòng chọn ngày';
+      if (!form.preferredTime) nextErrors.preferredTime = 'Vui lòng chọn giờ';
+      if (!form.numberOfGuests || Number(form.numberOfGuests) < 1) nextErrors.numberOfGuests = 'Số khách phải lớn hơn 0';
+      if (!form.customerName.trim()) nextErrors.customerName = 'Vui lòng nhập họ tên';
+      if (!/^(0[35789][0-9]{8}|02[0-9]{9})$/.test(form.customerPhone.trim())) nextErrors.customerPhone = 'Số điện thoại không hợp lệ';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) nextErrors.customerEmail = 'Email không hợp lệ';
     }
 
     setErrors(nextErrors);
@@ -213,12 +219,12 @@ export default function WaitlistFormPage() {
       const res = await createWaitlist(payload);
       if (res.success) {
         setCreatedWaitlist(res.data.waitlist);
-        toast.success('Da gui yeu cau danh sach cho');
+        toast.success('Đã gửi yêu cầu danh sách chờ');
       } else {
-        toast.error(res.message || 'Khong the tao danh sach cho');
+        toast.error(res.message || 'Không thể tạo danh sách chờ');
       }
     } catch (error) {
-      toast.error(error.message || 'Khong the tao danh sach cho');
+      toast.error(error.message || 'Không thể tạo danh sách chờ');
     } finally {
       setSubmitting(false);
     }
@@ -226,294 +232,504 @@ export default function WaitlistFormPage() {
 
   if (loading) {
     return (
-      <div className="waitlist-page-shell">
-        <div className="waitlist-loading">Dang tai form danh sach cho...</div>
+      <div className="min-h-screen bg-background text-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center gap-3">
+          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground animate-pulse">Đang tải biểu mẫu danh sách chờ...</p>
+        </div>
       </div>
     );
   }
 
   if (createdWaitlist) {
     return (
-      <div className="waitlist-page-shell">
-        <div className="waitlist-success-card" role="alert" aria-live="assertive">
-          <div className="waitlist-success-icon"><Check size={42} /></div>
-          <h1>Da tham gia danh sach cho</h1>
-          <p>Nha hang se thong bao realtime khi co ban trong phu hop voi yeu cau cua ban.</p>
-          <div className="waitlist-success-grid">
-            <span>Nha hang</span><strong>{restaurant?.name}</strong>
-            <span>Thoi gian</span><strong>{form.preferredTime} - {new Date(form.preferredDate).toLocaleDateString('vi-VN')}</strong>
-            <span>So khach</span><strong>{form.numberOfGuests} khach</strong>
-            <span>Vi tri hang cho</span><strong>{createdWaitlist.queuePositionSnapshot || 'Dang tinh'}</strong>
-          </div>
-          <div className="waitlist-success-actions">
-            <button type="button" className="waitlist-btn secondary" onClick={() => navigate('/my-waitlists')}>
-              Danh sach cho cua toi
-            </button>
-            <button type="button" className="waitlist-btn primary" onClick={() => navigate(`/waitlists/${createdWaitlist.id}`)}>
-              Xem chi tiet
-            </button>
-          </div>
+      <div className="min-h-screen bg-background text-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-8 border-border bg-card flex flex-col items-center text-center shadow-2xl">
+            <div className="h-16 w-16 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-6">
+              <Check size={36} />
+            </div>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Đã tham gia hàng chờ
+            </h1>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+              Nhà hàng sẽ gửi thông báo đến bạn ngay khi có bàn trống phù hợp với các tiêu chí lựa chọn.
+            </p>
+            
+            <div className="w-full bg-secondary/35 border border-border/80 rounded-xl p-5 my-6 flex flex-col gap-3.5 text-xs text-left">
+              <div className="flex justify-between border-b border-border/40 pb-2.5">
+                <span className="text-muted-foreground">Nhà hàng:</span>
+                <span className="font-bold text-white truncate max-w-[65%]">{restaurant?.name}</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2.5">
+                <span className="text-muted-foreground">Thời gian mong muốn:</span>
+                <span className="font-semibold text-white">
+                  {form.preferredTime} - {new Date(form.preferredDate).toLocaleDateString('vi-VN')}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2.5">
+                <span className="text-muted-foreground">Số lượng khách:</span>
+                <span className="font-semibold text-white">{form.numberOfGuests} người</span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-muted-foreground">Vị trí hàng chờ hiện tại:</span>
+                <span className="px-2.5 py-1 text-xs font-bold bg-primary/25 text-primary border border-primary/20 rounded-full">
+                  Số {createdWaitlist.queuePositionSnapshot || 'Đang tính'}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Button variant="outline" onClick={() => navigate('/my-waitlists')} className="border-border text-white hover:bg-secondary text-xs font-semibold h-10">
+                Hàng chờ của tôi
+              </Button>
+              <Button onClick={() => navigate(`/waitlists/${createdWaitlist.id}`)} className="bg-primary hover:bg-primary/95 text-background text-xs font-bold h-10">
+                Chi tiết hàng chờ
+              </Button>
+            </div>
+          </Card>
         </div>
       </div>
     );
   }
 
+  const steps = [
+    { num: 1, label: 'Thông tin' },
+    { num: 2, label: 'Bàn ưu tiên' },
+    { num: 3, label: 'Món & dịch vụ' },
+    { num: 4, label: 'Xác nhận' }
+  ];
+
   return (
-    <div className="waitlist-page-shell">
-      <header className="waitlist-header">
-        <button type="button" className="waitlist-back-btn" onClick={() => navigate(-1)} aria-label="Quay lai">
-          <ArrowLeft size={18} /> Quay lai
-        </button>
-        <div>
-          <p>Danh sach cho</p>
-          <h1>{restaurant?.name}</h1>
-          <span>{restaurant?.address?.fullAddress || restaurant?.address?.street || 'BookEat restaurant'}</span>
-        </div>
-      </header>
-
-      <nav className="waitlist-stepper" aria-label="Cac buoc dang ky danh sach cho">
-        {['Thong tin', 'Ban uu tien', 'Mon & dich vu', 'Xac nhan'].map((label, index) => {
-          const stepNumber = index + 1;
-          return (
-            <button
-              key={label}
-              type="button"
-              className={step >= stepNumber ? 'active' : ''}
-              onClick={() => {
-                if (stepNumber === 1 || validateStep(1)) setStep(stepNumber);
-              }}
-              aria-current={step === stepNumber ? 'step' : undefined}
-            >
-              <span>{stepNumber}</span>
-              {label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <main className="waitlist-card-panel">
-        {step === 1 && (
-          <section className="waitlist-section">
-            <h2>Thong tin cho ban</h2>
-            <div className="waitlist-form-grid">
-              <label>
-                <span><CalendarDays size={16} /> Ngay mong muon</span>
-                <input
-                  type="date"
-                  min={todayString()}
-                  max={maxDateString()}
-                  value={form.preferredDate}
-                  onChange={(event) => updateForm('preferredDate', event.target.value)}
-                  aria-invalid={Boolean(errors.preferredDate)}
-                />
-                {errors.preferredDate && <small>{errors.preferredDate}</small>}
-              </label>
-              <label>
-                <span><Clock size={16} /> Gio mong muon</span>
-                <input
-                  type="time"
-                  value={form.preferredTime}
-                  onChange={(event) => updateForm('preferredTime', event.target.value)}
-                  aria-invalid={Boolean(errors.preferredTime)}
-                />
-                {errors.preferredTime && <small>{errors.preferredTime}</small>}
-              </label>
-              <label>
-                <span><Users size={16} /> So khach</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={form.numberOfGuests}
-                  onChange={(event) => updateForm('numberOfGuests', event.target.value)}
-                  aria-invalid={Boolean(errors.numberOfGuests)}
-                />
-                {errors.numberOfGuests && <small>{errors.numberOfGuests}</small>}
-              </label>
-              <label>
-                <span>Thoi gian cho toi da</span>
-                <select
-                  value={form.maxWaitMinutes}
-                  onChange={(event) => updateForm('maxWaitMinutes', event.target.value)}
-                >
-                  <option value="30">30 phut</option>
-                  <option value="45">45 phut</option>
-                  <option value="60">60 phut</option>
-                  <option value="90">90 phut</option>
-                  <option value="120">120 phut</option>
-                </select>
-              </label>
-              <label>
-                <span>Ho ten</span>
-                <input value={form.customerName} onChange={(event) => updateForm('customerName', event.target.value)} />
-                {errors.customerName && <small>{errors.customerName}</small>}
-              </label>
-              <label>
-                <span>So dien thoai</span>
-                <input value={form.customerPhone} onChange={(event) => updateForm('customerPhone', event.target.value)} />
-                {errors.customerPhone && <small>{errors.customerPhone}</small>}
-              </label>
-              <label className="waitlist-field-wide">
-                <span>Email</span>
-                <input type="email" value={form.customerEmail} onChange={(event) => updateForm('customerEmail', event.target.value)} />
-                {errors.customerEmail && <small>{errors.customerEmail}</small>}
-              </label>
-              <label className="waitlist-field-wide">
-                <span>Ghi chu cho nha hang</span>
-                <textarea
-                  rows="3"
-                  maxLength="500"
-                  value={form.note}
-                  onChange={(event) => updateForm('note', event.target.value)}
-                  placeholder="Vi tri mong muon, di ung, tre em, ly do can ban som..."
-                />
-              </label>
-            </div>
-          </section>
-        )}
-
-        {step === 2 && (
-          <section className="waitlist-section">
-            <h2>Chon ban uu tien</h2>
-            <p className="waitlist-muted">Ban co the chon ban mong muon. Owner van se kiem tra xung dot truoc khi xac nhan.</p>
-            <div className="waitlist-table-grid">
-              {tables.length === 0 ? (
-                <div className="waitlist-empty-inline">Nha hang chua cong khai so do ban.</div>
-              ) : tables.map((table) => (
-                <button
-                  type="button"
-                  key={table.id}
-                  className={`waitlist-table-choice ${selectedTableIds.includes(table.id) ? 'selected' : ''}`}
-                  onClick={() => toggleTable(table.id)}
-                  aria-pressed={selectedTableIds.includes(table.id)}
-                >
-                  <strong>Ban {table.tableNumber}</strong>
-                  <span>{table.capacity} cho · {table.zone || 'Khu chung'}</span>
-                  {table.depositAmount > 0 && <small>Dat coc: {currency(table.depositAmount)}</small>}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {step === 3 && (
-          <section className="waitlist-section">
-            <h2>Chon mon va dich vu truoc</h2>
-            <div className="waitlist-pick-columns">
-              <div>
-                <h3><Utensils size={18} /> Mon an</h3>
-                <div className="waitlist-pick-list">
-                  {menuItems.length === 0 ? (
-                    <div className="waitlist-empty-inline">Chua co mon cong khai.</div>
-                  ) : menuItems.map((item) => (
-                    <div key={item.id} className="waitlist-pick-item">
-                      <div>
-                        <strong>{item.name}</strong>
-                        <span>{currency(item.price)}</span>
-                      </div>
-                      <div className="qty-control">
-                        <button type="button" onClick={() => changeQuantity(setDishQty, item.id, -1)} aria-label={`Giam ${item.name}`}>
-                          <Minus size={14} />
-                        </button>
-                        <span>{dishQty[item.id] || 0}</span>
-                        <button type="button" onClick={() => changeQuantity(setDishQty, item.id, 1)} aria-label={`Tang ${item.name}`}>
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3><ConciergeBell size={18} /> Dich vu</h3>
-                <div className="waitlist-pick-list">
-                  {services.length === 0 ? (
-                    <div className="waitlist-empty-inline">Chua co dich vu cong khai.</div>
-                  ) : services.map((item) => (
-                    <div key={item.id} className="waitlist-pick-item">
-                      <div>
-                        <strong>{item.name}</strong>
-                        <span>{currency(item.price)}</span>
-                      </div>
-                      <div className="qty-control">
-                        <button type="button" onClick={() => changeQuantity(setServiceQty, item.id, -1)} aria-label={`Giam ${item.name}`}>
-                          <Minus size={14} />
-                        </button>
-                        <span>{serviceQty[item.id] || 0}</span>
-                        <button type="button" onClick={() => changeQuantity(setServiceQty, item.id, 1)} aria-label={`Tang ${item.name}`}>
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {step === 4 && (
-          <section className="waitlist-section">
-            <h2>Xac nhan yeu cau</h2>
-            <div className="waitlist-summary">
-              <div>
-                <span>Nha hang</span>
-                <strong>{restaurant?.name}</strong>
-              </div>
-              <div>
-                <span>Thoi gian</span>
-                <strong>{form.preferredTime} - {new Date(form.preferredDate).toLocaleDateString('vi-VN')}</strong>
-              </div>
-              <div>
-                <span>So khach</span>
-                <strong>{form.numberOfGuests} khach</strong>
-              </div>
-              <div>
-                <span>Ban uu tien</span>
-                <strong>{selectedTables.length ? selectedTables.map((table) => table.tableNumber).join(', ') : 'De nha hang xep ban'}</strong>
-              </div>
-              <div>
-                <span>Mon da chon</span>
-                <strong>{selectedDishes.length} mon</strong>
-              </div>
-              <div>
-                <span>Dich vu</span>
-                <strong>{selectedServices.length} dich vu</strong>
-              </div>
-              <div>
-                <span>Tam tinh mon/dich vu</span>
-                <strong>{currency(estimatedTotal)}</strong>
-              </div>
-              <div>
-                <span>Thoi gian cho toi da</span>
-                <strong>{form.maxWaitMinutes} phut</strong>
-              </div>
-            </div>
-            <p className="waitlist-note-box">
-              Yeu cau se o trang thai pending. Owner chi duoc xac nhan khi chon du ban trong va he thong khong phat hien trung lich.
+    <div className="min-h-screen bg-background text-white flex flex-col">
+      <Header />
+      
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
+        {/* Header Title with Back button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+          <div className="text-left">
+            <h2 className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Đăng ký danh sách chờ
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <MapPin size={13} className="text-primary flex-shrink-0" />
+              <span className="truncate">{restaurant?.address?.fullAddress || restaurant?.address?.street || 'BookEat restaurant'}</span>
             </p>
-          </section>
-        )}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="border-border hover:bg-secondary text-xs font-semibold self-start sm:self-auto gap-1">
+            <ArrowLeft size={14} /> Quay lại
+          </Button>
+        </div>
 
-        <footer className="waitlist-actions">
-          <button
-            type="button"
-            className="waitlist-btn secondary"
+        {/* Steps navigation bar */}
+        <div className="flex justify-between items-center w-full px-2 sm:px-8 py-4 bg-secondary/25 border border-border rounded-xl">
+          {steps.map((s, idx) => (
+            <Fragment key={s.num}>
+              {idx > 0 && <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${step >= s.num ? 'bg-primary' : 'bg-border/60'}`} />}
+              <button
+                type="button"
+                onClick={() => {
+                  if (s.num === 1 || validateStep(1)) setStep(s.num);
+                }}
+                className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 focus:outline-none cursor-pointer"
+              >
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  step >= s.num ? 'bg-primary text-background' : 'bg-secondary border border-border text-muted-foreground'
+                }`}>
+                  {s.num}
+                </div>
+                <span className={`text-[10px] sm:text-xs font-medium tracking-wide transition-colors ${
+                  step >= s.num ? 'text-white' : 'text-muted-foreground'
+                }`}>
+                  {s.label}
+                </span>
+              </button>
+            </Fragment>
+          ))}
+        </div>
+
+        {/* Dynamic content cards */}
+        <div className="w-full">
+          {step === 1 && (
+            <Card className="p-6 bg-card border-border flex flex-col gap-6">
+              <div className="border-b border-border/60 pb-3">
+                <h3 className="font-bold text-white text-sm">
+                  📝 Bước 1: Thông tin liên hệ và lịch mong muốn
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-left text-xs">
+                {/* Date select */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <CalendarDays size={14} className="text-primary" /> Ngày mong muốn *
+                  </label>
+                  <input
+                    type="date"
+                    min={todayString()}
+                    max={maxDateString()}
+                    value={form.preferredDate}
+                    onChange={(event) => updateForm('preferredDate', event.target.value)}
+                    className={cn(
+                      "w-full bg-secondary/40 border border-border rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer",
+                      errors.preferredDate && "border-rose-500/50"
+                    )}
+                  />
+                  {errors.preferredDate && <span className="text-[10px] text-rose-400 font-semibold">{errors.preferredDate}</span>}
+                </div>
+
+                {/* Time select */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Clock size={14} className="text-primary" /> Giờ mong muốn *
+                  </label>
+                  <input
+                    type="time"
+                    value={form.preferredTime}
+                    onChange={(event) => updateForm('preferredTime', event.target.value)}
+                    className={cn(
+                      "w-full bg-secondary/40 border border-border rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer",
+                      errors.preferredTime && "border-rose-500/50"
+                    )}
+                  />
+                  {errors.preferredTime && <span className="text-[10px] text-rose-400 font-semibold">{errors.preferredTime}</span>}
+                </div>
+
+                {/* Number of guests */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Users size={14} className="text-primary" /> Số lượng khách đi cùng *
+                  </label>
+                  <div className="flex items-center gap-1 bg-secondary/40 border border-border rounded-lg p-1 w-fit">
+                    <button
+                      type="button"
+                      onClick={() => updateForm('numberOfGuests', Math.max(1, Number(form.numberOfGuests) - 1))}
+                      disabled={Number(form.numberOfGuests) <= 1}
+                      className="h-8 w-8 rounded text-sm text-muted-foreground hover:text-white hover:bg-[#20242D] transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="px-4 text-xs font-bold text-white min-w-[70px] text-center">{form.numberOfGuests} khách</span>
+                    <button
+                      type="button"
+                      onClick={() => updateForm('numberOfGuests', Math.min(100, Number(form.numberOfGuests) + 1))}
+                      disabled={Number(form.numberOfGuests) >= 100}
+                      className="h-8 w-8 rounded text-sm text-muted-foreground hover:text-white hover:bg-[#20242D] transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {errors.numberOfGuests && <span className="text-[10px] text-rose-400 font-semibold">{errors.numberOfGuests}</span>}
+                </div>
+
+                {/* Max wait time */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold">Thời gian chờ tối đa (phút)</label>
+                  <select
+                    value={form.maxWaitMinutes}
+                    onChange={(event) => updateForm('maxWaitMinutes', event.target.value)}
+                    className="w-full bg-secondary/40 border border-border rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="30" className="bg-card">30 phút</option>
+                    <option value="45" className="bg-card">45 phút</option>
+                    <option value="60" className="bg-card">60 phút</option>
+                    <option value="90" className="bg-card">90 phút</option>
+                    <option value="120" className="bg-card">120 phút</option>
+                  </select>
+                </div>
+
+                {/* Customer name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold">Họ và tên *</label>
+                  <Input
+                    type="text"
+                    value={form.customerName}
+                    onChange={(event) => updateForm('customerName', event.target.value)}
+                    placeholder="Nhập họ tên đầy đủ"
+                    className={cn("bg-secondary/40 border-border text-xs focus-visible:ring-1 focus-visible:ring-primary h-10", errors.customerName && "border-rose-500/50")}
+                  />
+                  {errors.customerName && <span className="text-[10px] text-rose-400 font-semibold">{errors.customerName}</span>}
+                </div>
+
+                {/* Customer phone */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-muted-foreground font-semibold">Số điện thoại *</label>
+                  <Input
+                    type="tel"
+                    value={form.customerPhone}
+                    onChange={(event) => updateForm('customerPhone', event.target.value)}
+                    placeholder="Nhập số điện thoại"
+                    className={cn("bg-secondary/40 border-border text-xs focus-visible:ring-1 focus-visible:ring-primary h-10", errors.customerPhone && "border-rose-500/50")}
+                  />
+                  {errors.customerPhone && <span className="text-[10px] text-rose-400 font-semibold">{errors.customerPhone}</span>}
+                </div>
+
+                {/* Customer email */}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-muted-foreground font-semibold">Email nhận thông báo *</label>
+                  <Input
+                    type="email"
+                    value={form.customerEmail}
+                    onChange={(event) => updateForm('customerEmail', event.target.value)}
+                    placeholder="Nhập địa chỉ email"
+                    className={cn("bg-secondary/40 border-border text-xs focus-visible:ring-1 focus-visible:ring-primary h-10", errors.customerEmail && "border-rose-500/50")}
+                  />
+                  {errors.customerEmail && <span className="text-[10px] text-rose-400 font-semibold">{errors.customerEmail}</span>}
+                </div>
+
+                {/* Ghi chú */}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-muted-foreground font-semibold">Ghi chú cho nhà hàng</label>
+                  <textarea
+                    rows="3"
+                    maxLength="500"
+                    value={form.note}
+                    onChange={(event) => updateForm('note', event.target.value)}
+                    placeholder="Các yêu cầu đặc biệt như vị trí mong muốn, dị ứng món ăn, ghế em bé hoặc lý do cần bàn sớm..."
+                    className="w-full bg-secondary/40 border border-border rounded-lg p-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed"
+                  />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {step === 2 && (
+            <Card className="p-6 bg-card border-border flex flex-col gap-6">
+              <div className="border-b border-border/60 pb-3">
+                <h3 className="font-bold text-white text-sm">
+                  🪑 Bước 2: Chọn vị trí bàn ưu tiên (Tùy chọn)
+                </h3>
+              </div>
+              
+              <div className="flex flex-col gap-5 text-left text-xs leading-relaxed">
+                <p className="text-muted-foreground">
+                  Bạn có thể tùy ý chọn vị trí bàn mong muốn dưới đây. Quản lý nhà hàng sẽ sắp xếp dựa trên mức độ ưu tiên này khi có bàn trống.
+                </p>
+                
+                {tables.length === 0 ? (
+                  <div className="text-center py-12 border border-dashed border-border rounded-xl">
+                    <p className="text-muted-foreground">Nhà hàng chưa cập nhật sơ đồ bàn trống trực tuyến.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {tables.map((table) => {
+                      const isSelected = selectedTableIds.includes(table.id);
+                      return (
+                        <button
+                          type="button"
+                          key={table.id}
+                          onClick={() => toggleTable(table.id)}
+                          className={cn(
+                            "relative text-left p-4 rounded-xl border transition-all select-none hover:border-primary/50 cursor-pointer",
+                            isSelected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "border-border bg-secondary/20"
+                          )}
+                          aria-pressed={isSelected}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-white">Bàn {table.tableNumber}</h4>
+                            <span className="text-[10px] text-muted-foreground font-semibold bg-secondary px-2 py-0.5 rounded">
+                              {table.zone || 'Khu chung'}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex flex-col gap-1 text-[11px] text-muted-foreground">
+                            <div>Sức chứa: <strong className="text-white">{table.capacity} chỗ</strong></div>
+                            {table.depositAmount > 0 && (
+                              <div className="text-primary font-bold">Đặt cọc: {currency(table.depositAmount)}</div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {step === 3 && (
+            <Card className="p-6 bg-card border-border flex flex-col gap-6">
+              <div className="border-b border-border/60 pb-3">
+                <h3 className="font-bold text-white text-sm">
+                  🍽️ Bước 3: Đặt trước món ăn & Dịch vụ tiện ích (Tùy chọn)
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left text-xs">
+                {/* Món ăn */}
+                <div className="flex flex-col gap-4">
+                  <h4 className="font-bold text-white flex items-center gap-1.5 pb-2 border-b border-border/60">
+                    <Utensils size={15} className="text-primary" /> Món ăn đặc trưng
+                  </h4>
+                  <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+                    {menuItems.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground italic">Không có danh sách món ăn khả dụng.</div>
+                    ) : (
+                      menuItems.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center p-3 rounded-lg border border-border bg-secondary/15 hover:border-primary/10 transition">
+                          <div>
+                            <strong className="block text-white font-medium">{item.name}</strong>
+                            <span className="text-[11px] text-primary font-semibold mt-0.5 block">{currency(item.price)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 bg-secondary/40 border border-border rounded p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => changeQuantity(setDishQty, item.id, -1)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#20242D] text-muted-foreground hover:text-white transition cursor-pointer"
+                              aria-label={`Giảm số lượng ${item.name}`}
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="w-8 text-center text-xs font-bold text-white">{dishQty[item.id] || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => changeQuantity(setDishQty, item.id, 1)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#20242D] text-muted-foreground hover:text-white transition cursor-pointer"
+                              aria-label={`Tăng số lượng ${item.name}`}
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Dịch vụ */}
+                <div className="flex flex-col gap-4">
+                  <h4 className="font-bold text-white flex items-center gap-1.5 pb-2 border-b border-border/60">
+                    <ConciergeBell size={15} className="text-primary" /> Dịch vụ đi kèm
+                  </h4>
+                  <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+                    {services.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground italic">Không có dịch vụ đặc biệt khả dụng.</div>
+                    ) : (
+                      services.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center p-3 rounded-lg border border-border bg-secondary/15 hover:border-primary/10 transition">
+                          <div>
+                            <strong className="block text-white font-medium">{item.name}</strong>
+                            <span className="text-[11px] text-primary font-semibold mt-0.5 block">{currency(item.price)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 bg-secondary/40 border border-border rounded p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => changeQuantity(setServiceQty, item.id, -1)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#20242D] text-muted-foreground hover:text-white transition cursor-pointer"
+                              aria-label={`Giảm số lượng ${item.name}`}
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="w-8 text-center text-xs font-bold text-white">{serviceQty[item.id] || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => changeQuantity(setServiceQty, item.id, 1)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#20242D] text-muted-foreground hover:text-white transition cursor-pointer"
+                              aria-label={`Tăng số lượng ${item.name}`}
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {step === 4 && (
+            <Card className="p-6 bg-card border-border flex flex-col gap-6">
+              <div className="border-b border-border/60 pb-3">
+                <h3 className="font-bold text-white text-sm">
+                  📋 Bước 4: Kiểm tra thông tin tóm tắt & Xác nhận hàng chờ
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-5 text-left text-xs">
+                {/* Summary Details */}
+                <div className="bg-secondary/35 border border-border p-5 rounded-xl flex flex-col gap-3.5">
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Nhà hàng:</span>
+                    <span className="font-bold text-white">{restaurant?.name}</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Thời gian:</span>
+                    <span className="font-semibold text-white">{form.preferredTime} - {new Date(form.preferredDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Số lượng khách:</span>
+                    <span className="font-semibold text-white">{form.numberOfGuests} người</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Bàn ưu tiên:</span>
+                    <span className="font-bold text-primary">
+                      {selectedTables.length ? selectedTables.map((table) => table.tableNumber).join(', ') : 'Tự động xếp bàn trống'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Món ăn đã chọn trước:</span>
+                    <span className="font-semibold text-white">{selectedDishes.length} món</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Dịch vụ đi kèm:</span>
+                    <span className="font-semibold text-white">{selectedServices.length} dịch vụ</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Tạm tính (Món & Dịch vụ):</span>
+                    <span className="font-bold text-primary">{currency(estimatedTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1.5">
+                    <span className="text-muted-foreground">Thời gian chờ tối đa:</span>
+                    <span className="font-bold text-white">{form.maxWaitMinutes} phút</span>
+                  </div>
+                </div>
+
+                {/* Info block */}
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex gap-3 text-xs leading-relaxed text-primary/95">
+                  <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block text-white mb-1">Quy tắc hàng chờ:</strong>
+                    <span>Yêu cầu đăng ký sẽ nằm ở trạng thái Chờ duyệt. Quản lý nhà hàng chỉ phê duyệt và chỉ định bàn cho bạn khi có bàn trống phù hợp với các tùy chọn ưu tiên của bạn phát sinh trên hệ thống.</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Stepper Footer actions */}
+        <div className="flex justify-between items-center pt-4 border-t border-border">
+          <Button
+            variant="outline"
             onClick={() => (step === 1 ? navigate(-1) : setStep((current) => current - 1))}
             disabled={submitting}
+            className="border-border text-white hover:bg-secondary text-xs font-semibold h-10 px-5 gap-1.5"
           >
-            <ArrowLeft size={16} /> {step === 1 ? 'Huy' : 'Quay lai'}
-          </button>
+            <ArrowLeft size={14} /> {step === 1 ? 'Hủy bỏ' : 'Quay lại'}
+          </Button>
+
           {step < 4 ? (
-            <button type="button" className="waitlist-btn primary" onClick={nextStep}>
-              Tiep tuc <ArrowRight size={16} />
-            </button>
+            <Button
+              onClick={nextStep}
+              className="bg-primary hover:bg-primary/95 text-background font-semibold h-10 px-5 gap-1.5 text-xs"
+            >
+              Tiếp tục bước tiếp theo <ArrowRight size={14} />
+            </Button>
           ) : (
-            <button type="button" className="waitlist-btn primary" onClick={submitWaitlist} disabled={submitting}>
-              {submitting ? 'Dang gui...' : 'Gui yeu cau waitlist'}
-            </button>
+            <Button
+              onClick={submitWaitlist}
+              disabled={submitting}
+              className="bg-primary hover:bg-primary/95 text-background font-bold h-11 px-6 gap-2 text-xs uppercase tracking-wider"
+            >
+              {submitting ? 'Đang gửi yêu cầu...' : 'Gửi đăng ký hàng chờ'}
+            </Button>
           )}
-        </footer>
+        </div>
       </main>
     </div>
   );

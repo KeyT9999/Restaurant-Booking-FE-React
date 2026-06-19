@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
-import '../../styles/auth.css';
+import { Loader2 } from 'lucide-react';
 
 /**
  * Trang callback sau khi Google OAuth hoàn tất.
@@ -43,13 +43,15 @@ function GoogleCallback() {
   }, [searchParams, navigate, loginWithToken]);
 
   return (
-    <main className="auth-screen login-screen">
-      <section className="login-card" style={{ textAlign: 'center', gap: '1.5rem' }}>
-        <div className="login-logo" aria-hidden="true" style={{ margin: '0 auto' }}>
-          <div className="google-callback-spinner" />
+    <main className="min-h-screen w-full bg-[#0F1115] relative flex items-center justify-center p-4 overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_center,rgba(212,150,83,0.06)_0%,transparent_70%)]">
+      <section className="w-full max-w-[440px] p-8 md:p-10 bg-card/90 border border-border rounded-2xl flex flex-col items-center gap-6 shadow-2xl relative backdrop-blur-md z-10 text-center">
+        <div className="h-16 w-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-        <h1 className="login-brand" style={{ fontSize: '1.4rem' }}>Đang xử lý đăng nhập...</h1>
-        <p className="login-welcome">Vui lòng chờ trong giây lát</p>
+        <h1 className="font-serif text-xl md:text-2xl text-white font-bold tracking-tight">Đang xử lý đăng nhập...</h1>
+        <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed">
+          Vui lòng chờ trong giây lát khi chúng tôi thiết lập phiên làm việc của bạn.
+        </p>
       </section>
     </main>
   );
