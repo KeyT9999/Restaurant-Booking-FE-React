@@ -35,12 +35,12 @@ export default function OwnerReviewsPage() {
         page,
         limit: 10,
       });
-      if (res.data?.success) {
-        setReviews(res.data.data || []);
-        setTotalPages(res.data.pagination?.totalPages || 1);
-        setTotalReviews(res.data.pagination?.total || 0);
+      if (res?.success) {
+        setReviews(res.data || []);
+        setTotalPages(res.pagination?.totalPages || 1);
+        setTotalReviews(res.pagination?.total || 0);
       } else {
-        setError(res.data?.message || 'Không thể tải danh sách đánh giá');
+        setError(res?.message || 'Không thể tải danh sách đánh giá');
       }
     } catch (err) {
       console.error(err);
@@ -80,7 +80,7 @@ export default function OwnerReviewsPage() {
     setReplyingStates((prev) => ({ ...prev, [reviewId]: true }));
     try {
       const res = await replyReview(reviewId, text.trim());
-      if (res.data?.success) {
+      if (res?.success) {
         toast.success('Gửi phản hồi đánh giá thành công');
         // Cập nhật reviews state cục bộ thay vì reload toàn bộ
         setReviews((prev) =>
@@ -103,7 +103,7 @@ export default function OwnerReviewsPage() {
           return updated;
         });
       } else {
-        toast.error(res.data?.message || 'Gửi phản hồi thất bại');
+        toast.error(res?.message || 'Gửi phản hồi thất bại');
       }
     } catch (err) {
       console.error(err);

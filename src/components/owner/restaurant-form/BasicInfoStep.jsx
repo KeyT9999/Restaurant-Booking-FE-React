@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AIFieldPolishButton from '../AIFieldPolishButton';
 
 const CUISINE_SUGGESTIONS = [
   'Việt Nam', 'Nhật Bản', 'Hàn Quốc', 'Trung Hoa', 'Thái Lan',
@@ -50,10 +51,19 @@ export default function BasicInfoStep({ data, onChange, errors }) {
       <p className="text-xs text-muted-foreground">Nhập các thông tin nhận diện cốt lõi cho nhà hàng của bạn.</p>
 
       {/* Name */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="restaurant-name">
-          Tên nhà hàng <span className="text-destructive">*</span>
-        </label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="restaurant-name">
+            Tên nhà hàng <span className="text-destructive">*</span>
+          </label>
+          <AIFieldPolishButton
+            fieldKey="name"
+            value={data.name || ''}
+            maxLength={200}
+            context={{ step: 'basic_info' }}
+            onApply={(val) => handleChange('name', val)}
+          />
+        </div>
         <input
           id="restaurant-name"
           type="text"
@@ -70,10 +80,19 @@ export default function BasicInfoStep({ data, onChange, errors }) {
       </div>
 
       {/* Description */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="restaurant-description">
-          Mô tả chi tiết <span className="text-destructive">*</span>
-        </label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="restaurant-description">
+            Mô tả chi tiết <span className="text-destructive">*</span>
+          </label>
+          <AIFieldPolishButton
+            fieldKey="description"
+            value={data.description || ''}
+            maxLength={2000}
+            context={{ restaurantName: data.name, step: 'basic_info' }}
+            onApply={(val) => handleChange('description', val)}
+          />
+        </div>
         <textarea
           id="restaurant-description"
           className={`bg-[#0F1115] border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[100px] ${
@@ -93,8 +112,17 @@ export default function BasicInfoStep({ data, onChange, errors }) {
       </div>
 
       {/* Cuisine Types */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Loại hình ẩm thực</label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Loại hình ẩm thực</label>
+          <AIFieldPolishButton
+            fieldKey="customCuisine"
+            value={cuisineInput}
+            maxLength={50}
+            context={{ step: 'basic_info' }}
+            onApply={(val) => setCuisineInput(val)}
+          />
+        </div>
         <div className="flex flex-wrap gap-1.5 mb-1">
           {(data.cuisineTypes || []).map((type) => (
             <span key={type} className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary px-3 py-1 rounded-full text-xs font-medium">

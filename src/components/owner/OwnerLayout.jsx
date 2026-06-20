@@ -83,10 +83,6 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
               <Globe2 size={15} />
               <span className="font-semibold text-primary">VI</span>
             </div>
-
-            <span className="hidden rounded-full border border-border bg-secondary/20 px-3 py-1 text-xs font-medium text-muted-foreground lg:inline-flex">
-              Bản demo đa vai trò
-            </span>
           </div>
         </div>
       </header>

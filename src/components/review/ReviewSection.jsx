@@ -23,12 +23,12 @@ export default function ReviewSection({ restaurantId }) {
         params.rating = selectedRatingFilter;
       }
       const res = await getRestaurantReviews(restaurantId, params);
-      if (res.data?.success) {
-        setReviews(res.data.data || []);
-        setReviewsTotalPages(res.data.pagination?.totalPages || 1);
-        setReviewsTotal(res.data.pagination?.total || 0);
-        if (res.data.stats?.averageRating !== undefined) {
-          setAvgRating(res.data.stats.averageRating);
+      if (res?.success) {
+        setReviews(res.data || []);
+        setReviewsTotalPages(res.pagination?.totalPages || 1);
+        setReviewsTotal(res.pagination?.total || 0);
+        if (res.stats?.averageRating !== undefined) {
+          setAvgRating(res.stats.averageRating);
         }
       }
     } catch (e) {

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Save, Upload, ImageIcon, Trash2 } from 'lucide-react';
 import { uploadImage } from '../../api/uploadApi';
 import { Button } from '../ui/button';
+import AIFieldPolishButton from '../owner/AIFieldPolishButton';
 
 export default function MenuItemForm({ item, categories, onSubmit, onClose }) {
   const isEdit = !!item;
@@ -198,9 +199,18 @@ export default function MenuItemForm({ item, categories, onSubmit, onClose }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Tên món */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Tên món ăn <span className="text-destructive">*</span>
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Tên món ăn <span className="text-destructive">*</span>
+                </label>
+                <AIFieldPolishButton
+                  fieldKey="name"
+                  value={formData.name}
+                  onApply={(val) => handleChange('name', val)}
+                  context={{ type: 'menu_item' }}
+                  maxLength={200}
+                />
+              </div>
               <input
                 type="text"
                 value={formData.name}
@@ -268,7 +278,16 @@ export default function MenuItemForm({ item, categories, onSubmit, onClose }) {
 
             {/* Mô tả */}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mô tả chi tiết</label>
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mô tả chi tiết</label>
+                <AIFieldPolishButton
+                  fieldKey="description"
+                  value={formData.description}
+                  onApply={(val) => handleChange('description', val)}
+                  context={{ itemName: formData.name, type: 'menu_item' }}
+                  maxLength={1000}
+                />
+              </div>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
