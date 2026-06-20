@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getVoucherById, saveVoucher, unsaveVoucher } from '../../api/voucherApi';
 import './VoucherDetail.css';
@@ -10,10 +10,6 @@ export default function VoucherDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
-
-  useEffect(() => {
-    loadVoucher();
-  }, [id]);
 
   const loadVoucher = async () => {
     setLoading(true);
@@ -29,6 +25,10 @@ export default function VoucherDetail() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadVoucher();
+  }, [id]);
 
   const showToast = (message) => {
     setToastMessage(message);
