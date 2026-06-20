@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Star, MessageSquare, Send, Filter, MessageSquareText } from 'lucide-react';
+import { MessageSquare, Send, Filter, MessageSquareText } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { useAuth } from '../../context/useAuth';
 import { useRestaurantContext } from '../../context/useRestaurantContext';
 import * as reviewApi from '../../api/reviewApi';
 import { StarDisplay } from '../../components/review/ReviewCard';
@@ -17,7 +16,6 @@ const formatDate = (dateStr) => {
 };
 
 export default function OwnerReviews() {
-  const { user } = useAuth();
   const { selectedRestaurant } = useRestaurantContext();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);

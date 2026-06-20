@@ -11,6 +11,13 @@ export function RestaurantProvider({ children }) {
   const [selectedRestaurantId, setSelectedRestaurantIdState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [restaurantQuota, setRestaurantQuota] = useState({
+    planCode: 'free',
+    currentCount: 0,
+    limit: 1,
+    remaining: 1,
+    recommendedPlan: 'plus',
+  });
 
   const selectedRestaurant = useMemo(
     () => restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) || null,
@@ -41,6 +48,9 @@ export function RestaurantProvider({ children }) {
       const response = await getMyRestaurants({ page: 1, limit: 100 });
       const list = response.data?.restaurants || [];
       setRestaurants(list);
+      if (response.data?.restaurantQuota) {
+        setRestaurantQuota(response.data.restaurantQuota);
+      }
 
       const queryId = new URLSearchParams(window.location.search).get('restaurantId');
       const savedId = localStorage.getItem(STORAGE_KEY);
@@ -59,7 +69,7 @@ export function RestaurantProvider({ children }) {
         syncRestaurantId(null);
       }
     } catch (err) {
-      setError(err.message || 'Khong the tai danh sach nha hang');
+      setError(err.message || 'Không thể tải danh sách nhà hàng');
     } finally {
       setLoading(false);
     }
@@ -81,6 +91,7 @@ export function RestaurantProvider({ children }) {
     isRestaurantReady: !loading && Boolean(selectedRestaurantId),
     setSelectedRestaurantId: syncRestaurantId,
     refreshRestaurants,
+    restaurantQuota,
   }), [
     restaurants,
     selectedRestaurantId,
@@ -89,6 +100,7 @@ export function RestaurantProvider({ children }) {
     error,
     syncRestaurantId,
     refreshRestaurants,
+    restaurantQuota,
   ]);
 
   return (

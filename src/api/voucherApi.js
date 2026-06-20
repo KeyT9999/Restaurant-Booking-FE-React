@@ -19,6 +19,9 @@ export const getMyVouchersHistory = (params) =>
 export const getRestaurantVouchers = (restaurantId) =>
   axiosInstance.get(`/vouchers/restaurant/${restaurantId}`);
 
+export const getHomepageVoucherCampaigns = (params) =>
+  axiosInstance.get('/vouchers/campaigns/homepage', { params });
+
 export const getPlatformVouchers = (params) =>
   axiosInstance.get('/vouchers/platform', { params });
 

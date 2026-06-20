@@ -1,7 +1,6 @@
 import { Star, ThumbsUp, Flag, MessageSquare, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
 import { useAuth } from '../../context/useAuth';
 import * as reviewApi from '../../api/reviewApi';
 import toast from 'react-hot-toast';
@@ -23,7 +22,7 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-export default function ReviewCard({ review, onUpdate }) {
+export default function ReviewCard({ review }) {
   const { isAuthenticated, user } = useAuth();
   const [helpfulCount, setHelpfulCount] = useState(review.helpfulCount || 0);
   const [isHelpful, setIsHelpful] = useState(false);

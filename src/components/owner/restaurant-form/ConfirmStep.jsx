@@ -145,35 +145,35 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
                 src={data.logo}
                 alt="Logo"
                 className="max-w-[60px] max-h-[60px] rounded-lg border border-border/80 object-cover shadow"
-                fallback={<span className="text-xs text-muted-foreground">Anh logo khong tai duoc</span>}
+                fallback={<span className="text-xs text-muted-foreground">Ảnh logo không tải được</span>}
               />
             </span>
           </div>
         ) : null}
         {data.coverImage ? (
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Anh bia</span>
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Ảnh bìa</span>
             <span className="sm:col-span-3">
               <SafeImage
                 src={data.coverImage}
-                alt="Anh bia nha hang"
+                alt="Ảnh bìa nhà hàng"
                 className="h-20 w-40 rounded-lg border border-border/80 object-cover shadow"
-                fallback={<span className="text-xs text-muted-foreground">Anh bia khong tai duoc</span>}
+                fallback={<span className="text-xs text-muted-foreground">Ảnh bìa không tải được</span>}
               />
             </span>
           </div>
         ) : null}
         {Array.isArray(data.galleryImages) && data.galleryImages.filter(Boolean).length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Anh khac</span>
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Ảnh khác</span>
             <div className="sm:col-span-3 flex flex-wrap gap-2">
               {data.galleryImages.filter(Boolean).slice(0, 6).map((url, index) => (
                 <SafeImage
                   key={`${url}-${index}`}
                   src={url}
-                  alt={`Anh nha hang ${index + 1}`}
+                  alt={`Ảnh nhà hàng ${index + 1}`}
                   className="h-14 w-20 rounded-lg border border-border/80 object-cover shadow"
-                  fallback={<span className="inline-flex h-14 w-20 items-center justify-center rounded-lg border border-border text-[10px] text-muted-foreground">Loi anh</span>}
+                  fallback={<span className="inline-flex h-14 w-20 items-center justify-center rounded-lg border border-border text-[10px] text-muted-foreground">Lỗi ảnh</span>}
                 />
               ))}
               {data.galleryImages.filter(Boolean).length > 6 && (

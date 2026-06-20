@@ -1,16 +1,28 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Zap, Star, Check, Clock, CreditCard, ChevronRight, Loader2, AlertCircle, Wallet, Send, History, CheckCircle2, HelpCircle } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Crown, Zap, Star, Check, Clock, CreditCard, ChevronRight, Loader2, AlertCircle, Wallet, Send, History, CheckCircle2, HelpCircle, Sparkles, TicketPercent, ReceiptText } from 'lucide-react';
 import OwnerLayout from '../../components/owner/OwnerLayout';
+import VoucherCampaignPanel from '../../components/owner/VoucherCampaignPanel';
+import BookingCommissionPanel from '../../components/monetization/BookingCommissionPanel';
 import { useRestaurantContext } from '../../context/useRestaurantContext';
-import { getCurrentSubscription, getBillingHistory, createPayment, checkPaymentStatus } from '../../api/paymentApi';
+import {
+  getCurrentSubscription,
+  getBillingHistory,
+  checkoutOwnerSubscription,
+  checkPaymentStatus,
+  getOwnerFeaturedPlacements,
+  checkoutFeaturedPlacement,
+  getOwnerVoucherCampaigns,
+  checkoutVoucherCampaign,
+} from '../../api/paymentApi';
 import { createWithdrawal, getMyWithdrawals } from '../../api/withdrawalApi';
 
 const formatMoney = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(v || 0);
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 export default function OwnerBilling() {
-  const { selectedRestaurantId } = useRestaurantContext();
+  const { selectedRestaurantId, restaurants } = useRestaurantContext();
   const navigate = useNavigate();
   
   // Tabs: 'billing' (Gói dịch vụ) | 'withdrawal' (Rút tiền doanh thu)
@@ -21,11 +33,18 @@ export default function OwnerBilling() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [featuredData, setFeaturedData] = useState(null);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [featuredError, setFeaturedError] = useState(null);
+  const [campaignData, setCampaignData] = useState(null);
+  const [campaignLoading, setCampaignLoading] = useState(false);
+  const [campaignError, setCampaignError] = useState(null);
 
   // QR Modal
   const [showQR, setShowQR] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
   const [polling, setPolling] = useState(false);
   const pollRef = useRef(null);
 
@@ -48,7 +67,7 @@ export default function OwnerBilling() {
     try {
       setLoading(true);
       setError(null);
-      const res = await getCurrentSubscription();
+      const res = await getCurrentSubscription({ restaurantId: selectedRestaurantId });
       setData(res.data);
     } catch (err) {
       setError(err.message || 'Lỗi tải gói dịch vụ');
@@ -59,9 +78,39 @@ export default function OwnerBilling() {
 
   const loadHistory = async () => {
     try {
-      const res = await getBillingHistory({ limit: 10 });
+      const res = await getBillingHistory({
+        restaurantId: selectedRestaurantId,
+        targetType: 'subscription',
+        limit: 10,
+      });
       setHistory(res.data || []);
     } catch { /* ignored */ }
+  };
+
+  const loadFeatured = async () => {
+    try {
+      setFeaturedLoading(true);
+      setFeaturedError(null);
+      const res = await getOwnerFeaturedPlacements({ restaurantId: selectedRestaurantId });
+      setFeaturedData(res.data);
+    } catch (err) {
+      setFeaturedError(err.message || 'Lỗi tải gói nổi bật');
+    } finally {
+      setFeaturedLoading(false);
+    }
+  };
+
+  const loadVoucherCampaigns = async () => {
+    try {
+      setCampaignLoading(true);
+      setCampaignError(null);
+      const res = await getOwnerVoucherCampaigns({ restaurantId: selectedRestaurantId });
+      setCampaignData(res.data);
+    } catch (err) {
+      setCampaignError(err.message || 'Lỗi tải chiến dịch voucher');
+    } finally {
+      setCampaignLoading(false);
+    }
   };
 
   const loadWithdrawals = async () => {
@@ -89,6 +138,14 @@ export default function OwnerBilling() {
     if (activeTab === 'billing') {
       loadData();
       loadHistory();
+    } else if (activeTab === 'featured') {
+      loadData();
+      loadFeatured();
+    } else if (activeTab === 'campaign') {
+      loadData();
+      loadVoucherCampaigns();
+    } else if (activeTab === 'commission') {
+      // BookingCommissionPanel owns its filtered data lifecycle.
     } else {
       loadWithdrawals();
     }
@@ -99,26 +156,91 @@ export default function OwnerBilling() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
+  useEffect(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    setPolling(false);
+    setShowQR(false);
+    setPaymentData(null);
+    setCheckoutError(null);
+  }, [selectedRestaurantId]);
+
   const handleSelectPlan = async (planKey) => {
     if (!selectedRestaurantId) return;
     try {
+      setCheckoutError(null);
       setPaymentLoading(true);
-      const res = await createPayment({
-        targetType: 'subscription',
-        targetId: selectedRestaurantId,
-        plan: planKey,
+      const res = await checkoutOwnerSubscription({
+        restaurantId: selectedRestaurantId,
+        planCode: planKey,
       });
       setPaymentData(res.data);
       setShowQR(true);
-      startPolling(res.data.orderCode);
+      startPolling(res.data.orderCode, 'subscription');
     } catch (err) {
-      alert(err.message || 'Lỗi tạo thanh toán');
+      setCheckoutError(err.message || 'Không thể tạo thanh toán gói dịch vụ.');
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  const startPolling = (orderCode) => {
+  const handleContinuePendingPayment = (payment) => {
+    if (!payment?.orderCode) return;
+    setPaymentData(payment);
+    setShowQR(true);
+    startPolling(payment.orderCode, payment.targetType || 'subscription');
+  };
+
+  const handleSelectFeaturedPackage = async (packageCode) => {
+    if (!selectedRestaurantId) return;
+    try {
+      setCheckoutError(null);
+      setPaymentLoading(true);
+      const res = await checkoutFeaturedPlacement({
+        restaurantId: selectedRestaurantId,
+        packageCode,
+      });
+      const payment = res.data?.payment;
+      if (!payment?.orderCode) {
+        throw new Error('Không nhận được thông tin thanh toán.');
+      }
+      setPaymentData(payment);
+      setShowQR(true);
+      startPolling(payment.orderCode, 'featured_restaurant');
+      loadFeatured();
+    } catch (err) {
+      setCheckoutError(err.message || 'Không thể tạo thanh toán gói nổi bật.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleSelectVoucherCampaign = async ({ voucherId, packageCode }) => {
+    if (!selectedRestaurantId || !voucherId) return;
+    try {
+      setCheckoutError(null);
+      setPaymentLoading(true);
+      const res = await checkoutVoucherCampaign({
+        restaurantId: selectedRestaurantId,
+        voucherId,
+        packageCode,
+      });
+      const payment = res.data?.payment;
+      if (!payment?.orderCode) {
+        throw new Error('Không nhận được thông tin thanh toán.');
+      }
+      setPaymentData(payment);
+      setShowQR(true);
+      startPolling(payment.orderCode, 'voucher_campaign');
+      loadVoucherCampaigns();
+    } catch (err) {
+      setCheckoutError(err.message || 'Không thể tạo thanh toán chiến dịch voucher.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const startPolling = (orderCode, targetType = 'subscription') => {
+    if (pollRef.current) clearInterval(pollRef.current);
     setPolling(true);
     pollRef.current = setInterval(async () => {
       try {
@@ -127,7 +249,14 @@ export default function OwnerBilling() {
           clearInterval(pollRef.current);
           setPolling(false);
           setShowQR(false);
-          navigate('/payment-success?targetType=subscription');
+          loadData();
+          loadHistory();
+          if (targetType === 'featured_restaurant') {
+            loadFeatured();
+          } else if (targetType === 'voucher_campaign') {
+            loadVoucherCampaigns();
+          }
+          navigate(`/payment-success?targetType=${targetType}&orderCode=${orderCode}`);
         }
       } catch { /* ignored */ }
     }, 5000);
@@ -184,6 +313,8 @@ export default function OwnerBilling() {
     plus: <Zap size={18} />,
     pro: <Crown size={18} />,
   };
+  const canBuyFeatured = Boolean(data?.planInfo?.benefits?.allowFeaturedPurchase);
+  const canBuyVoucherCampaign = Boolean(data?.planInfo?.benefits?.allowVoucherCampaignPurchase);
 
   if (!selectedRestaurantId) {
     return (
@@ -206,7 +337,7 @@ export default function OwnerBilling() {
       <div className="max-w-6xl mx-auto py-2">
         
         {/* Tab Header */}
-        <div className="flex border-b border-border/60 mb-6 gap-2">
+        <div className="flex flex-wrap border-b border-border/60 mb-6 gap-2">
           <button
             onClick={() => setActiveTab('billing')}
             className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
@@ -217,6 +348,39 @@ export default function OwnerBilling() {
           >
             <CreditCard size={15} />
             <span>Gói dịch vụ</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('featured')}
+            className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'featured'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-white'
+            }`}
+          >
+            <Sparkles size={15} />
+            <span>Nổi bật</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('campaign')}
+            className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'campaign'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-white'
+            }`}
+          >
+            <TicketPercent size={15} />
+            <span>Voucher Campaign</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('commission')}
+            className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'commission'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-white'
+            }`}
+          >
+            <ReceiptText size={15} />
+            <span>Phí booking</span>
           </button>
           <button
             onClick={() => setActiveTab('withdrawal')}
@@ -230,6 +394,13 @@ export default function OwnerBilling() {
             <span>Rút tiền doanh thu</span>
           </button>
         </div>
+
+        {checkoutError && (
+          <div role="alert" className="mb-6 flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/10 p-4 text-xs text-destructive">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{checkoutError}</span>
+          </div>
+        )}
 
         {activeTab === 'billing' ? (
           <div>
@@ -264,7 +435,40 @@ export default function OwnerBilling() {
                       </p>
                     )}
                   </div>
+                  {data.restaurantQuota && (
+                    <div className="text-right border-l border-border/40 pl-6 hidden sm:block shrink-0">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-muted-foreground block">Hạn mức nhà hàng</span>
+                      <span className="text-lg font-bold text-white block mt-0.5">
+                        {data.restaurantQuota.currentCount} / {data.restaurantQuota.limit}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground block mt-0.5">
+                        {data.restaurantQuota.remaining > 0 ? `Còn lại: ${data.restaurantQuota.remaining}` : 'Đã hết quota'}
+                      </span>
+                    </div>
+                  )}
                 </section>
+
+                {data.pendingPayment && (
+                  <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl">
+                    <div className="flex items-start gap-3 text-left">
+                      <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-sm font-bold text-amber-300">Có giao dịch đang chờ thanh toán</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {data.pendingPayment.description || 'Thanh toán gói dịch vụ'} · {formatMoney(data.pendingPayment.amount)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleContinuePendingPayment(data.pendingPayment)}
+                      className="h-10 px-4 rounded-lg bg-primary text-[#0F1115] text-xs font-bold uppercase tracking-wider hover:bg-primary/95 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <CreditCard size={14} />
+                      <span>Tiếp tục thanh toán</span>
+                    </button>
+                  </section>
+                )}
 
                 {/* Plan Cards Grid */}
                 <section className="flex flex-col gap-4">
@@ -301,6 +505,10 @@ export default function OwnerBilling() {
                           </div>
 
                           <ul className="flex flex-col gap-2.5 mb-6 flex-1 text-xs text-muted-foreground border-t border-border/40 pt-4">
+                            <li className="flex items-center gap-2">
+                              <Check size={13} className="text-primary shrink-0" /> 
+                              <span>Tối đa {plan.benefits.maxRestaurants ?? 1} nhà hàng</span>
+                            </li>
                             <li className="flex items-center gap-2">
                               <Check size={13} className="text-primary shrink-0" /> 
                               <span>{plan.benefits.maxMenuItems === -1 ? 'Không giới hạn món ăn' : `${plan.benefits.maxMenuItems} món ăn`}</span>
@@ -403,6 +611,172 @@ export default function OwnerBilling() {
               </div>
             )}
           </div>
+        ) : activeTab === 'featured' ? (
+          <div className="flex flex-col gap-8 animate-in fade-in duration-200">
+            {featuredLoading && (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Đang tải gói nổi bật...</p>
+              </div>
+            )}
+
+            {featuredError && (
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive text-xs leading-relaxed max-w-lg mx-auto">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>{featuredError}</span>
+              </div>
+            )}
+
+            {!featuredLoading && featuredData && (
+              <>
+                <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-[#14171D] border border-border rounded-xl shadow-md">
+                  <div className="flex items-start gap-4 text-left">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                      <Sparkles size={20} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-primary">Featured Placement</span>
+                      <h2 className="font-serif text-xl md:text-2xl text-white font-bold leading-tight mt-0.5">
+                        {featuredData.activePlacement ? 'Đang nổi bật' : 'Chưa có gói nổi bật hoạt động'}
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {featuredData.activePlacement
+                          ? `Hiệu lực đến ${formatDate(featuredData.activePlacement.endAt)}`
+                          : 'Mua gói theo từng nhà hàng để hiện badge và ưu tiên sắp xếp công khai.'}
+                      </p>
+                    </div>
+                  </div>
+                  {!canBuyFeatured && (
+                    <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                      Cần nâng cấp Plus/Pro để mua featured placement.
+                    </div>
+                  )}
+                </section>
+
+                {featuredData.pendingPayment && (
+                  <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl">
+                    <div className="flex items-start gap-3 text-left">
+                      <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-sm font-bold text-amber-300">Có thanh toán featured đang chờ</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {featuredData.pendingPayment.description || 'Mua nổi bật nhà hàng'} - {formatMoney(featuredData.pendingPayment.amount)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleContinuePendingPayment(featuredData.pendingPayment)}
+                      className="h-10 px-4 rounded-lg bg-primary text-[#0F1115] text-xs font-bold uppercase tracking-wider hover:bg-primary/95 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <CreditCard size={14} />
+                      <span>Tiếp tục thanh toán</span>
+                    </button>
+                  </section>
+                )}
+
+                <section className="flex flex-col gap-4">
+                  <h3 className="font-serif text-xl text-white font-bold border-b border-border/40 pb-3">Chọn gói nổi bật</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {featuredData.packages?.map((pkg) => (
+                      <article key={pkg.code} className="p-6 bg-card border border-border rounded-xl flex flex-col hover:border-primary/45 transition-all shadow-lg">
+                        <div className="flex items-center gap-2 text-white mb-4">
+                          <Sparkles size={18} className="text-primary" />
+                          <h4 className="text-sm font-bold flex-1">{pkg.name}</h4>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary uppercase shrink-0">
+                            {pkg.durationDays} ngày
+                          </span>
+                        </div>
+                        <div className="mb-4 flex items-baseline gap-1">
+                          <span className="font-serif text-2xl md:text-3xl font-bold text-white">{formatMoney(pkg.amount)}</span>
+                        </div>
+                        <ul className="flex flex-col gap-2.5 mb-6 flex-1 text-xs text-muted-foreground border-t border-border/40 pt-4">
+                          {(pkg.benefits || []).map((benefit) => (
+                            <li key={benefit} className="flex items-center gap-2">
+                              <Check size={13} className="text-primary shrink-0" />
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <button
+                          type="button"
+                          className="w-full h-11 rounded-xl bg-primary text-[#0F1115] font-bold text-xs uppercase tracking-wider hover:bg-primary/95 disabled:bg-primary/30 disabled:text-[#0F1115]/50 transition-all flex items-center justify-center gap-1 cursor-pointer mt-auto"
+                          onClick={() => handleSelectFeaturedPackage(pkg.code)}
+                          disabled={!canBuyFeatured || paymentLoading}
+                        >
+                          <span>{paymentLoading ? 'Đang xử lý...' : 'Mua nổi bật'}</span>
+                          <ChevronRight size={14} />
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="flex flex-col gap-4">
+                  <h3 className="font-serif text-xl text-white font-bold border-b border-border/40 pb-3">Lịch sử nổi bật</h3>
+                  {!featuredData.placements?.length ? (
+                    <div className="text-xs text-muted-foreground p-8 border border-dashed border-border/40 bg-card/10 rounded-xl text-center">
+                      Chưa có featured placement nào.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto border border-border rounded-xl bg-card/40 shadow-inner">
+                      <table className="w-full text-xs text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[#1A1D24] text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                            <th className="p-4">Nhà hàng</th>
+                            <th className="p-4">Gói</th>
+                            <th className="p-4">Thời gian</th>
+                            <th className="p-4 text-right">Số tiền</th>
+                            <th className="p-4 text-center">Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                          {featuredData.placements.map((placement) => (
+                            <tr key={placement._id} className="hover:bg-white/5 transition-colors">
+                              <td className="p-4 text-white font-medium">{placement.restaurantId?.name || featuredData.restaurant?.name || 'Nhà hàng'}</td>
+                              <td className="p-4 text-muted-foreground">{placement.packageCode}</td>
+                              <td className="p-4 text-muted-foreground whitespace-nowrap">
+                                {formatDate(placement.startAt)} - {formatDate(placement.endAt)}
+                              </td>
+                              <td className="p-4 text-right font-bold text-white whitespace-nowrap">{formatMoney(placement.amount)}</td>
+                              <td className="p-4 text-center whitespace-nowrap">
+                                <span className={`inline-block px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
+                                  placement.status === 'active'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                    : placement.status === 'pending'
+                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                    : 'bg-destructive/10 text-destructive border-destructive/20'
+                                }`}>
+                                  {placement.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+          </div>
+        ) : activeTab === 'campaign' ? (
+          <VoucherCampaignPanel
+            data={campaignData}
+            loading={campaignLoading}
+            error={campaignError}
+            canBuy={canBuyVoucherCampaign}
+            paymentLoading={paymentLoading}
+            onCheckout={handleSelectVoucherCampaign}
+            onContinuePayment={handleContinuePendingPayment}
+          />
+        ) : activeTab === 'commission' ? (
+          <BookingCommissionPanel
+            key={selectedRestaurantId}
+            mode="owner"
+            restaurants={restaurants}
+            initialRestaurantId={selectedRestaurantId}
+          />
         ) : (
           /* Withdrawal Tab Content */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-200">
@@ -642,6 +1016,27 @@ export default function OwnerBilling() {
             <h3 className="font-serif text-xl text-white font-bold">Thanh toán qua cổng PayOS</h3>
             <p className="font-serif text-3xl font-bold text-primary -mt-2">{formatMoney(paymentData.amount)}</p>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">{paymentData.description}</p>
+
+            {paymentData.qrCode && (
+              <div className="w-[220px] h-[220px] bg-[#F7F4EE] rounded-xl p-3 grid place-items-center border border-border">
+                {String(paymentData.qrCode).startsWith('data:image') || String(paymentData.qrCode).startsWith('http') ? (
+                  <img
+                    src={paymentData.qrCode}
+                    alt="Mã QR thanh toán PayOS"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <QRCodeSVG
+                    value={String(paymentData.qrCode)}
+                    size={190}
+                    bgColor="#F7F4EE"
+                    fgColor="#111318"
+                    level="M"
+                    title="Mã QR thanh toán PayOS"
+                  />
+                )}
+              </div>
+            )}
 
             {paymentData.checkoutUrl && (
               <div className="w-full mt-2">

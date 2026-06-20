@@ -19,16 +19,16 @@ export const getConversationTitle = (conversation, role) => {
     return conversation.restaurant?.name
       || conversation.customer?.fullName
       || conversation.customer?.email
-      || 'Hoi thoai';
+      || 'Hộp thư';
   }
 
   if (role === 'restaurant_owner') {
     if (conversation.type === 'ADMIN_RESTAURANT') return 'BookEat Admin';
-    return conversation.customer?.fullName || conversation.customer?.email || 'Khach hang';
+    return conversation.customer?.fullName || conversation.customer?.email || 'Khách hàng';
   }
 
   if (conversation.type === 'ADMIN_USER') return 'BookEat Admin';
-  return conversation.restaurant?.name || 'Nha hang';
+  return conversation.restaurant?.name || 'Nhà hàng';
 };
 
 export const filterConversations = (items = [], keyword = '', role = '') => {
@@ -55,7 +55,7 @@ export const getTotalUnread = (items = []) => items.reduce(
 export const getConversationSubtitle = (conversation, role) => {
   if (!conversation) return '';
   if (role === 'admin') return conversation.type === 'ADMIN_RESTAURANT' ? 'Nha hang' : 'Customer';
-  if (role === 'restaurant_owner') return conversation.restaurant?.name || 'Inbox nha hang';
+  if (role === 'restaurant_owner') return conversation.restaurant?.name || 'Inbox nhà hàng';
   return conversation.restaurant?.name || TYPE_LABEL[conversation.type] || 'BookEat';
 };
 
