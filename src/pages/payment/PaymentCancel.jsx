@@ -5,6 +5,7 @@ export default function PaymentCancel() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetType = searchParams.get('targetType');
+  const isOwnerMonetization = ['subscription', 'featured_restaurant', 'voucher_campaign'].includes(targetType);
 
   return (
     <div className="min-h-screen w-full bg-[#0F1115] relative flex items-center justify-center p-4 overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_center,rgba(212,150,83,0.06)_0%,transparent_70%)]">
@@ -25,13 +26,13 @@ export default function PaymentCancel() {
         </p>
 
         <div className="w-full border-t border-border/40 pt-6 mt-2">
-          {targetType === 'subscription' ? (
+          {isOwnerMonetization ? (
             <button 
               className="w-full h-12 rounded-xl bg-primary text-[#0F1115] font-bold text-sm tracking-wide hover:bg-primary/95 transition-all flex items-center justify-center gap-2 cursor-pointer" 
               onClick={() => navigate('/owner/billing')}
             >
               <ArrowLeft size={16} /> 
-              <span>Về trang gói dịch vụ</span>
+              <span>Về trang tài chính owner</span>
             </button>
           ) : (
             <button 

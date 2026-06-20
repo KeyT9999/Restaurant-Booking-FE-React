@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
-import { Search, MapPin, Users, Star, Heart, ChevronRight, Utensils, Sparkles, AlertTriangle } from 'lucide-react';
+import { getHomepageVoucherCampaigns } from '../../api/voucherApi';
+import { Search, MapPin, Users, Star, Heart, ChevronRight, Utensils, Sparkles, AlertTriangle, TicketPercent } from 'lucide-react';
 import { Section, PhaseLabel } from '../../components/bookeat/Section';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -10,12 +11,19 @@ import { Badge } from '../../components/ui/badge';
 import { getRestaurantCardImage } from '../../utils/restaurantImages';
 import SafeImage from '../../components/common/SafeImage';
 
+const formatVoucherDiscount = (voucher) => {
+  if (!voucher) return '';
+  if (voucher.discountType === 'percentage') return `Giam ${voucher.discountValue}%`;
+  return `Giam ${new Intl.NumberFormat('vi-VN').format(voucher.discountValue || 0)}d`;
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
 
   // API Data states
   const [featuredRestaurants, setFeaturedRestaurants] = useState([]);
   const [tonightRestaurants, setTonightRestaurants] = useState([]);
+  const [voucherCampaigns, setVoucherCampaigns] = useState([]);
   const [cuisines, setCuisines] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +52,11 @@ export default function HomePage() {
         const tonightRes = await getPublicRestaurants({ limit: 4, sortBy: 'totalBookings', sortDir: 'desc' });
         if (tonightRes && tonightRes.success) {
           setTonightRestaurants(tonightRes.data.restaurants || []);
+        }
+
+        const campaignRes = await getHomepageVoucherCampaigns({ limit: 6 });
+        if (campaignRes && campaignRes.success) {
+          setVoucherCampaigns(campaignRes.data || []);
         }
       } catch (err) {
         console.error('Failed to load homepage data:', err.message);
@@ -237,7 +250,7 @@ export default function HomePage() {
                     >
                       <Heart className="h-4.5 w-4.5" />
                     </button>
-                    {r.featured && (
+                    {(r.isFeatured || r.featured) && (
                       <Badge className="absolute top-3.5 left-3.5 bg-primary text-background border-none gap-1 py-1 font-semibold">
                         <Sparkles className="h-3 w-3" /> Editor's pick
                       </Badge>
@@ -278,6 +291,54 @@ export default function HomePage() {
             </div>
           )}
         </Section>
+
+        {voucherCampaigns.length > 0 && (
+          <Section
+            title="Voucher dang duoc tai tro"
+            subtitle="Uu dai tra phi de tang hien dien, van duoc BookEat kiem tra dieu kien that khi dat ban."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {voucherCampaigns.map((campaign) => (
+                <Card
+                  key={campaign._id}
+                  className="overflow-hidden bg-card border-border hover:border-primary/40 transition-colors"
+                >
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/restaurants/${campaign.restaurant.id}`)}
+                    className="w-full text-left"
+                  >
+                    <div className="relative aspect-[16/8] overflow-hidden bg-secondary">
+                      <SafeImage
+                        src={getRestaurantCardImage(campaign.restaurant)}
+                        alt={campaign.restaurant.name}
+                        className="w-full h-full object-cover"
+                        fallback={<div className="w-full h-full grid place-items-center"><Utensils className="h-8 w-8 text-muted-foreground" /></div>}
+                      />
+                      <Badge className="absolute top-3 left-3 bg-[#14171D]/90 text-primary border border-primary/25 gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Duoc tai tro
+                      </Badge>
+                    </div>
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">{campaign.restaurant.name}</p>
+                          <h3 className="text-lg text-white font-bold mt-1">{campaign.voucher.code}</h3>
+                        </div>
+                        <TicketPercent className="h-5 w-5 text-primary shrink-0" />
+                      </div>
+                      <p className="text-primary font-bold mt-3">{formatVoucherDiscount(campaign.voucher)}</p>
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                        {campaign.voucher.description || 'Xem dieu kien voucher tai trang nha hang.'}
+                      </p>
+                    </div>
+                  </button>
+                </Card>
+              ))}
+            </div>
+          </Section>
+        )}
 
         {/* Tonight's Reservation Section */}
         <Section title="Khám phá ẩm thực quanh bạn" subtitle="Các nhà hàng phục vụ đặt bàn ngay tối nay cực hot">

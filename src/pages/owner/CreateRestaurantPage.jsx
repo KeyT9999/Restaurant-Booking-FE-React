@@ -11,6 +11,8 @@ import AdditionalInfoStep from '../../components/owner/restaurant-form/Additiona
 import ConfirmStep from '../../components/owner/restaurant-form/ConfirmStep';
 import { createRestaurant } from '../../api/restaurantApi';
 import { Button } from '../../components/ui/button';
+import { useRestaurantContext } from '../../context/useRestaurantContext';
+import { AlertTriangle } from 'lucide-react';
 
 // ─── Validation helpers ───
 const PHONE_REGEX = /^(\+84|0)[35789][0-9]{8}$/;
@@ -124,6 +126,7 @@ const INITIAL_DATA = {
 
 export default function CreateRestaurantPage() {
   const navigate = useNavigate();
+  const { restaurantQuota } = useRestaurantContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(INITIAL_DATA);
   const [stepErrors, setStepErrors] = useState({});
@@ -231,7 +234,7 @@ export default function CreateRestaurantPage() {
         navigate('/owner/restaurants');
       }, 1500);
     } catch (error) {
-      const msg = error.message || 'Có lỗi xảy ra khi tạo nhà hàng';
+      const msg = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi tạo nhà hàng';
       toast.error(msg, { duration: 5000 });
       setIsSubmitting(false);
     }
@@ -262,6 +265,51 @@ export default function CreateRestaurantPage() {
         return null;
     }
   };
+
+  const planCode = restaurantQuota?.planCode || 'free';
+  const planNames = { free: 'Free', plus: 'Plus', pro: 'Pro' };
+  const planName = planNames[planCode] || planCode;
+  const currentCount = restaurantQuota?.currentCount || 0;
+  const limit = restaurantQuota?.limit || 1;
+
+  if (restaurantQuota && restaurantQuota.remaining === 0) {
+    return (
+      <div className="min-h-screen bg-[#0F1115] text-white flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-6">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+              <AlertTriangle size={32} />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="font-serif text-2xl font-bold text-white">Hết Quota Tạo Nhà Hàng</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Gói hiện tại (<span className="text-primary font-semibold">{planName}</span>) chỉ cho phép đăng ký tối đa <span className="text-white font-semibold">{limit}</span> nhà hàng. Bạn đã sử dụng hết hạn mức ({currentCount}/{limit}).
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="default"
+                className="w-full bg-primary text-background hover:bg-primary/90 py-2.5 font-bold"
+                onClick={() => navigate('/owner/billing')}
+              >
+                Nâng cấp gói ngay
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full border-border bg-background hover:bg-secondary text-white py-2.5 font-bold"
+                onClick={() => navigate('/owner/restaurants')}
+              >
+                Quay lại danh sách
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0F1115] text-white flex flex-col">

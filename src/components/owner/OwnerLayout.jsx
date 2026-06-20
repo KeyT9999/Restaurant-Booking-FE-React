@@ -25,16 +25,16 @@ import NotificationIcon from '../notifications/NotificationIcon';
 import RestaurantSwitcher from './RestaurantSwitcher';
 
 const NAV_ITEMS = [
-  { to: '/owner/dashboard', icon: LayoutGrid, label: 'Dashboard', end: true },
-  { to: '/owner/bookings', icon: CalendarDays, label: 'Bookings' },
-  { to: '/owner/restaurants', icon: Building2, label: 'Restaurant' },
-  { to: '/owner/menu', icon: Utensils, label: 'Menu' },
-  { to: '/owner/tables', icon: Armchair, label: 'Tables & Floor' },
-  { to: '/owner/vouchers', icon: Ticket, label: 'Vouchers' },
-  { to: '/owner/reviews', icon: Star, label: 'Reviews' },
-  { to: '/owner/billing', icon: Wallet, label: 'Withdrawals' },
-  { to: '/owner/chat', icon: MessageSquare, label: 'Messages' },
-  { to: '/owner/restaurants', icon: Settings, label: 'Settings', muted: true },
+  { to: '/owner/dashboard', icon: LayoutGrid, label: 'Bảng điều khiển', end: true },
+  { to: '/owner/bookings', icon: CalendarDays, label: 'Quản lý đặt bàn' },
+  { to: '/owner/restaurants', icon: Building2, label: 'Hồ sơ nhà hàng' },
+  { to: '/owner/menu', icon: Utensils, label: 'Thực đơn' },
+  { to: '/owner/tables', icon: Armchair, label: 'Sơ đồ bàn' },
+  { to: '/owner/vouchers', icon: Ticket, label: 'Ưu đãi & Voucher' },
+  { to: '/owner/reviews', icon: Star, label: 'Đánh giá' },
+  { to: '/owner/billing', icon: Wallet, label: 'Tài chính & Ví' },
+  { to: '/owner/chat', icon: MessageSquare, label: 'Tin nhắn chat' },
+  { to: '/owner/restaurants', icon: Settings, label: 'Cài đặt', muted: true },
 ];
 
 function getInitials(user) {
@@ -79,11 +79,11 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
 
             <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
               <Globe2 size={15} />
-              <span className="font-semibold text-primary">EN</span>
+              <span className="font-semibold text-primary">VI</span>
             </div>
 
             <span className="hidden rounded-full border border-border bg-secondary/20 px-3 py-1 text-xs font-medium text-muted-foreground lg:inline-flex">
-              Multi-role demo
+              Bản demo đa vai trò
             </span>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
           <div className="flex min-h-[122px] shrink-0 flex-col gap-5 border-b border-border bg-background px-5 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-9">
             <div>
               <h1 className="font-serif text-4xl font-bold leading-tight text-white md:text-[40px]">
-                {title || 'Restaurant workspace'}
+                {title || 'Không gian quản lý nhà hàng'}
               </h1>
               {subtitle && <p className="mt-1 text-base text-muted-foreground">{subtitle}</p>}
             </div>
@@ -155,7 +155,7 @@ export default function OwnerLayout({ title, subtitle, children, action }) {
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="h-10 rounded-lg border-border bg-secondary/70 pl-11 text-base text-white placeholder:text-muted-foreground focus-visible:ring-primary/40"
-                  placeholder="Search bookings, guests..."
+                  placeholder="Tìm đặt bàn, khách hàng..."
                 />
               </div>
 

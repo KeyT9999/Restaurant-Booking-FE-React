@@ -22,16 +22,16 @@ const getUploadErrorMessage = (error) => (
   error?.raw?.response?.data?.message
   || error?.response?.data?.message
   || error?.message
-  || 'Loi ket noi khi upload anh.'
+  || 'Lỗi kết nối khi tải ảnh lên.'
 );
 
 const validateImageFile = (file) => {
-  if (!file) return 'Vui long chon file anh.';
+  if (!file) return 'Vui lòng chọn tệp ảnh.';
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return 'Chi nhan anh JPEG, PNG, GIF hoac WebP.';
+    return 'Chỉ nhận ảnh định dạng JPEG, PNG, GIF hoặc WebP.';
   }
   if (file.size > MAX_IMAGE_SIZE) {
-    return 'File qua lon. Vui long chon file duoi 5MB.';
+    return 'Tệp quá lớn. Vui lòng chọn tệp dưới 5MB.';
   }
   return '';
 };
@@ -128,14 +128,14 @@ function SingleImageUploader({
             fallback={(
               <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                 <ImageIcon className="h-7 w-7 text-muted-foreground/70" />
-                <span className="text-[11px] font-medium">Khong tai duoc anh</span>
+                <span className="text-[11px] font-medium">Không tải được ảnh</span>
               </div>
             )}
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
             {uploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <Icon className="h-7 w-7 text-muted-foreground/70" />}
-            <span className="text-[11px] font-medium">{uploading ? 'Dang tai anh...' : 'Chua co anh'}</span>
+            <span className="text-[11px] font-medium">{uploading ? 'Đang tải ảnh...' : 'Chưa có ảnh'}</span>
           </div>
         )}
       </div>
@@ -146,7 +146,7 @@ function SingleImageUploader({
           className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-semibold text-background transition hover:bg-primary/95"
         >
           {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : hasImage ? <RefreshCw className="h-3.5 w-3.5" /> : <Upload className="h-3.5 w-3.5" />}
-          {hasImage ? 'Thay anh' : 'Tai anh len'}
+          {hasImage ? 'Thay ảnh' : 'Tải ảnh lên'}
         </label>
         {hasImage && (
           <button
@@ -155,7 +155,7 @@ function SingleImageUploader({
             onClick={onRemove}
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Xoa anh
+            Xóa ảnh
           </button>
         )}
         <input
@@ -179,12 +179,12 @@ function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
     <div className="rounded-xl border border-border bg-[#0F1115]/35 p-4 sm:p-5 space-y-4">
       <div className="space-y-1.5">
         <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="gallery-images-input">
-          Anh khac
+          Ảnh khác
         </label>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Them anh khong gian, mon an, ban ghe hoac mat tien nha hang.
+          Thêm ảnh không gian, món ăn, bàn ghế hoặc mặt tiền nhà hàng.
         </p>
-        <p className="text-[11px] font-medium text-primary/90">Toi da {MAX_GALLERY_IMAGES} anh, con lai {remaining} anh.</p>
+        <p className="text-[11px] font-medium text-primary/90">Tối đa {MAX_GALLERY_IMAGES} ảnh, còn lại {remaining} ảnh.</p>
       </div>
 
       {safeImages.length > 0 && (
@@ -193,7 +193,7 @@ function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
             <div key={`${url}-${index}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-secondary">
               <SafeImage
                 src={url}
-                alt={`Anh nha hang ${index + 1}`}
+                alt={`Ảnh nhà hàng ${index + 1}`}
                 className="h-full w-full object-cover"
                 loading="lazy"
                 fallback={<div className="flex h-full w-full items-center justify-center bg-secondary"><Images className="h-6 w-6 text-muted-foreground/70" /></div>}
@@ -202,7 +202,7 @@ function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
                 type="button"
                 className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/65 text-white opacity-100 transition hover:bg-destructive sm:opacity-0 sm:group-hover:opacity-100"
                 onClick={() => onRemove(index)}
-                aria-label={`Xoa anh thu ${index + 1}`}
+                aria-label={`Xóa ảnh thứ ${index + 1}`}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -217,8 +217,8 @@ function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
           className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-secondary/20 px-4 py-6 text-center transition hover:border-primary/60 hover:bg-primary/5"
         >
           {uploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <Images className="h-7 w-7 text-muted-foreground/70" />}
-          <span className="text-xs font-semibold text-white">{uploading ? 'Dang tai thu vien anh...' : 'Tai nhieu anh len'}</span>
-          <span className="text-[11px] text-muted-foreground">JPEG, PNG, GIF, WebP toi da 5MB moi anh</span>
+          <span className="text-xs font-semibold text-white">{uploading ? 'Đang tải thư viện ảnh...' : 'Tải nhiều ảnh lên'}</span>
+          <span className="text-[11px] text-muted-foreground">JPEG, PNG, GIF, WebP tối đa 5MB mỗi ảnh</span>
           <input
             id="gallery-images-input"
             type="file"
@@ -231,7 +231,7 @@ function GalleryUploader({ images = [], uploading, onUpload, onRemove }) {
         </label>
       ) : (
         <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs font-medium text-primary">
-          Thu vien anh da dat gioi han {MAX_GALLERY_IMAGES} anh.
+          Thư viện ảnh đã đạt giới hạn {MAX_GALLERY_IMAGES} ảnh.
         </div>
       )}
     </div>
@@ -256,7 +256,7 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
     if (uploadUrl) return uploadUrl;
 
     const body = getUploadResponseBody(response);
-    throw new Error(body.message || 'Khong nhan duoc URL anh sau khi upload.');
+    throw new Error(body.message || 'Không nhận được URL ảnh sau khi tải lên.');
   };
 
   const handleSingleImageUpload = async (field, folder, e) => {
@@ -293,7 +293,7 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
     const currentImages = Array.isArray(data.galleryImages) ? data.galleryImages.filter(Boolean) : [];
     const remaining = MAX_GALLERY_IMAGES - currentImages.length;
     if (remaining <= 0) {
-      setUploadError(`Thu vien anh toi da ${MAX_GALLERY_IMAGES} anh.`);
+      setUploadError(`Thư viện ảnh tối đa ${MAX_GALLERY_IMAGES} ảnh.`);
       return;
     }
 
@@ -378,9 +378,9 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]">
         <SingleImageUploader
           id="restaurant-logo-input"
-          label="Logo nha hang"
-          description="Anh vuong dung lam anh dai dien nha hang tren danh sach va tieu de."
-          recommendation="Khuyen nghi 400x400."
+          label="Logo nhà hàng"
+          description="Ảnh vuông dùng làm ảnh đại diện nhà hàng trên danh sách và tiêu đề."
+          recommendation="Khuyến nghị 400x400."
           value={data.logo || ''}
           uploading={uploading || uploadingTarget === 'logo'}
           onUpload={handleLogoUpload}
@@ -388,9 +388,9 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
         />
         <SingleImageUploader
           id="restaurant-cover-input"
-          label="Anh bia nha hang"
-          description="Anh ngang hien thi lon o dau trang chi tiet nha hang."
-          recommendation="Khuyen nghi 1600x600 hoac 1200x500."
+          label="Ảnh bìa nhà hàng"
+          description="Ảnh ngang hiển thị lớn ở đầu trang chi tiết nhà hàng."
+          recommendation="Khuyến nghị 1600x600 hoặc 1200x500."
           value={data.coverImage || ''}
           variant="cover"
           uploading={uploadingTarget === 'coverImage'}

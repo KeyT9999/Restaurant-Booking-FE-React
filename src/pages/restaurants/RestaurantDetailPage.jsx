@@ -19,6 +19,7 @@ import {
   Info,
   Image as ImageIcon,
   Images,
+  TicketPercent,
 } from 'lucide-react';
 import ReviewSection from '../../components/review/ReviewSection';
 import Header from '../../components/Header';
@@ -257,9 +258,15 @@ export default function RestaurantDetailPage() {
                     {restaurant.cuisineType}
                   </Badge>
                 )}
-                {restaurant.featured && (
+                {(restaurant.isFeatured || restaurant.featured) && (
                   <Badge className="bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold uppercase tracking-wider text-[10px]">
                     ★ NỔI BẬT
+                  </Badge>
+                )}
+                {restaurant.hasVoucherCampaign && (
+                  <Badge className="bg-primary/10 text-primary border border-primary/25 font-bold text-[10px] gap-1">
+                    <TicketPercent size={12} />
+                    Voucher nổi bật · Được tài trợ
                   </Badge>
                 )}
               </div>
@@ -500,7 +507,7 @@ export default function RestaurantDetailPage() {
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center gap-2">
                             <Images className="h-4 w-4 text-primary" />
-                            <h4 className="text-sm font-bold text-white uppercase tracking-wide">Thu vien anh</h4>
+                            <h4 className="text-sm font-bold text-white uppercase tracking-wide">Thư viện ảnh</h4>
                           </div>
                           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                             {galleryImages.slice(0, 6).map((url, index) => (

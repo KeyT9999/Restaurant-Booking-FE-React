@@ -121,7 +121,7 @@ export function ChatWidgetProvider({ children }) {
         list.some((conversation) => conversation.id === current) ? current : null
       ));
     } catch (err) {
-      setError(err.message || 'Khong the tai danh sach chat');
+      setError(err.message || 'Không thể tải danh sách chat');
     } finally {
       setLoadingConversations(false);
     }
@@ -160,7 +160,7 @@ export function ChatWidgetProvider({ children }) {
       }
       await refreshUnreadCount([]);
     } catch (err) {
-      setError(err.message || 'Khong the tai du lieu chat');
+      setError(err.message || 'Không thể tải dữ liệu chat');
     } finally {
       setLoadingRestaurants(false);
     }
@@ -205,14 +205,14 @@ export function ChatWidgetProvider({ children }) {
 
   const handleBookingEvent = useCallback((eventName, payload) => {
     const messageByEvent = {
-      'booking:created': 'Co yeu cau dat ban moi',
-      'booking:confirmed': 'Dat ban da duoc xac nhan',
-      'booking:cancelled': 'Dat ban da bi huy',
-      'booking:completed': 'Dat ban da hoan thanh',
-      'booking:no_show': 'Dat ban duoc danh dau no-show',
+      'booking:created': 'Có yêu cầu đặt bàn mới',
+      'booking:confirmed': 'Đặt bàn đã được xác nhận',
+      'booking:cancelled': 'Đặt bàn đã bị hủy',
+      'booking:completed': 'Đặt bàn đã hoàn thành',
+      'booking:no_show': 'Đặt bàn được đánh dấu no-show',
     };
 
-    toast(messageByEvent[eventName] || 'Booking da duoc cap nhat');
+    toast(messageByEvent[eventName] || 'Booking đã được cập nhật');
     window.dispatchEvent(new CustomEvent('bookeat:booking-event', {
       detail: { eventName, payload },
     }));
@@ -306,7 +306,7 @@ export function ChatWidgetProvider({ children }) {
           }
         }
       } catch (err) {
-        if (!ignore) setError(err.message || 'Khong the tai tin nhan');
+        if (!ignore) setError(err.message || 'Không thể tải tin nhắn');
       } finally {
         if (!ignore) setLoadingMessages(false);
       }
@@ -381,7 +381,7 @@ export function ChatWidgetProvider({ children }) {
       await refreshUnreadCount(ownerRestaurants);
       return result;
     } catch (err) {
-      setError(err.message || 'Gui tin nhan that bai');
+      setError(err.message || 'Gửi tin nhắn thất bại');
       throw err;
     } finally {
       setSending(false);
@@ -405,7 +405,7 @@ export function ChatWidgetProvider({ children }) {
       setMessages((current) => mergeReactionUpdate(current, result));
       return result;
     } catch (err) {
-      setError(err.message || 'React tin nhan that bai');
+      setError(err.message || 'React tin nhắn thất bại');
       throw err;
     }
   }, [selectedConversationId, socket]);
@@ -420,7 +420,7 @@ export function ChatWidgetProvider({ children }) {
 
   const openCustomerRestaurantChat = useCallback(async (restaurantId) => {
     if (!isAuthenticated || role !== 'customer') {
-      throw new Error('Vui long dang nhap bang tai khoan customer de chat voi nha hang');
+      throw new Error('Vui lòng đăng nhập bằng tài khoản customer để chat với nhà hàng');
     }
 
     try {
@@ -435,14 +435,14 @@ export function ChatWidgetProvider({ children }) {
       selectConversation(response.data.id);
       return response.data;
     } catch (err) {
-      setError(err.message || 'Khong the mo chat voi nha hang');
+      setError(err.message || 'Không thể mở chat với nhà hàng');
       throw err;
     }
   }, [isAuthenticated, role, selectConversation, upsertConversation]);
 
   const openOwnerAdminChat = useCallback(async () => {
     if (!selectedRestaurantId) {
-      throw new Error('Vui long chon nha hang truoc khi chat voi Admin');
+      throw new Error('Vui lòng chọn nhà hàng trước khi chat với Admin');
     }
 
     const response = await chatApi.createConversation({

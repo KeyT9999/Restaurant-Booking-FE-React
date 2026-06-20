@@ -1,4 +1,4 @@
-import { Calendar, ShieldCheck, Ticket } from 'lucide-react';
+import { Calendar, ShieldCheck, Sparkles, Ticket } from 'lucide-react';
 import { cn } from '../ui/utils';
 
 export default function VoucherCard({ voucher, onAction, actionText, disabled, isSaved }) {
@@ -33,11 +33,19 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
 
       <div className="flex min-w-0 flex-1 flex-col justify-between p-4 pl-6">
         <div>
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-            <Ticket className="h-3.5 w-3.5" />
-            <span>
-              {discountType === 'percentage' ? `${discountValue}% OFF` : formatCurrency(discountValue)}
-            </span>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+              <Ticket className="h-3.5 w-3.5" />
+              <span>
+                {discountType === 'percentage' ? `${discountValue}% OFF` : formatCurrency(discountValue)}
+              </span>
+            </div>
+            {voucher?.isSponsored && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[9px] font-bold text-primary">
+                <Sparkles className="h-3 w-3" />
+                Duoc tai tro
+              </span>
+            )}
           </div>
           <h4 className="mt-1.5 truncate text-sm font-bold text-white">Mã: {code}</h4>
           {description && <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{description}</p>}

@@ -13,9 +13,12 @@ export const getMyVouchers = (params) =>
 export const getRestaurantVouchers = (restaurantId) =>
   axiosInstance.get(`/vouchers/restaurant/${restaurantId}`);
 
+export const getHomepageVoucherCampaigns = (params) =>
+  axiosInstance.get('/vouchers/campaigns/homepage', { params });
+
 // ─── Owner Voucher APIs ───
-export const getOwnerVouchers = () =>
-  axiosInstance.get('/vouchers/owner/list');
+export const getOwnerVouchers = (params) =>
+  axiosInstance.get('/vouchers/owner/list', { params });
 
 export const createVoucher = (data) =>
   axiosInstance.post('/vouchers', data);

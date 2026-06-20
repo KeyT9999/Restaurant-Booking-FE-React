@@ -10,6 +10,7 @@ export default function PaymentSuccess() {
   const [verified, setVerified] = useState(false);
   const orderCode = searchParams.get('orderCode');
   const targetType = searchParams.get('targetType');
+  const isOwnerMonetization = ['subscription', 'featured_restaurant', 'voucher_campaign'].includes(targetType);
 
   const verifyPayment = async () => {
     try {
@@ -27,7 +28,7 @@ export default function PaymentSuccess() {
       verifyPayment();
     } else {
       setChecking(false);
-      setVerified(true); // Assume success if no orderCode (came from webhook)
+      setVerified(false);
     }
   }, [orderCode]);
 
@@ -57,6 +58,10 @@ export default function PaymentSuccess() {
             <p className="text-xs text-muted-foreground max-w-[320px] leading-relaxed">
               {targetType === 'subscription'
                 ? 'Gói dịch vụ đã được kích hoạt thành công cho nhà hàng của bạn.'
+                : targetType === 'featured_restaurant'
+                  ? 'Featured placement đã được kích hoạt sau khi webhook PayOS xác nhận.'
+                  : targetType === 'voucher_campaign'
+                    ? 'Voucher campaign đã được kích hoạt sau khi webhook PayOS xác nhận.'
                 : 'Đặt cọc thành công. Yêu cầu đặt bàn của bạn đã được hệ thống xác nhận.'}
             </p>
           </div>
@@ -80,13 +85,13 @@ export default function PaymentSuccess() {
         )}
 
         <div className="w-full border-t border-border/40 pt-6 mt-2">
-          {targetType === 'subscription' ? (
+          {isOwnerMonetization ? (
             <button 
               className="w-full h-12 rounded-xl bg-primary text-[#0F1115] font-bold text-sm tracking-wide hover:bg-primary/95 transition-all flex items-center justify-center gap-2 cursor-pointer" 
               onClick={() => navigate('/owner/billing')}
             >
               <ArrowLeft size={16} /> 
-              <span>Về trang gói dịch vụ</span>
+              <span>Về trang tài chính owner</span>
             </button>
           ) : (
             <button 
