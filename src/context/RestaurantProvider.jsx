@@ -26,19 +26,28 @@ export function RestaurantProvider({ children }) {
 
   const syncRestaurantId = useCallback((restaurantId) => {
     const normalizedId = restaurantId || null;
-    setSelectedRestaurantIdState(normalizedId);
-
-    setSearchParams((prev) => {
-      const nextParams = new URLSearchParams(prev);
-      if (normalizedId) {
-        localStorage.setItem(STORAGE_KEY, normalizedId);
-        nextParams.set('restaurantId', normalizedId);
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-        nextParams.delete('restaurantId');
+    setSelectedRestaurantIdState((prevId) => {
+      if (prevId !== normalizedId) {
+        return normalizedId;
       }
-      return nextParams;
-    }, { replace: true });
+      return prevId;
+    });
+
+    const currentParams = new URLSearchParams(window.location.search);
+    const currentUrlId = currentParams.get('restaurantId') || null;
+    if (currentUrlId !== normalizedId) {
+      setSearchParams((prev) => {
+        const nextParams = new URLSearchParams(prev);
+        if (normalizedId) {
+          localStorage.setItem(STORAGE_KEY, normalizedId);
+          nextParams.set('restaurantId', normalizedId);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+          nextParams.delete('restaurantId');
+        }
+        return nextParams;
+      }, { replace: true });
+    }
   }, [setSearchParams]);
 
   const refreshRestaurants = useCallback(async () => {
@@ -80,7 +89,8 @@ export function RestaurantProvider({ children }) {
       refreshRestaurants();
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [refreshRestaurants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value = useMemo(() => ({
     restaurants,

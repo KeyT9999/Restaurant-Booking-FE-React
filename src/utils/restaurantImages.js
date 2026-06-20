@@ -19,32 +19,40 @@ const uniqueUrls = (values = []) => {
     });
 };
 
-export const getRestaurantGalleryImages = (restaurant = {}) => {
-  const explicitGallery = Array.isArray(restaurant.galleryImages)
-    ? uniqueUrls(restaurant.galleryImages)
+export const getRestaurantGalleryImages = (restaurant) => {
+  const r = restaurant || {};
+  const explicitGallery = Array.isArray(r.galleryImages)
+    ? uniqueUrls(r.galleryImages)
     : [];
   if (explicitGallery.length > 0) return explicitGallery;
 
-  return Array.isArray(restaurant.images) ? uniqueUrls(restaurant.images) : [];
+  return Array.isArray(r.images) ? uniqueUrls(r.images) : [];
 };
 
-export const getRestaurantCoverImage = (restaurant = {}) => {
-  const galleryImages = getRestaurantGalleryImages(restaurant);
-  return getImageUrl(restaurant.coverImage)
-    || getImageUrl(restaurant.coverImageUrl)
+export const getRestaurantCoverImage = (restaurant) => {
+  const r = restaurant || {};
+  const galleryImages = getRestaurantGalleryImages(r);
+  return getImageUrl(r.coverImage)
+    || getImageUrl(r.coverImageUrl)
     || galleryImages[0]
-    || getImageUrl(restaurant.primaryImage)
-    || getImageUrl(restaurant.logo)
+    || getImageUrl(r.primaryImage)
+    || getImageUrl(r.logo)
     || null;
 };
 
-export const getRestaurantLogoImage = (restaurant = {}) => (
-  getImageUrl(restaurant.logo)
-  || getImageUrl(restaurant.primaryImage)
-  || getRestaurantCoverImage(restaurant)
-);
+export const getRestaurantLogoImage = (restaurant) => {
+  const r = restaurant || {};
+  return (
+    getImageUrl(r.logo)
+    || getImageUrl(r.primaryImage)
+    || getRestaurantCoverImage(r)
+  );
+};
 
-export const getRestaurantCardImage = (restaurant = {}) => (
-  getRestaurantCoverImage(restaurant)
-  || getRestaurantLogoImage(restaurant)
-);
+export const getRestaurantCardImage = (restaurant) => {
+  const r = restaurant || {};
+  return (
+    getRestaurantCoverImage(r)
+    || getRestaurantLogoImage(r)
+  );
+};

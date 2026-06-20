@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import AIFieldPolishButton from '../AIFieldPolishButton';
 
 const CITIES = [
   'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
@@ -110,10 +111,19 @@ export default function AddressStep({ data, onChange, errors }) {
       </div>
 
       {/* Street */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-street">
-          Số nhà, tên đường <span className="text-destructive">*</span>
-        </label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="address-street">
+            Số nhà, tên đường <span className="text-destructive">*</span>
+          </label>
+          <AIFieldPolishButton
+            fieldKey="address"
+            value={address.street || ''}
+            maxLength={255}
+            context={{ step: 'address' }}
+            onApply={(val) => handleAddressChange('street', val)}
+          />
+        </div>
         <input
           id="address-street"
           type="text"

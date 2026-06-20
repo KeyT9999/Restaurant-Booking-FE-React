@@ -42,12 +42,12 @@ export default function AdminReviews() {
         params.status = statusFilter;
       }
       const res = await adminGetReviews(params);
-      if (res.data?.success) {
-        setReviews(res.data.data || []);
-        setTotalPages(res.data.pagination?.totalPages || 1);
-        setTotalReviews(res.data.pagination?.total || 0);
+      if (res?.success) {
+        setReviews(res.data?.reviews || res.data || []);
+        setTotalPages(res.data?.totalPages || res.pagination?.totalPages || 1);
+        setTotalReviews(res.data?.total || res.pagination?.total || 0);
       } else {
-        setError(res.data?.message || 'Không thể tải danh sách đánh giá');
+        setError(res?.message || 'Không thể tải danh sách đánh giá');
       }
     } catch (err) {
       console.error(err);
@@ -80,7 +80,7 @@ export default function AdminReviews() {
     setActionLoadingId(reviewId);
     try {
       const res = await updateReviewStatus(reviewId, newStatus, reason);
-      if (res.data?.success) {
+      if (res?.success) {
         toast.success(`Đã cập nhật trạng thái đánh giá thành công`);
         // Cập nhật reviews state cục bộ
         setReviews((prev) =>
@@ -89,7 +89,7 @@ export default function AdminReviews() {
           )
         );
       } else {
-        toast.error(res.data?.message || 'Cập nhật trạng thái thất bại');
+        toast.error(res?.message || 'Cập nhật trạng thái thất bại');
       }
     } catch (err) {
       console.error(err);

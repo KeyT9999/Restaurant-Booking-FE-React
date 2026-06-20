@@ -109,12 +109,12 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
       };
 
       const res = await createReview(payload);
-      if (res.data?.success) {
+      if (res?.success) {
         toast.success('Gửi đánh giá nhà hàng thành công! Cảm ơn bạn.');
         onSubmitSuccess?.();
         handleClose();
       } else {
-        toast.error(res.data?.message || 'Gửi đánh giá thất bại');
+        toast.error(res?.message || 'Gửi đánh giá thất bại');
       }
     } catch (error) {
       console.error('Error submitting review:', error);

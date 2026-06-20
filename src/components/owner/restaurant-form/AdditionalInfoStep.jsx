@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AIFieldPolishButton from '../AIFieldPolishButton';
 import { uploadImage } from '../../../api/uploadApi';
 import { Image as ImageIcon, Images, Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
 import SafeImage from '../../common/SafeImage';
@@ -59,7 +60,7 @@ function MultiInputList({ label, items = [], placeholder, onChange }) {
       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
       <div className="space-y-2">
         {listItems.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex items-center gap-2 relative">
             <input
               type="text"
               className="flex-1 bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
@@ -67,6 +68,17 @@ function MultiInputList({ label, items = [], placeholder, onChange }) {
               onChange={(e) => handleItemChange(index, e.target.value)}
               placeholder={placeholder}
               aria-label={`${label} dòng ${index + 1}`}
+            />
+            <AIFieldPolishButton
+              fieldKey={
+                label.includes('phù hợp') ? 'suitableFor' :
+                label.includes('đặc sản') ? 'signatureDishes' :
+                label.includes('tiện ích') || label.includes('Tiện ích') ? 'amenities' : 'rules'
+              }
+              value={item}
+              maxLength={200}
+              context={{ step: 'additional_info' }}
+              onApply={(val) => handleItemChange(index, val)}
             />
             {listItems.length > 1 && (
               <button
@@ -510,8 +522,17 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
         ✨ Thông tin hiển thị khám phá
       </h3>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="status-message">Dòng trạng thái nhanh</label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="status-message">Dòng trạng thái nhanh</label>
+          <AIFieldPolishButton
+            fieldKey="statusLine"
+            value={data.statusMessage || ''}
+            maxLength={255}
+            context={{ step: 'additional_info' }}
+            onApply={(val) => handleChange('statusMessage', val)}
+          />
+        </div>
         <input
           id="status-message"
           type="text"
@@ -523,8 +544,17 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="summary-highlights">Điểm nổi bật ngắn gọn</label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="summary-highlights">Điểm nổi bật ngắn gọn</label>
+          <AIFieldPolishButton
+            fieldKey="highlights"
+            value={data.summaryHighlights || ''}
+            maxLength={1000}
+            context={{ step: 'additional_info' }}
+            onApply={(val) => handleChange('summaryHighlights', val)}
+          />
+        </div>
         <textarea
           id="summary-highlights"
           className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[70px]"
@@ -563,8 +593,17 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
         onChange={(val) => handleChange('policyRules', val)}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="booking-notes">Lưu ý đặt bàn quan trọng</label>
+      <div className="flex flex-col gap-1.5 relative">
+        <div className="flex justify-between items-center">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="booking-notes">Lưu ý đặt bàn quan trọng</label>
+          <AIFieldPolishButton
+            fieldKey="bookingNote"
+            value={data.bookingNotes || ''}
+            maxLength={1000}
+            context={{ step: 'additional_info' }}
+            onApply={(val) => handleChange('bookingNotes', val)}
+          />
+        </div>
         <textarea
           id="booking-notes"
           className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-y min-h-[70px]"

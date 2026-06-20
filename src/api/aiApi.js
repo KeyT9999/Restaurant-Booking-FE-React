@@ -237,3 +237,13 @@ export const streamAIMessage = async ({
     signal?.removeEventListener('abort', abortFromCaller);
   }
 };
+
+export const polishRestaurantField = ({ fieldKey, text, context, maxLength }) => (
+  axiosInstance.post('/ai/polish-text', {
+    fieldKey,
+    text,
+    mode: 'restaurant_form',
+    context,
+    maxLength,
+  })
+);

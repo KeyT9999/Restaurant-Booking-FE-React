@@ -95,6 +95,12 @@ export default function OwnerRestaurants() {
     }
   };
 
+  const restaurant = selectedRestaurant || restaurants[0] || null;
+  const status = STATUS_CONFIG[restaurant?.approvalStatus] || STATUS_CONFIG.pending;
+  const address = useMemo(() => formatAddress(restaurant?.address), [restaurant?.address]);
+  const cuisine = useMemo(() => formatCuisine(restaurant), [restaurant]);
+  const heroImage = getRestaurantCoverImage(restaurant) || FALLBACK_IMAGE;
+
   const action = (
     <div className="flex items-center gap-2">
       {restaurant && (
@@ -114,12 +120,6 @@ export default function OwnerRestaurants() {
       </Button>
     </div>
   );
-
-  const restaurant = selectedRestaurant || restaurants[0] || null;
-  const status = STATUS_CONFIG[restaurant?.approvalStatus] || STATUS_CONFIG.pending;
-  const address = useMemo(() => formatAddress(restaurant?.address), [restaurant?.address]);
-  const cuisine = useMemo(() => formatCuisine(restaurant), [restaurant]);
-  const heroImage = getRestaurantCoverImage(restaurant) || FALLBACK_IMAGE;
 
   return (
     <OwnerLayout title="Hồ sơ nhà hàng" subtitle="Thông tin chi tiết hiển thị công khai" action={action}>
