@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getPlatformVouchers, saveVoucher } from '../../api/voucherApi';
 import VoucherCard from '../../components/voucher/VoucherCard';
 import './VoucherCenter.css';
@@ -10,10 +10,6 @@ export default function VoucherCenter() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // all, percentage, fixed, new_user, vip
   const [toastMessage, setToastMessage] = useState(null);
-
-  useEffect(() => {
-    loadVouchers();
-  }, [activeTab]);
 
   const loadVouchers = async () => {
     setLoading(true);
@@ -29,6 +25,10 @@ export default function VoucherCenter() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadVouchers();
+  }, [activeTab]);
 
   const showToast = (message) => {
     setToastMessage(message);

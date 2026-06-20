@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { 
-  Ticket, Plus, ToggleLeft, ToggleRight, Trash2, BarChart2, Calendar, 
-  ShieldAlert, TrendingUp, RefreshCw, Gift, Search, Edit, Eye, UserCheck, Activity, Loader2, X, AlertTriangle
+  Ticket, Plus, Trash2, BarChart2, Calendar, 
+  ShieldAlert, TrendingUp, RefreshCw, Gift, Search, Activity, Loader2, X, AlertTriangle, Power, Pencil
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { 
@@ -21,7 +21,6 @@ import {
 } from '../../api/voucherApi';
 import VoucherFormModal from '../../components/voucher/VoucherFormModal';
 import VoucherStatusBadge from '../../components/voucher/VoucherStatusBadge';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { cn } from '../../components/ui/utils';
@@ -79,11 +78,11 @@ export default function AdminVouchers() {
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
-  const [analyticsFilter, setAnalyticsFilter] = useState({
+  const [analyticsFilter, setAnalyticsFilter] = useState(() => ({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     granularity: 'day'
-  });
+  }));
 
   // Fraud State
   const [fraudData, setFraudData] = useState(null);
@@ -99,17 +98,7 @@ export default function AdminVouchers() {
   const restaurantVouchers = useMemo(() => vouchers.filter(v => !!v.restaurantId), [vouchers]);
   const activeCount = useMemo(() => vouchers.filter(v => v.status === 'active').length, [vouchers]);
 
-  useEffect(() => {
-    if (activeTab === 'list') {
-      loadVouchers(pagination.page);
-    } else if (activeTab === 'campaigns') {
-      loadCampaigns();
-    } else if (activeTab === 'analytics') {
-      loadAnalytics();
-    } else if (activeTab === 'fraud') {
-      loadFraudReport();
-    }
-  }, [activeTab, filters.type, filters.status, filters.scope, pagination.page]);
+
 
   // --- VOUCHERS LIST FLOW ---
   const loadVouchers = async (pageNumber = 1) => {
@@ -334,6 +323,18 @@ export default function AdminVouchers() {
       setLoadingFraud(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'list') {
+      loadVouchers(pagination.page);
+    } else if (activeTab === 'campaigns') {
+      loadCampaigns();
+    } else if (activeTab === 'analytics') {
+      loadAnalytics();
+    } else if (activeTab === 'fraud') {
+      loadFraudReport();
+    }
+  }, [activeTab, filters.type, filters.status, filters.scope, pagination.page]);
 
   // --- SINGLE VOUCHER STATS FLOW ---
   const handleShowStats = async (voucher) => {
@@ -561,6 +562,9 @@ export default function AdminVouchers() {
                                 setResetCount(v.currentUsage || 0);
                               }}>
                                 <RefreshCw size={15} />
+                              </IconButton>
+                              <IconButton label="Xem thống kê" onClick={() => handleShowStats(v)}>
+                                <BarChart2 size={15} />
                               </IconButton>
                               
                               {v.status !== 'disabled' && (
