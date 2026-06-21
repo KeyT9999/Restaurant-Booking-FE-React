@@ -60,6 +60,7 @@ import OwnerReviewsPage from './pages/owner/OwnerReviewsPage';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
+import NotificationsPage from './pages/notifications/NotificationsPage';
 import './App.css';
 
 function AppRoutes() {
@@ -108,6 +109,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MyBookingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

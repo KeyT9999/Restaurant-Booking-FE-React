@@ -13,6 +13,7 @@ export default function NotificationDropdown({
   onDeleteNotification,
   onMarkAllRead,
   onRefresh,
+  onViewAll,
 }) {
   const hasNotifications = notifications.length > 0;
 
@@ -99,6 +100,17 @@ export default function NotificationDropdown({
             onDelete={onDeleteNotification}
           />
         ))}
+      </div>
+
+      <div className="border-t border-border bg-card/95 p-2">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full text-sm font-semibold text-primary hover:bg-primary/10 hover:text-primary"
+          onClick={onViewAll}
+        >
+          Xem tất cả thông báo
+        </Button>
       </div>
     </div>
   );

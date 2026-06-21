@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
@@ -12,6 +13,7 @@ export default function NotificationIcon({
 }) {
   const panelId = useId();
   const rootRef = useRef(null);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const {
     notifications,
@@ -60,6 +62,11 @@ export default function NotificationIcon({
     await openNotification(notification);
   };
 
+  const handleViewAll = () => {
+    setOpen(false);
+    navigate('/notifications');
+  };
+
   return (
     <div ref={rootRef} className={cn('relative', className)}>
       <Button
@@ -97,6 +104,7 @@ export default function NotificationIcon({
           onDeleteNotification={deleteNotification}
           onMarkAllRead={() => markAllAsRead().catch(() => {})}
           onRefresh={() => refreshNotifications().catch(() => {})}
+          onViewAll={handleViewAll}
         />
       )}
     </div>
