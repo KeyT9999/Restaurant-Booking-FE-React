@@ -1,0 +1,107 @@
+/* ═══════════════════════════════════════════
+   RescheduleModal — Amrit Palace Design
+   ═══════════════════════════════════════════ */
+
+.reschedule-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.reschedule-modal {
+  background: var(--surface-section);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-dimmed);
+  width: 420px;
+  max-width: 94vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.reschedule-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--border-dimmed);
+}
+
+.reschedule-modal-header h3 {
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reschedule-current {
+  padding: var(--spacing-16) var(--spacing-20);
+  background: rgba(216, 203, 184, 0.06);
+  border-bottom: 1px solid var(--border-dimmed);
+}
+
+.reschedule-label {
+  font-size: 0.75rem;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.reschedule-current-time {
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-amber-glow);
+}
+
+.reschedule-form {
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.reschedule-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-12);
+}
+
+.reschedule-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reschedule-group label {
+  font-size: 0.78rem;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.reschedule-group input {
+  background: rgba(216, 203, 184, 0.06);
+  border: 1px solid var(--border-dimmed);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-8) var(--spacing-12);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+}
+
+.reschedule-group input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.reschedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-12);
+  padding-top: var(--spacing-8);
+}
