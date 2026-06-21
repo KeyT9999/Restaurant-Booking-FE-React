@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyBookings, cancelBooking } from '../../api/bookingApi';
 import BookingCard from '../../components/booking/BookingCard';
+import { useAuth } from '../../context/useAuth';
 import toast from 'react-hot-toast';
 import { AlertTriangle, X } from 'lucide-react';
 import './MyBookingsPage.css';
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +123,21 @@ export default function MyBookingsPage() {
   return (
     <div className="my-bookings-page-container">
       <h2 className="page-title">📋 Lịch sử đặt bàn của tôi</h2>
+
+      {/* No-show warning badge */}
+      {user?.bookingBlockedUntil && new Date(user.bookingBlockedUntil) > new Date() ? (
+        <div className="noshow-badge noshow-badge--blocked" role="alert">
+          🚫 Đã bị cấm đặt bàn đến {new Date(user.bookingBlockedUntil).toLocaleDateString('vi-VN')}
+        </div>
+      ) : user?.noShowCounter >= 2 ? (
+        <div className="noshow-badge noshow-badge--warning" role="alert">
+          ⚠️ Bạn đã có {user.noShowCounter}/3 lần vắng mặt. Thêm 1 lần nữa sẽ bị cấm đặt bàn 30 ngày.
+        </div>
+      ) : user?.noShowCounter >= 1 ? (
+        <div className="noshow-badge noshow-badge--info" role="alert">
+          ℹ️ Bạn đã có {user.noShowCounter}/3 lần vắng mặt.
+        </div>
+      ) : null}
 
       {/* Tabs list */}
       <div className="filter-tabs-container" role="tablist" aria-label="Lọc đơn đặt bàn">

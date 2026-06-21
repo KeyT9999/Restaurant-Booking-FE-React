@@ -50,6 +50,12 @@ import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
 import OwnerWaitlistPage from './pages/owner/OwnerWaitlistPage';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
+import MyReviewsPage from './pages/review/MyReviewsPage';
+import OwnerReviewsPage from './pages/review/OwnerReviewsPage';
+import AdminReviewsPage from './pages/review/AdminReviewsPage';
+import NotificationsPage from './pages/notification/NotificationsPage';
+import MyFavoritesPage from './pages/favorite/MyFavoritesPage';
+import { NotificationProvider } from './context/NotificationProvider';
 import useBookingNotifications from './hooks/useBookingNotifications';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
 import './App.css';
@@ -121,6 +127,30 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/my-reviews"
+        element={
+          <ProtectedRoute>
+            <MyReviewsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-favorites"
+        element={
+          <ProtectedRoute>
+            <MyFavoritesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/bookings/:id"
         element={
           <ProtectedRoute>
@@ -156,6 +186,7 @@ function AppRoutes() {
                 <Route path="menu" element={<MenuPage />} />
                 <Route path="tables" element={<TablePage />} />
                 <Route path="bookings" element={<OwnerBookingsPage />} />
+                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
@@ -183,6 +214,7 @@ function AppRoutes() {
               <Route path="waitlists" element={<AdminWaitlists />} />
               <Route path="chat" element={<AdminChatPage />} />
               <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
@@ -211,8 +243,10 @@ function App() {
   return (
     <AuthProvider>
       <ChatWidgetProvider>
-        <AppRoutes />
-        <MiniChatWidget />
+        <NotificationProvider>
+          <AppRoutes />
+          <MiniChatWidget />
+        </NotificationProvider>
       </ChatWidgetProvider>
     </AuthProvider>
   );

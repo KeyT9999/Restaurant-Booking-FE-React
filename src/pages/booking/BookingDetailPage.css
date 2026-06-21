@@ -265,6 +265,27 @@
 }
 
 /* ── Responsive ── */
+.booking-detail-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-20);
+}
+
+.review-done-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--color-faded-stone);
+  padding: var(--spacing-8) var(--spacing-16);
+}
+
+.booking-detail-review-section {
+  margin-top: var(--spacing-20);
+  padding-top: var(--spacing-20);
+  border-top: 1px solid var(--border-dimmed);
+}
+
 @media (max-width: 768px) {
   .detail-page-grid-layout {
     grid-template-columns: 1fr;

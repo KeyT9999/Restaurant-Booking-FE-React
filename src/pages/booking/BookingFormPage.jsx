@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { getPublicRestaurantDetail } from '../../api/restaurantApi';
 import { checkAvailability, createBooking } from '../../api/bookingApi';
+import { createPayment } from '../../api/paymentApi';
 import { useAuth } from '../../context/useAuth';
 import BookingSummaryCard from '../../components/booking/BookingSummaryCard';
 import TableSelectionModal from '../../components/tables/TableSelectionModal';
 import ApplyVoucher from '../../components/booking/ApplyVoucher';
+import PreOrderSelector from '../../components/booking/PreOrderSelector';
 import toast from 'react-hot-toast';
 import './BookingFormPage.css';
 
@@ -46,6 +48,8 @@ export default function BookingFormPage() {
   // Success state
   const [createdBooking, setCreatedBooking] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [redirectingToPayment, setRedirectingToPayment] = useState(false);
+  const [preOrderItems, setPreOrderItems] = useState([]);
 
   // Fetch restaurant details on load
   useEffect(() => {
@@ -249,18 +253,46 @@ export default function BookingFormPage() {
         occasion: occasion || null,
         tableNumbers: selectedTables.map(t => t.tableNumber),
         voucherCode: appliedVoucher,
+        preOrderItems: preOrderItems.length > 0 ? preOrderItems : undefined,
       };
 
       const res = await createBooking(payload);
-      if (res.success) {
-        setCreatedBooking(res.data);
-        toast.success('Đặt bàn thành công!');
-      } else {
+      if (!res.success) {
         toast.error(res.message || 'Đặt bàn thất bại');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const booking = res.data;
+      setCreatedBooking(booking);
+
+      // If deposit is required, initiate payment via PayOS
+      if (booking.depositAmount > 0 && !booking.depositPaid) {
+        setRedirectingToPayment(true);
+        try {
+          const paymentRes = await createPayment({
+            targetType: 'booking',
+            targetId: booking.id,
+          });
+
+          if (paymentRes.success && paymentRes.data?.checkoutUrl) {
+            sessionStorage.setItem('lastBooking', JSON.stringify(booking));
+            window.location.href = paymentRes.data.checkoutUrl;
+            return;
+          }
+        } catch (paymentErr) {
+          console.error('Payment initiation failed:', paymentErr);
+        }
+        // Fallback: payment failed, still show success card
+        setRedirectingToPayment(false);
+        toast.success('Đặt bàn thành công! Vui lòng thanh toán đặt cọc sau.');
+      } else {
+        toast.success('Đặt bàn thành công!');
       }
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Có lỗi xảy ra khi tạo đặt bàn');
+      setRedirectingToPayment(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -282,6 +314,20 @@ export default function BookingFormPage() {
       <div className="booking-loading-container">
         <div className="spinner"></div>
         <p>Đang tải thông tin đặt bàn...</p>
+      </div>
+    );
+  }
+
+  // Render PayOS redirect overlay
+  if (redirectingToPayment) {
+    return (
+      <div className="payment-redirect-overlay">
+        <div className="payment-redirect-card">
+          <div className="spinner"></div>
+          <h2>Đang chuyển hướng đến cổng thanh toán...</h2>
+          <p>Vui lòng không đóng trang này.</p>
+          <p className="payment-redirect-sub">Bạn sẽ được chuyển đến PayOS để thanh toán đặt cọc.</p>
+        </div>
       </div>
     );
   }
@@ -356,6 +402,41 @@ export default function BookingFormPage() {
         <h2 className="restaurant-title">Đặt bàn tại {restaurant?.name}</h2>
         <p className="restaurant-sub">{restaurant?.address?.fullAddress}</p>
       </div>
+
+      {/* No-show warning / block banner */}
+      {user?.bookingBlockedUntil && new Date(user.bookingBlockedUntil) > new Date() ? (
+        <div className="noshow-blocked-banner" role="alert">
+          <div className="noshow-banner-icon">🚫</div>
+          <div className="noshow-banner-content">
+            <strong>Tài khoản đã bị tạm khóa đặt bàn</strong>
+            <p>
+              Tài khoản của bạn đã bị tạm khóa do quá nhiều lần vắng mặt (no-show).
+              Đặt bàn sẽ được mở lại sau <strong>{new Date(user.bookingBlockedUntil).toLocaleDateString('vi-VN')}</strong>.
+            </p>
+          </div>
+        </div>
+      ) : user?.noShowCounter >= 2 ? (
+        <div className="noshow-warning-banner" role="alert">
+          <div className="noshow-banner-icon">⚠️</div>
+          <div className="noshow-banner-content">
+            <strong>Cảnh báo: Bạn sắp bị cấm đặt bàn</strong>
+            <p>
+              Bạn đã có <strong>{user.noShowCounter} lần</strong> vắng mặt (no-show).
+              Nếu thêm <strong>1 lần</strong> nữa, tài khoản sẽ bị tạm khóa đặt bàn trong <strong>30 ngày</strong>.
+            </p>
+          </div>
+        </div>
+      ) : user?.noShowCounter >= 1 ? (
+        <div className="noshow-info-banner" role="alert">
+          <div className="noshow-banner-icon">ℹ️</div>
+          <div className="noshow-banner-content">
+            <p>
+              Bạn đã có <strong>{user.noShowCounter} lần</strong> vắng mặt (no-show).
+              Sau <strong>3 lần</strong> tài khoản sẽ bị tạm khóa đặt bàn.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Steps Indicator */}
       <div className="steps-indicator-container" role="navigation" aria-label="Các bước đặt bàn">
@@ -550,7 +631,17 @@ export default function BookingFormPage() {
 
         {currentStep === 3 && (
           <div className="step-content-card">
-            <h3>📝 Bước 3: Thông tin liên hệ và ghi chú đặc biệt</h3>
+            <h3>📝 Bước 3: Thông tin liên hệ, ghi chú và đặt món trước</h3>
+
+            {restaurant && (
+              <div className="preorder-step-section" style={{ marginBottom: 'var(--spacing-20)' }}>
+                <PreOrderSelector
+                  restaurantId={restaurantId}
+                  bookingId={null}
+                  onChange={(items) => setPreOrderItems(items)}
+                />
+              </div>
+            )}
 
             <div className="form-group-wrapper">
               <div className="form-two-cols-row">

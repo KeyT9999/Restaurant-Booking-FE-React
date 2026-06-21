@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import NotificationBell from './notification/NotificationBell';
 import './Header.css';
 
 export default function Header() {
@@ -54,6 +55,7 @@ export default function Header() {
                   🍽️ Quản lý nhà hàng
                 </Link>
               )}
+              <NotificationBell />
               <div className="header-user">
                 <div
                   className="user-avatar"
@@ -79,6 +81,12 @@ export default function Header() {
                   </Link>
                   <Link to="/my-bookings" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
                     📅 Đặt bàn của tôi
+                  </Link>
+                  <Link to="/my-reviews" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+                    📝 Đánh giá của tôi
+                  </Link>
+                  <Link to="/my-vouchers" className="dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+                    🎟️ Kho voucher
                   </Link>
                   <div className="dropdown-divider" />
                   <button

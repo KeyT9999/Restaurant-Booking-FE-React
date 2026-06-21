@@ -153,6 +153,66 @@
   border-color: var(--border-accent);
 }
 
+.btn-create-booking {
+  background: transparent;
+  border: 1px solid var(--border-dimmed);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-emerald-green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  transition: all 0.18s;
+}
+
+.btn-create-booking:hover {
+  background: rgba(67, 181, 129, 0.08);
+  color: var(--color-emerald-green);
+  border-color: var(--color-emerald-green);
+}
+
+.btn-bulk-cancel {
+  background: transparent;
+  border: 1px solid var(--border-dimmed);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  transition: all 0.18s;
+}
+
+.btn-bulk-cancel:hover {
+  background: rgba(217, 83, 79, 0.08);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.btn-export {
+  background: transparent;
+  border: 1px solid var(--border-dimmed);
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-faded-stone);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  transition: all 0.18s;
+}
+
+.btn-export:hover {
+  background: rgba(212, 150, 83, 0.08);
+  color: var(--color-amber-glow);
+  border-color: var(--border-accent);
+}
+
 .btn-refresh {
   background: transparent;
   border: 1px solid var(--border-dimmed);
@@ -481,4 +541,89 @@
   .row-actions-wrapper {
     margin-top: var(--spacing-8);
   }
+}
+
+/* ═══ Revenue Section ═══ */
+.owner-revenue-section {
+  margin-bottom: var(--spacing-24);
+}
+
+.revenue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-12);
+}
+
+.revenue-header h3 {
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.revenue-period-selector {
+  display: flex;
+  gap: 4px;
+  background: rgba(216, 203, 184, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.period-btn {
+  background: transparent;
+  border: none;
+  padding: var(--spacing-6) var(--spacing-12);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--color-faded-stone);
+  transition: all 0.18s;
+}
+
+.period-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.period-btn.active {
+  background: rgba(212, 150, 83, 0.12);
+  color: var(--color-amber-glow);
+}
+
+.revenue-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(216, 203, 184, 0.1);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--border-dimmed);
+}
+
+.revenue-card {
+  background: var(--surface-section);
+  padding: var(--spacing-16) var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.revenue-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.revenue-card--primary .revenue-val { color: var(--color-emerald-green); }
+.revenue-card--info .revenue-val { color: var(--color-deep-blue); }
+.revenue-card--accent .revenue-val { color: var(--color-amber-glow); }
+.revenue-card--muted .revenue-val { color: var(--color-faded-stone); }
+
+.revenue-label {
+  font-size: 0.75rem;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }

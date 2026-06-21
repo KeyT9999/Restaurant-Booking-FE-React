@@ -768,3 +768,95 @@
     align-items: stretch;
   }
 }
+
+/* ── No-show Warning Banners ── */
+.noshow-blocked-banner,
+.noshow-warning-banner,
+.noshow-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  padding: var(--spacing-16) var(--spacing-20);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-20);
+  font-family: var(--font-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.noshow-blocked-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.noshow-warning-banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.noshow-info-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.noshow-banner-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.noshow-banner-content strong {
+  font-weight: 600;
+}
+
+.noshow-banner-content p {
+  margin: var(--spacing-4) 0 0;
+}
+
+/* ── Payment Redirect Overlay ── */
+.payment-redirect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-dark-void);
+}
+
+.payment-redirect-card {
+  text-align: center;
+  padding: var(--spacing-48);
+  max-width: 480px;
+}
+
+.payment-redirect-card .spinner {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--spacing-24);
+  border-width: 4px;
+}
+
+.payment-redirect-card h2 {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--color-pure-white);
+  margin-bottom: var(--spacing-12);
+}
+
+.payment-redirect-card p {
+  font-family: var(--font-secondary);
+  font-size: 0.95rem;
+  color: var(--color-faded-stone);
+  margin-bottom: var(--spacing-4);
+}
+
+.payment-redirect-sub {
+  font-size: 0.85rem;
+  color: var(--color-warm-stone);
+  opacity: 0.7;
+}

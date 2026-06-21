@@ -1,0 +1,150 @@
+/* ═══════════════════════════════════════════
+   CreateBookingModal — Amrit Palace Design
+   ═══════════════════════════════════════════ */
+
+.create-booking-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.create-booking-modal {
+  background: var(--surface-section);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-dimmed);
+  width: 520px;
+  max-width: 94vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.create-booking-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-16) var(--spacing-20);
+  border-bottom: 1px solid var(--border-dimmed);
+}
+
+.create-booking-modal-header h3 {
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-faded-stone);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s;
+}
+
+.close-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(216, 203, 184, 0.08);
+}
+
+.create-booking-form {
+  padding: var(--spacing-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-12);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 0.78rem;
+  color: var(--color-faded-stone);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.required { color: var(--color-amber-glow); }
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  background: rgba(216, 203, 184, 0.06);
+  border: 1px solid var(--border-dimmed);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-8) var(--spacing-12);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  transition: border-color 0.18s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.form-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"] {
+  accent-color: var(--color-amber-glow);
+}
+
+.create-booking-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-12);
+  padding-top: var(--spacing-8);
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border-dimmed);
+  padding: var(--spacing-8) var(--spacing-20);
+  border-radius: var(--radius-sm);
+  color: var(--color-faded-stone);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-cancel:hover {
+  color: var(--color-text-primary);
+  border-color: var(--border-accent);
+}
+
+.btn-submit {
+  background: var(--color-amber-glow);
+  border: none;
+  padding: var(--spacing-8) var(--spacing-20);
+  border-radius: var(--radius-sm);
+  color: var(--color-bg-dark);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-submit:hover { opacity: 0.85; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }

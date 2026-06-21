@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRestaurantContext } from '../../context/useRestaurantContext';
-import { getRestaurantBookings, getBookingStats, confirmBooking, ownerCancelBooking, completeBooking, markNoShow } from '../../api/bookingApi';
+import { getRestaurantBookings, getBookingStats, getRevenueStats, confirmBooking, ownerCancelBooking, completeBooking, markNoShow } from '../../api/bookingApi';
 import OwnerLayout from '../../components/owner/OwnerLayout';
 import StatusBadge from '../../components/booking/StatusBadge';
 import BookingDetailModal from '../../components/owner/BookingDetailModal';
 import CancelReasonModal from '../../components/owner/CancelReasonModal';
 import ChangeTableModal from '../../components/owner/ChangeTableModal';
-import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users } from 'lucide-react';
+import CreateBookingModal from '../../components/owner/CreateBookingModal';
+import BulkCancelModal from '../../components/owner/BulkCancelModal';
+import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users, Download, Plus, AlertTriangle } from 'lucide-react';
+import axiosInstance from '../../api/axiosInstance';
 import toast from 'react-hot-toast';
 import './OwnerBookingsPage.css';
 
@@ -15,6 +18,8 @@ export default function OwnerBookingsPage() {
 
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
+  const [revenueStats, setRevenueStats] = useState(null);
+  const [revenuePeriod, setRevenuePeriod] = useState('week');
   const [loading, setLoading] = useState(true);
   
   // Filters
@@ -34,6 +39,11 @@ export default function OwnerBookingsPage() {
   // Change table state
   const [changingTableBooking, setChangingTableBooking] = useState(null);
 
+  // Create booking modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Bulk cancel modal
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
+
   const fetchStats = useCallback(async () => {
     if (!selectedRestaurantId) return;
     try {
@@ -45,6 +55,18 @@ export default function OwnerBookingsPage() {
       console.error('Error fetching stats:', err);
     }
   }, [selectedRestaurantId]);
+
+  const fetchRevenue = useCallback(async () => {
+    if (!selectedRestaurantId) return;
+    try {
+      const res = await getRevenueStats({ restaurantId: selectedRestaurantId, period: revenuePeriod });
+      if (res.success) {
+        setRevenueStats(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching revenue stats:', err);
+    }
+  }, [selectedRestaurantId, revenuePeriod]);
 
   const fetchBookings = useCallback(async () => {
     if (!selectedRestaurantId) return;
@@ -79,9 +101,11 @@ export default function OwnerBookingsPage() {
       if (isRestaurantReady) {
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         setBookings([]);
         setStats(null);
+        setRevenueStats(null);
         setLoading(false);
       }
     }, 0);
@@ -185,6 +209,33 @@ export default function OwnerBookingsPage() {
     return <div className="owner-bookings-pagination">{pages}</div>;
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const params = {};
+      if (filterStatus) params.status = filterStatus;
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+      if (searchQuery) params.search = searchQuery;
+
+      const response = await axiosInstance.get('/owner/bookings/export', {
+        params,
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bookings-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Xuất CSV thành công');
+    } catch (err) {
+      toast.error('Xuất CSV thất bại');
+    }
+  };
+
   if (!isRestaurantReady) {
     return (
       <OwnerLayout title="Quản lý Đặt bàn" subtitle="Xem và duyệt đặt bàn từ khách hàng">
@@ -220,7 +271,40 @@ export default function OwnerBookingsPage() {
         </div>
       )}
 
-      {/* Filter toolbar */}
+      {/* Revenue Stats */}
+      {revenueStats && (
+        <div className="owner-revenue-section">
+          <div className="revenue-header">
+            <h3>Doanh thu đặt cọc</h3>
+            <div className="revenue-period-selector">
+              <button className={`period-btn ${revenuePeriod === 'today' ? 'active' : ''}`} onClick={() => setRevenuePeriod('today')}>Hôm nay</button>
+              <button className={`period-btn ${revenuePeriod === 'week' ? 'active' : ''}`} onClick={() => setRevenuePeriod('week')}>7 ngày</button>
+              <button className={`period-btn ${revenuePeriod === 'month' ? 'active' : ''}`} onClick={() => setRevenuePeriod('month')}>30 ngày</button>
+              <button className={`period-btn ${revenuePeriod === 'year' ? 'active' : ''}`} onClick={() => setRevenuePeriod('year')}>1 năm</button>
+            </div>
+          </div>
+          <div className="revenue-stats-grid">
+            <div className="revenue-card revenue-card--primary">
+              <span className="revenue-val">{revenueStats.totalDeposits?.toLocaleString('vi-VN')}đ</span>
+              <span className="revenue-label">Tổng tiền cọc</span>
+            </div>
+            <div className="revenue-card revenue-card--info">
+              <span className="revenue-val">{revenueStats.paidBookingCount}</span>
+              <span className="revenue-label">Đã đóng cọc ({revenueStats.paidRate}%)</span>
+            </div>
+            <div className="revenue-card revenue-card--accent">
+              <span className="revenue-val">{revenueStats.totalGuests}</span>
+              <span className="revenue-label">Khách đã dùng bữa</span>
+            </div>
+            <div className="revenue-card revenue-card--muted">
+              <span className="revenue-val">{revenueStats.avgDepositPerPaid?.toLocaleString('vi-VN')}đ</span>
+              <span className="revenue-label">Cọc trung bình</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export & Filter toolbar */}
       <div className="owner-bookings-toolbar">
         <div className="toolbar-left-filters">
           <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
@@ -261,7 +345,19 @@ export default function OwnerBookingsPage() {
           </div>
         </div>
 
-        <button className="btn-refresh" onClick={() => { fetchBookings(); fetchStats(); }} title="Làm mới">
+        <button className="btn-export" onClick={handleExportCSV} title="Xuất CSV">
+          <Download size={16} />
+          <span>Xuất CSV</span>
+        </button>
+        <button className="btn-create-booking" onClick={() => setShowCreateModal(true)} title="Tạo đặt bàn thủ công">
+          <Plus size={16} />
+          <span>Tạo đặt bàn</span>
+        </button>
+        <button className="btn-bulk-cancel" onClick={() => setShowBulkCancelModal(true)} title="Hủy hàng loạt">
+          <AlertTriangle size={16} />
+          <span>Hủy hàng loạt</span>
+        </button>
+        <button className="btn-refresh" onClick={() => { fetchBookings(); fetchStats(); fetchRevenue(); }} title="Làm mới">
           <RefreshCw size={16} />
         </button>
       </div>
@@ -438,6 +534,24 @@ export default function OwnerBookingsPage() {
             setChangingTableBooking(null);
             fetchBookings();
           }}
+        />
+      )}
+
+      {/* Create Booking Modal */}
+      {showCreateModal && (
+        <CreateBookingModal
+          restaurantId={selectedRestaurantId}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
+        />
+      )}
+
+      {/* Bulk Cancel Modal */}
+      {showBulkCancelModal && (
+        <BulkCancelModal
+          restaurantId={selectedRestaurantId}
+          onClose={() => setShowBulkCancelModal(false)}
+          onSuccess={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
         />
       )}
     </OwnerLayout>

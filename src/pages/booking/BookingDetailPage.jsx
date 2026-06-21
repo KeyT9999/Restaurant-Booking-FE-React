@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBookingById, cancelBooking } from '../../api/bookingApi';
+import { getBookingById, cancelBooking, rescheduleBooking } from '../../api/bookingApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
-import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X } from 'lucide-react';
+import ReviewForm from '../../components/review/ReviewForm';
+import RescheduleModal from '../../components/booking/RescheduleModal';
+import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Star, RefreshCw, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './BookingDetailPage.css';
 
@@ -26,7 +28,12 @@ export default function BookingDetailPage() {
   // Cancel dialog state
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   const fetchBooking = useCallback(async () => {
     setLoading(true);
@@ -208,6 +215,24 @@ export default function BookingDetailPage() {
                 </div>
               )}
 
+              {booking.preOrderItems && booking.preOrderItems.length > 0 && (
+                <div className="detail-row-item vertical-item">
+                  <div className="item-label">🍽️ Món đặt trước:</div>
+                  <div className="item-val preorder-display">
+                    {booking.preOrderItems.map((item, idx) => (
+                      <div key={idx} className="preorder-display-row">
+                        <span>{item.nameSnapshot} x{item.quantity}</span>
+                        <span className="preorder-display-price">{(item.priceSnapshot * item.quantity).toLocaleString('vi-VN')}đ</span>
+                      </div>
+                    ))}
+                    <div className="preorder-display-total">
+                      <span>Tổng:</span>
+                      <strong>{booking.preOrderItems.reduce((s, i) => s + i.priceSnapshot * i.quantity, 0).toLocaleString('vi-VN')}đ</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="detail-row-item">
                 <div className="item-label">💰 Tiền đặt cọc:</div>
                 <div className="item-val font-bold">
@@ -220,11 +245,61 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Action buttons */}
-          {canCancel() && (
-            <div className="booking-detail-actions-bar">
+          <div className="booking-detail-actions-bar">
+            {canCancel() && (
               <button className="btn btn-danger btn-cancel-large" onClick={handleCancelClick}>
                 Hủy đặt bàn này
               </button>
+            )}
+            {['pending', 'confirmed'].includes(booking.status) && (
+              <>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => navigate('/chat', { state: { restaurantId: booking.restaurantId, bookingId: booking._id } })}
+                >
+                  <MessageSquare size={16} /> Chat với nhà hàng
+                </button>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowRescheduleModal(true)}
+                >
+                  <RefreshCw size={16} /> Đổi lịch
+                </button>
+                {booking.status === 'confirmed' && !booking.checkedInAt && (
+                  <button className="btn btn-outline" onClick={() => setShowQR(true)}>
+                    <QrCode size={16} /> QR Check-in
+                  </button>
+                )}
+              </>
+            )}
+            {booking.checkedInAt && (
+              <span className="review-done-badge">✅ Đã check-in</span>
+            )}
+            {booking.status === 'completed' && !booking.reviewed && !reviewSubmitted && (
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowReviewForm(true)}
+              >
+                <Star size={16} /> Đánh giá ngay
+              </button>
+            )}
+            {booking.reviewed && (
+              <span className="review-done-badge">✅ Đã đánh giá</span>
+            )}
+          </div>
+
+          {/* Review Form */}
+          {showReviewForm && (
+            <div className="booking-detail-review-section">
+              <ReviewForm
+                bookingId={booking._id}
+                restaurantId={booking.restaurantId}
+                onSuccess={() => {
+                  setShowReviewForm(false);
+                  setReviewSubmitted(true);
+                }}
+                onCancel={() => setShowReviewForm(false)}
+              />
             </div>
           )}
         </div>
@@ -239,6 +314,45 @@ export default function BookingDetailPage() {
       </div>
 
       {/* Cancel Dialog */}
+      {showQR && (
+        <div className="cancel-dialog-backdrop" onClick={() => setShowQR(false)}>
+          <div className="cancel-dialog-card" onClick={(e) => e.stopPropagation()}>
+            <div className="dialog-header">
+              <h4 className="flex items-center gap-2"><QrCode size={20} /> QR Check-in</h4>
+              <button className="close-dialog-btn" onClick={() => setShowQR(false)}><X size={18} /></button>
+            </div>
+            <div className="dialog-body" style={{ textAlign: 'center', padding: 'var(--spacing-24)' }}>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`bookeat://checkin?bookingId=${booking._id}`)}`}
+                alt="QR Check-in"
+                style={{ borderRadius: '8px', marginBottom: 'var(--spacing-16)' }}
+              />
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-faded-stone)' }}>
+                Đưa mã QR này cho nhà hàng để check-in nhanh
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowQR(false)}
+                style={{ marginTop: 'var(--spacing-12)' }}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRescheduleModal && (
+        <RescheduleModal
+          booking={booking}
+          onClose={() => setShowRescheduleModal(false)}
+          onSuccess={(updated) => {
+            setBooking((prev) => ({ ...prev, ...updated }));
+            fetchBooking();
+          }}
+        />
+      )}
+
       {showCancelDialog && (
         <div className="cancel-dialog-backdrop" onClick={() => setShowCancelDialog(false)}>
           <div

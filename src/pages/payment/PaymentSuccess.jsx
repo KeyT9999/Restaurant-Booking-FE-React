@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, ArrowLeft, ExternalLink } from 'lucide-react';
 import { checkPaymentStatus } from '../../api/paymentApi';
 import './PaymentResult.css';
 
@@ -9,22 +9,27 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [verified, setVerified] = useState(false);
+  const [targetType, setTargetType] = useState(searchParams.get('targetType') || null);
   const orderCode = searchParams.get('orderCode');
-  const targetType = searchParams.get('targetType');
 
   useEffect(() => {
     if (orderCode) {
       verifyPayment();
     } else {
       setChecking(false);
-      setVerified(true); // Assume success if no orderCode (came from webhook)
+      setVerified(true);
     }
   }, [orderCode]);
 
   const verifyPayment = async () => {
     try {
       const res = await checkPaymentStatus(orderCode);
-      setVerified(res.data?.status === 'paid');
+      const payment = res.data;
+      setVerified(payment?.status === 'paid');
+      // Use targetType from payment record if not in URL params
+      if (!targetType && payment?.targetType) {
+        setTargetType(payment.targetType);
+      }
     } catch (e) {
       setVerified(false);
     } finally {
@@ -48,7 +53,7 @@ export default function PaymentSuccess() {
             <p className="payment-result__desc">
               {targetType === 'subscription'
                 ? 'Gói dịch vụ đã được kích hoạt cho nhà hàng của bạn.'
-                : 'Đặt cọc thành công. Bàn đặt của bạn đã được xác nhận.'}
+                : 'Đặt cọc thành công. Yêu cầu đặt bàn của bạn đã được xác nhận.'}
             </p>
           </>
         ) : (
@@ -57,7 +62,7 @@ export default function PaymentSuccess() {
             <h1 className="payment-result__title">Đang chờ xác nhận</h1>
             <p className="payment-result__desc">Thanh toán chưa được xác nhận. Vui lòng đợi hoặc kiểm tra lại.</p>
             <button className="payment-result__btn--outline" onClick={verifyPayment}>
-              Kiểm tra lại trạng thái
+              <ExternalLink size={16} /> Kiểm tra lại trạng thái
             </button>
           </>
         )}
