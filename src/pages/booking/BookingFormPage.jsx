@@ -23,7 +23,9 @@ import {
 import toast from 'react-hot-toast';
 import { checkAvailability, createBooking } from '../../api/bookingApi';
 import { getPublicRestaurantDetail } from '../../api/restaurantApi';
+import { createPayment } from '../../api/paymentApi';
 import ApplyVoucher from '../../components/booking/ApplyVoucher';
+import PreOrderSelector from '../../components/booking/PreOrderSelector';
 import Header from '../../components/Header';
 import TableSelectionModal from '../../components/tables/TableSelectionModal';
 import { Badge } from '../../components/ui/badge';
@@ -100,6 +102,7 @@ function getTodayString() {
   return toDateInputValue(new Date());
 }
 
+// Fixed 30 days maximum booking advance limit
 function getMaxDateString() {
   const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + MAX_BOOKING_ADVANCE_DAYS);
@@ -175,6 +178,8 @@ export default function BookingFormPage() {
 
   const [createdBooking, setCreatedBooking] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [redirectingToPayment, setRedirectingToPayment] = useState(false);
+  const [preOrderItems, setPreOrderItems] = useState([]);
 
   const restaurantAddress = useMemo(() => formatAddress(restaurant?.address), [restaurant?.address]);
   const selectedCapacity = useMemo(() => getSelectedCapacity(selectedTables), [selectedTables]);
@@ -399,6 +404,7 @@ export default function BookingFormPage() {
         occasion: occasion || null,
         tableNumbers: selectedTables.map((table) => table.tableNumber).filter(Boolean),
         voucherCode: appliedVoucher,
+        preOrderItems: preOrderItems.length > 0 ? preOrderItems : undefined,
       };
 
       const res = await createBooking(payload);
@@ -406,11 +412,36 @@ export default function BookingFormPage() {
         throw new Error(res?.message || 'Đặt bàn thất bại.');
       }
 
-      setCreatedBooking(res.data);
-      toast.success('Đặt bàn thành công.');
+      const booking = res.data;
+      setCreatedBooking(booking);
+
+      // If deposit is required, initiate payment via PayOS
+      if (booking.depositAmount > 0 && !booking.depositPaid) {
+        setRedirectingToPayment(true);
+        try {
+          const paymentRes = await createPayment({
+            targetType: 'booking',
+            targetId: booking.id,
+          });
+
+          if (paymentRes.success && paymentRes.data?.checkoutUrl) {
+            sessionStorage.setItem('lastBooking', JSON.stringify(booking));
+            window.location.href = paymentRes.data.checkoutUrl;
+            return;
+          }
+        } catch (paymentErr) {
+          console.error('Payment initiation failed:', paymentErr);
+        }
+        // Fallback: payment failed, still show success card
+        setRedirectingToPayment(false);
+        toast.success('Đặt bàn thành công! Vui lòng thanh toán đặt cọc sau.');
+      } else {
+        toast.success('Đặt bàn thành công.');
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Có lỗi xảy ra khi tạo đặt bàn.');
+      setRedirectingToPayment(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -449,6 +480,22 @@ export default function BookingFormPage() {
     );
   }
 
+  // Render PayOS redirect overlay
+  if (redirectingToPayment) {
+    return (
+      <div className="min-h-screen w-full bg-[#0F1115] flex items-center justify-center p-4">
+        <div className="w-full max-w-[440px] p-8 bg-card border border-border rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <h2 className="font-serif text-2xl text-white font-bold tracking-tight">Đang chuyển hướng thanh toán...</h2>
+          <p className="text-sm text-muted-foreground">Vui lòng không đóng hoặc tải lại trang này.</p>
+          <p className="text-xs text-muted-foreground bg-secondary/35 p-3 rounded-lg border border-border/40">
+            Bạn sẽ được chuyển đến cổng thanh toán PayOS để thanh toán tiền cọc.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (createdBooking) {
     return (
       <BookingSuccessState
@@ -475,6 +522,36 @@ export default function BookingFormPage() {
           Quay về chi tiết nhà hàng
         </button>
 
+        {/* No-show warning / block banner */}
+        {user?.bookingBlockedUntil && new Date(user.bookingBlockedUntil) > new Date() ? (
+          <div className="mb-6">
+            <InfoPanel
+              tone="danger"
+              icon={AlertTriangle}
+              title="Tài khoản đã bị tạm khóa đặt bàn"
+              description={`Tài khoản của bạn đã bị tạm khóa do quá nhiều lần vắng mặt (no-show). Đặt bàn sẽ được mở lại sau ${new Date(user.bookingBlockedUntil).toLocaleDateString('vi-VN')}.`}
+            />
+          </div>
+        ) : user?.noShowCounter >= 2 ? (
+          <div className="mb-6">
+            <InfoPanel
+              tone="warning"
+              icon={AlertTriangle}
+              title="Cảnh báo: Bạn sắp bị cấm đặt bàn"
+              description={`Bạn đã có ${user.noShowCounter} lần vắng mặt (no-show). Nếu thêm 1 lần nữa, tài khoản sẽ bị tạm khóa đặt bàn trong 30 ngày.`}
+            />
+          </div>
+        ) : user?.noShowCounter >= 1 ? (
+          <div className="mb-6">
+            <InfoPanel
+              tone="default"
+              icon={Info}
+              title="Thông tin về số lần vắng mặt (no-show)"
+              description={`Bạn đã có ${user.noShowCounter} lần vắng mặt (no-show). Sau 3 lần vắng mặt, tài khoản sẽ bị tạm khóa đặt bàn.`}
+            />
+          </div>
+        ) : null}
+
         <section className="relative overflow-hidden rounded-xl border border-border bg-card">
           <div className="absolute inset-0">
             <img src={restaurantImage} alt="" className="h-full w-full object-cover opacity-25" />
@@ -482,11 +559,11 @@ export default function BookingFormPage() {
           </div>
 
           <div className="relative grid gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-            <div className="max-w-3xl space-y-5">
+            <div className="max-w-3xl space-y-5 flex flex-col items-start">
               <Badge className="bg-primary/10 text-primary border-primary/25 rounded-md px-3 py-1 uppercase tracking-[0.18em] text-[10px]">
                 Đặt bàn BookEat
               </Badge>
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 <h1 className="font-serif text-4xl sm:text-5xl font-bold leading-tight text-white">
                   Giữ chỗ tại {restaurant.name}
                 </h1>
@@ -509,7 +586,7 @@ export default function BookingFormPage() {
                 <div className="h-11 w-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <ShieldCheck size={22} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <p className="text-sm font-bold text-white">Xác nhận qua nhà hàng</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Booking mới sẽ ở trạng thái chờ duyệt, giúp nhà hàng kiểm tra bàn và liên hệ khi cần.
@@ -535,7 +612,7 @@ export default function BookingFormPage() {
 
                 <div className="grid gap-6">
                   <div className="grid gap-4 md:grid-cols-[260px_minmax(0,1fr)]">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <label htmlFor="booking-date" className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         <CalendarIcon size={14} className="text-primary" /> Ngày dùng bữa
                       </label>
@@ -558,7 +635,7 @@ export default function BookingFormPage() {
                       <FieldError message={fieldErrors.bookingDate} />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         <Clock size={14} className="text-primary" /> Khung giờ ăn
                       </label>
@@ -605,7 +682,7 @@ export default function BookingFormPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                  <div className="rounded-xl border border-border bg-secondary/20 p-4 text-left">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -641,6 +718,7 @@ export default function BookingFormPage() {
                 </div>
 
                 <StepActions>
+                  <div />
                   <Button
                     type="button"
                     disabled={!bookingDate || !bookingTime || checkingTables}
@@ -685,7 +763,7 @@ export default function BookingFormPage() {
                     />
                   )}
 
-                  <div className="rounded-xl border border-border bg-secondary/20 p-5">
+                  <div className="rounded-xl border border-border bg-secondary/20 p-5 text-left">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-white">Bàn đã chọn</p>
@@ -762,12 +840,22 @@ export default function BookingFormPage() {
                 <StepHeader
                   icon={Users}
                   eyebrow="Bước 3"
-                  title="Thông tin liên hệ"
-                  description="Thông tin này giúp nhà hàng xác nhận và liên hệ khi cần."
+                  title="Thông tin liên hệ & đặt món trước"
+                  description="Thông tin này giúp nhà hàng xác nhận và bạn có thể đặt trước các món ngon."
                 />
 
                 <div className="grid gap-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  {restaurant && (
+                    <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                      <PreOrderSelector
+                        restaurantId={restaurantId}
+                        bookingId={null}
+                        onChange={(items) => setPreOrderItems(items)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2 text-left">
                     <FormField label="Họ và tên người đặt" htmlFor="customer-name" required error={fieldErrors.customerName}>
                       <Input
                         id="customer-name"
@@ -796,7 +884,7 @@ export default function BookingFormPage() {
                     </FormField>
                   </div>
 
-                  <FormField label="Email nhận thông tin đặt bàn" htmlFor="customer-email" required error={fieldErrors.customerEmail}>
+                  <FormField label="Email nhận thông tin đặt bàn" htmlFor="customer-email" required error={fieldErrors.customerEmail} className="text-left">
                     <Input
                       id="customer-email"
                       type="email"
@@ -810,7 +898,7 @@ export default function BookingFormPage() {
                     />
                   </FormField>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <label className="text-sm font-semibold text-white">Dịp đặc biệt</label>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                       {occasionOptions.map((item) => (
@@ -831,7 +919,7 @@ export default function BookingFormPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <label htmlFor="special-requests" className="text-sm font-semibold text-white">
                       Yêu cầu đặc biệt
                     </label>
@@ -847,7 +935,7 @@ export default function BookingFormPage() {
                     <div className="text-right text-xs text-muted-foreground">{specialRequests.length}/500 ký tự</div>
                   </div>
 
-                  <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                  <div className="rounded-xl border border-border bg-secondary/20 p-4 text-left">
                     <ApplyVoucher
                       restaurantId={restaurantId}
                       bookingAmount={depositAmount}
@@ -877,27 +965,31 @@ export default function BookingFormPage() {
                   description="Xem lại thông tin trước khi gửi yêu cầu đến nhà hàng."
                 />
 
-                <SummaryPanel
-                  restaurant={restaurant}
-                  restaurantAddress={restaurantAddress}
-                  bookingDate={bookingDate}
-                  bookingTime={bookingTime}
-                  numberOfGuests={numberOfGuests}
-                  selectedTables={selectedTables}
-                  customerName={customerName}
-                  customerPhone={customerPhone}
-                  customerEmail={customerEmail}
-                  specialRequests={specialRequests}
-                  occasion={occasion}
-                  appliedVoucher={appliedVoucher}
-                  discountAmount={discountAmount}
-                />
+                <div className="mt-4">
+                  <SummaryPanel
+                    restaurant={restaurant}
+                    restaurantAddress={restaurantAddress}
+                    bookingDate={bookingDate}
+                    bookingTime={bookingTime}
+                    numberOfGuests={numberOfGuests}
+                    selectedTables={selectedTables}
+                    customerName={customerName}
+                    customerPhone={customerPhone}
+                    customerEmail={customerEmail}
+                    specialRequests={specialRequests}
+                    occasion={occasion}
+                    appliedVoucher={appliedVoucher}
+                    discountAmount={discountAmount}
+                  />
+                </div>
 
-                <InfoPanel
-                  icon={Info}
-                  title="Lưu ý trước khi gửi"
-                  description="Yêu cầu đặt bàn sẽ được gửi ở trạng thái chờ duyệt. Nhà hàng có thể xác nhận, đổi bàn hoặc liên hệ bạn nếu cần thêm thông tin."
-                />
+                <div className="mt-4">
+                  <InfoPanel
+                    icon={Info}
+                    title="Lưu ý trước khi gửi"
+                    description="Yêu cầu đặt bàn sẽ được gửi ở trạng thái chờ duyệt. Nhà hàng có thể xác nhận, đổi bàn hoặc liên hệ bạn nếu cần thêm thông tin."
+                  />
+                </div>
 
                 <StepActions>
                   <Button variant="outline" onClick={() => setCurrentStep(3)} disabled={isSubmitting} className="border-border text-white hover:bg-secondary h-11">
@@ -996,14 +1088,14 @@ function BookingSuccessState({ booking, restaurant, restaurantAddress, onHome, o
           <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
             <Check size={34} />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4 my-4">
             <h1 className="font-serif text-3xl sm:text-4xl font-bold text-white">Đặt bàn thành công</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Yêu cầu của bạn đã được gửi đến nhà hàng. Trạng thái hiện tại là chờ duyệt.
             </p>
           </div>
 
-          <div className="w-full rounded-xl border border-border bg-secondary/25 p-5 text-left">
+          <div className="w-full rounded-xl border border-border bg-secondary/25 p-5 text-left mb-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <DetailRow label="Mã đặt bàn" value={formatBookingCode(booking?.id || booking?._id)} mono />
               <DetailRow label="Trạng thái" value="Chờ duyệt" accent />
@@ -1035,7 +1127,7 @@ function BookingSuccessState({ booking, restaurant, restaurantAddress, onHome, o
 
 function StepProgress({ currentStep }) {
   return (
-    <nav aria-label="Tiến trình đặt bàn" className="rounded-xl border border-border bg-card p-3 sm:p-4">
+    <nav aria-label="Tiến trình đặt bàn" className="rounded-xl border border-border bg-card p-3 sm:p-4 animate-fade-in">
       <div className="flex items-center">
         {steps.map((step, index) => (
           <Fragment key={step.num}>
@@ -1053,7 +1145,7 @@ function StepProgress({ currentStep }) {
               >
                 {currentStep > step.num ? <Check size={16} /> : step.num}
               </div>
-              <div className="hidden min-w-0 sm:block">
+              <div className="hidden min-w-0 sm:block text-left">
                 <p className={cn('text-sm font-bold', currentStep >= step.num ? 'text-white' : 'text-muted-foreground')}>
                   {step.label}
                 </p>
@@ -1073,7 +1165,7 @@ function StepHeader({ icon: Icon, eyebrow, title, description }) {
       <div className="h-11 w-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
         <Icon size={22} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1 text-left">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">{title}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
@@ -1090,9 +1182,10 @@ function StepActions({ children }) {
   );
 }
 
-function FormField({ label, htmlFor, required, error, children }) {
+// Fixed missing custom class compatibility
+function FormField({ label, htmlFor, required, error, children, className }) {
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", className)}>
       <label htmlFor={htmlFor} className="text-sm font-semibold text-white">
         {label} {required && <span className="text-primary">*</span>}
       </label>
@@ -1104,7 +1197,7 @@ function FormField({ label, htmlFor, required, error, children }) {
 
 function FieldError({ message }) {
   if (!message) return null;
-  return <p className="text-xs font-semibold text-rose-400">{message}</p>;
+  return <p className="text-xs font-semibold text-rose-400 mt-1">{message}</p>;
 }
 
 function InfoPanel({ icon: Icon = Info, title, description, action, tone = 'default' }) {
@@ -1121,7 +1214,7 @@ function InfoPanel({ icon: Icon = Info, title, description, action, tone = 'defa
   }[tone];
 
   return (
-    <div className={cn('rounded-xl border p-4', toneClass)}>
+    <div className={cn('rounded-xl border p-4 text-left', toneClass)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-3">
           <Icon className={cn('h-5 w-5 shrink-0 mt-0.5', iconClass)} />
@@ -1163,7 +1256,7 @@ function SummaryPanel({
   const depositAmount = getDepositAmount(selectedTables);
 
   return (
-    <section className="rounded-xl border border-border bg-secondary/20 p-5">
+    <section className="rounded-xl border border-border bg-secondary/20 p-5 text-left">
       <div className="flex items-center gap-3 border-b border-border/60 pb-4">
         <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
           <Store size={20} />
@@ -1216,7 +1309,7 @@ function BookingAside({
   const finalDeposit = Math.max(depositAmount - discountAmount, 0);
 
   return (
-    <Card className="bg-card border-border p-5">
+    <Card className="bg-card border-border p-5 text-left">
       <div className="space-y-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Tóm tắt</p>

@@ -8,15 +8,21 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [verified, setVerified] = useState(false);
+  const [targetType, setTargetType] = useState(searchParams.get('targetType') || null);
   const orderCode = searchParams.get('orderCode');
-  const targetType = searchParams.get('targetType');
+
   const isOwnerMonetization = ['subscription', 'featured_restaurant', 'voucher_campaign'].includes(targetType);
 
   const verifyPayment = async () => {
     try {
       const res = await checkPaymentStatus(orderCode);
-      setVerified(res.data?.status === 'paid');
-    } catch {
+      const payment = res.data;
+      setVerified(payment?.status === 'paid');
+      // Use targetType from payment record if not in URL params
+      if (!targetType && payment?.targetType) {
+        setTargetType(payment.targetType);
+      }
+    } catch (e) {
       setVerified(false);
     } finally {
       setChecking(false);
@@ -28,7 +34,7 @@ export default function PaymentSuccess() {
       verifyPayment();
     } else {
       setChecking(false);
-      setVerified(false);
+      setVerified(true);
     }
   }, [orderCode]);
 
@@ -62,7 +68,7 @@ export default function PaymentSuccess() {
                   ? 'Featured placement đã được kích hoạt sau khi webhook PayOS xác nhận.'
                   : targetType === 'voucher_campaign'
                     ? 'Voucher campaign đã được kích hoạt sau khi webhook PayOS xác nhận.'
-                : 'Đặt cọc thành công. Yêu cầu đặt bàn của bạn đã được hệ thống xác nhận.'}
+                    : 'Đặt cọc thành công. Yêu cầu đặt bàn của bạn đã được hệ thống xác nhận.'}
             </p>
           </div>
         ) : (

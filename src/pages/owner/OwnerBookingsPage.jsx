@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRestaurantContext } from '../../context/useRestaurantContext';
-import { getRestaurantBookings, getBookingStats, confirmBooking, ownerCancelBooking, completeBooking, markNoShow } from '../../api/bookingApi';
+import { getRestaurantBookings, getBookingStats, getRevenueStats, confirmBooking, ownerCancelBooking, completeBooking, markNoShow } from '../../api/bookingApi';
 import OwnerLayout from '../../components/owner/OwnerLayout';
 import StatusBadge from '../../components/booking/StatusBadge';
 import BookingDetailModal from '../../components/owner/BookingDetailModal';
 import CancelReasonModal from '../../components/owner/CancelReasonModal';
 import ChangeTableModal from '../../components/owner/ChangeTableModal';
-import { Search, RefreshCw, Clipboard, Users, Calendar, Clock } from 'lucide-react';
+import CreateBookingModal from '../../components/owner/CreateBookingModal';
+import BulkCancelModal from '../../components/owner/BulkCancelModal';
+import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users, Download, Plus, AlertTriangle, Calendar, Clock } from 'lucide-react';
+import axiosInstance from '../../api/axiosInstance';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 
@@ -15,6 +18,8 @@ export default function OwnerBookingsPage() {
 
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
+  const [revenueStats, setRevenueStats] = useState(null);
+  const [revenuePeriod, setRevenuePeriod] = useState('week');
   const [loading, setLoading] = useState(true);
   
   // Filters
@@ -34,6 +39,11 @@ export default function OwnerBookingsPage() {
   // Change table state
   const [changingTableBooking, setChangingTableBooking] = useState(null);
 
+  // Create booking modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Bulk cancel modal
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
+
   const fetchStats = useCallback(async () => {
     if (!selectedRestaurantId) return;
     try {
@@ -45,6 +55,18 @@ export default function OwnerBookingsPage() {
       console.error('Error fetching stats:', err);
     }
   }, [selectedRestaurantId]);
+
+  const fetchRevenue = useCallback(async () => {
+    if (!selectedRestaurantId) return;
+    try {
+      const res = await getRevenueStats({ restaurantId: selectedRestaurantId, period: revenuePeriod });
+      if (res.success) {
+        setRevenueStats(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching revenue stats:', err);
+    }
+  }, [selectedRestaurantId, revenuePeriod]);
 
   const fetchBookings = useCallback(async () => {
     if (!selectedRestaurantId) return;
@@ -79,6 +101,7 @@ export default function OwnerBookingsPage() {
     if (!isRestaurantReady || !selectedRestaurantId) {
       setBookings([]);
       setStats(null);
+      setRevenueStats(null);
       setLoading(false);
       return undefined;
     }
@@ -88,7 +111,7 @@ export default function OwnerBookingsPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const [bookingRes, statsRes] = await Promise.all([
+        const [bookingRes, statsRes, revenueRes] = await Promise.all([
           getRestaurantBookings({
             restaurantId: selectedRestaurantId,
             status: filterStatus || undefined,
@@ -99,6 +122,7 @@ export default function OwnerBookingsPage() {
             limit: 10,
           }),
           getBookingStats({ restaurantId: selectedRestaurantId, period: 'all' }),
+          getRevenueStats({ restaurantId: selectedRestaurantId, period: revenuePeriod }),
         ]);
 
         if (cancelled) return;
@@ -111,9 +135,13 @@ export default function OwnerBookingsPage() {
         if (statsRes.success) {
           setStats(statsRes.data);
         }
+
+        if (revenueRes.success) {
+          setRevenueStats(revenueRes.data);
+        }
       } catch (err) {
         if (!cancelled) {
-          console.error('Error fetching bookings/stats:', err);
+          console.error('Error fetching bookings/stats/revenue:', err);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -128,7 +156,7 @@ export default function OwnerBookingsPage() {
       cancelled = true;
       window.clearTimeout(timerId);
     };
-  }, [isRestaurantReady, selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page]);
+  }, [isRestaurantReady, selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page, revenuePeriod]);
 
   // Listen for real-time booking events (socket-dispatched custom events)
   useEffect(() => {
@@ -137,11 +165,12 @@ export default function OwnerBookingsPage() {
       if (eventRestaurantId && eventRestaurantId !== selectedRestaurantId) return;
       fetchBookings();
       fetchStats();
+      fetchRevenue();
     };
 
     window.addEventListener('bookeat:booking-event', handleBookingEvent);
     return () => window.removeEventListener('bookeat:booking-event', handleBookingEvent);
-  }, [fetchBookings, fetchStats, selectedRestaurantId]);
+  }, [fetchBookings, fetchStats, fetchRevenue, selectedRestaurantId]);
 
   // Handlers
   const handleConfirm = async (id) => {
@@ -151,6 +180,7 @@ export default function OwnerBookingsPage() {
         toast.success('Xác nhận đặt bàn thành công');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể xác nhận đặt bàn');
       }
@@ -167,6 +197,7 @@ export default function OwnerBookingsPage() {
         toast.success('Hoàn thành đặt bàn thành công');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể hoàn tất đặt bàn');
       }
@@ -183,6 +214,7 @@ export default function OwnerBookingsPage() {
         toast.success('Đã đánh dấu khách vắng mặt (no-show)');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể đánh dấu đặt bàn');
       }
@@ -201,6 +233,7 @@ export default function OwnerBookingsPage() {
         setCancellingBooking(null);
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể hủy đặt bàn');
       }
@@ -229,6 +262,33 @@ export default function OwnerBookingsPage() {
       );
     }
     return <div className="flex justify-center items-center gap-1.5 mt-6">{pages}</div>;
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const params = {};
+      if (filterStatus) params.status = filterStatus;
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+      if (searchQuery) params.search = searchQuery;
+
+      const response = await axiosInstance.get('/owner/bookings/export', {
+        params,
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bookings-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Xuất CSV thành công');
+    } catch (err) {
+      toast.error('Xuất CSV thất bại');
+    }
   };
 
   if (!isRestaurantReady) {
@@ -278,6 +338,53 @@ export default function OwnerBookingsPage() {
         </div>
       )}
 
+      {/* Revenue Stats */}
+      {revenueStats && (
+        <div className="bg-card border border-border rounded-xl p-5 mb-6 text-left animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h3 className="font-serif text-lg font-bold text-white">Doanh thu đặt cọc</h3>
+            <div className="flex gap-1 bg-[#0F1115] border border-border p-1 rounded-lg text-xs font-semibold">
+              {[
+                { value: 'today', label: 'Hôm nay' },
+                { value: 'week', label: '7 ngày' },
+                { value: 'month', label: '30 ngày' },
+                { value: 'year', label: '1 năm' },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                    revenuePeriod === p.value
+                      ? 'bg-primary text-background font-bold'
+                      : 'text-muted-foreground hover:text-white'
+                  }`}
+                  onClick={() => setRevenuePeriod(p.value)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-primary/25 transition-all">
+              <span className="text-2xl font-bold text-primary">{revenueStats.totalDeposits?.toLocaleString('vi-VN')}đ</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Tổng tiền cọc</span>
+            </div>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-sky-500/25 transition-all">
+              <span className="text-2xl font-bold text-sky-400">{revenueStats.paidBookingCount}</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Đã đóng cọc ({revenueStats.paidRate}%)</span>
+            </div>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/25 transition-all">
+              <span className="text-2xl font-bold text-emerald-400">{revenueStats.totalGuests}</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Khách đã dùng bữa</span>
+            </div>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-muted/25 transition-all">
+              <span className="text-2xl font-bold text-white">{revenueStats.avgDepositPerPaid?.toLocaleString('vi-VN')}đ</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Cọc trung bình</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter toolbar */}
       <div className="bg-card border border-border rounded-xl p-4 mb-6 flex flex-col xl:flex-row gap-3 items-center justify-between">
         <div className="flex flex-col lg:flex-row items-center gap-3 w-full xl:w-auto flex-1">
@@ -318,7 +425,7 @@ export default function OwnerBookingsPage() {
           </div>
 
           {/* Tìm kiếm */}
-          <div className="relative w-full lg:max-w-xs">
+          <div className="relative w-full lg:max-w-xs text-left">
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
@@ -331,14 +438,40 @@ export default function OwnerBookingsPage() {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => { fetchBookings(); fetchStats(); }}
-          className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5 w-full xl:w-auto"
-        >
-          <RefreshCw size={14} /> Làm mới
-        </Button>
+        <div className="flex flex-wrap gap-2 w-full xl:w-auto justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <Download size={14} className="text-primary" /> Xuất CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreateModal(true)}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <Plus size={14} className="text-primary" /> Tạo đặt bàn
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowBulkCancelModal(true)}
+            className="border-border hover:bg-rose-500/10 text-rose-450 hover:text-rose-400 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <AlertTriangle size={14} /> Hủy hàng loạt
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <RefreshCw size={14} /> Làm mới
+          </Button>
+        </div>
       </div>
 
       {/* Booking Table */}
@@ -451,7 +584,7 @@ export default function OwnerBookingsPage() {
                                   variant="default"
                                   size="sm"
                                   onClick={() => handleComplete(b.id)}
-                                  className="bg-emerald-650 hover:bg-emerald-550 text-white text-xs h-8 px-2.5"
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8 px-2.5"
                                 >
                                   Hoàn thành
                                 </Button>
@@ -503,6 +636,7 @@ export default function OwnerBookingsPage() {
           onActionComplete={() => {
             fetchBookings();
             fetchStats();
+            fetchRevenue();
           }}
           onCancelClick={(id, name) => {
             setSelectedBookingId(null);
@@ -536,6 +670,24 @@ export default function OwnerBookingsPage() {
             setChangingTableBooking(null);
             fetchBookings();
           }}
+        />
+      )}
+
+      {/* Create Booking Modal */}
+      {showCreateModal && (
+        <CreateBookingModal
+          restaurantId={selectedRestaurantId}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
+        />
+      )}
+
+      {/* Bulk Cancel Modal */}
+      {showBulkCancelModal && (
+        <BulkCancelModal
+          restaurantId={selectedRestaurantId}
+          onClose={() => setShowBulkCancelModal(false)}
+          onSuccess={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
         />
       )}
     </OwnerLayout>

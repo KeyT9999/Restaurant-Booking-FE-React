@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBookingById, cancelBooking } from '../../api/bookingApi';
+import { getBookingById, cancelBooking, rescheduleBooking } from '../../api/bookingApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
 import ReviewForm from '../../components/review/ReviewForm';
-import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Star } from 'lucide-react';
+import RescheduleModal from '../../components/booking/RescheduleModal';
+import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Star, RefreshCw, QrCode } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -29,8 +30,12 @@ export default function BookingDetailPage() {
   // Cancel dialog state
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
-  const [isCancelling, setIsCancelling] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   const fetchBooking = useCallback(async () => {
     setLoading(true);
@@ -116,7 +121,7 @@ export default function BookingDetailPage() {
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
       <Header />
-      
+
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
         {/* Header Title with Back button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
@@ -137,7 +142,7 @@ export default function BookingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column: Booking details */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            
+
             {/* Status Panel Card */}
             <Card className="p-5 bg-card border-border flex flex-col gap-3 text-left">
               <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Trạng thái đặt bàn hiện tại</span>
@@ -174,7 +179,7 @@ export default function BookingDetailPage() {
               <h4 className="font-bold text-white text-sm border-b border-border/40 pb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
                 📅 Chi tiết cuộc hẹn đặt bàn
               </h4>
-              
+
               <div className="flex flex-col gap-3.5 text-xs">
                 <div className="flex justify-between items-center py-0.5">
                   <span className="text-muted-foreground flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> Ngày dùng bữa:</span>
@@ -208,9 +213,29 @@ export default function BookingDetailPage() {
                 )}
 
                 {booking.specialRequests && (
-                  <div className="flex flex-col gap-1 py-1 text-left">
-                    <span className="text-muted-foreground flex items-center gap-1.5"><MessageSquare size={14} className="text-primary" /> Yêu cầu đặc biệt:</span>
-                    <span className="text-white italic bg-secondary/30 p-2.5 border border-border rounded mt-1 leading-relaxed">&quot;{booking.specialRequests}&quot;</span>
+                  <div className="detail-row-item vertical-item text-left">
+                    <div className="item-label flex items-center gap-1.5 text-muted-foreground">
+                      <MessageSquare size={14} className="text-primary" /> Yêu cầu đặc biệt:
+                    </div>
+                    <div className="item-val block-text italic text-white mt-1">&quot;{booking.specialRequests}&quot;</div>
+                  </div>
+                )}
+
+                {booking.preOrderItems && booking.preOrderItems.length > 0 && (
+                  <div className="detail-row-item vertical-item text-left">
+                    <div className="item-label text-muted-foreground">🍽️ Món đặt trước:</div>
+                    <div className="item-val preorder-display mt-2 bg-secondary/25 border border-border/40 p-3 rounded-lg flex flex-col gap-2">
+                      {booking.preOrderItems.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs">
+                          <span>{item.nameSnapshot} x{item.quantity}</span>
+                          <span className="font-semibold">{(item.priceSnapshot * item.quantity).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                      ))}
+                      <div className="border-t border-border/40 pt-2 flex justify-between items-center font-bold">
+                        <span>Tổng:</span>
+                        <strong className="text-primary">{booking.preOrderItems.reduce((s, i) => s + i.priceSnapshot * i.quantity, 0).toLocaleString('vi-VN')}đ</strong>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -268,21 +293,106 @@ export default function BookingDetailPage() {
             )}
           </div>
 
-          {/* Right Column: Timeline */}
-          <div className="lg:col-span-1">
+          {/* Right Column: Timeline & Additional Actions */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
             <StatusTimeline
               statusHistory={booking.statusHistory}
               currentStatus={booking.status}
             />
+
+            {/* Additional Actions Card */}
+            {['pending', 'confirmed'].includes(booking.status) && (
+              <Card className="p-5 bg-card border-border flex flex-col gap-3 text-left">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Thao tác nhanh</span>
+                <div className="flex flex-col gap-2 mt-1">
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                    onClick={() => navigate('/chat', { state: { restaurantId: booking.restaurantId, bookingId: booking._id } })}
+                  >
+                    <MessageSquare size={14} className="text-primary" /> Chat với nhà hàng
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                    onClick={() => setShowRescheduleModal(true)}
+                  >
+                    <RefreshCw size={14} className="text-primary" /> Đổi lịch dùng bữa
+                  </Button>
+                  
+                  {booking.status === 'confirmed' && !booking.checkedInAt && (
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                      onClick={() => setShowQR(true)}
+                    >
+                      <QrCode size={14} className="text-primary" /> Mã QR check-in
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {booking.checkedInAt && (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-emerald-400 text-sm font-bold flex items-center justify-center gap-1.5">
+                <span>✅ Đã check-in lúc {new Date(booking.checkedInAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            )}
           </div>
         </div>
       </main>
 
-      {/* Cancel Dialog Modal */}
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="absolute inset-0 z-0" onClick={() => setShowQR(false)} />
+          <Card className="relative z-10 w-full max-w-sm p-6 bg-card border-border shadow-2xl flex flex-col gap-4 text-center">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <h4 className="font-bold text-white flex items-center gap-2 text-sm">
+                <QrCode size={18} className="text-primary" /> Mã QR Check-in
+              </h4>
+              <button
+                onClick={() => setShowQR(false)}
+                className="p-1 rounded text-muted-foreground hover:text-white hover:bg-secondary transition focus:outline-none"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex flex-col items-center gap-4 py-4">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`bookeat://checkin?bookingId=${booking._id}`)}`}
+                alt="QR Check-in"
+                className="rounded-lg border border-border bg-white p-2"
+              />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Đưa mã QR này cho nhân viên nhà hàng khi bạn đến để thực hiện check-in nhanh chóng.
+              </p>
+            </div>
+            <Button onClick={() => setShowQR(false)} className="bg-primary text-background font-bold text-xs h-10 w-full">
+              Đóng
+            </Button>
+          </Card>
+        </div>
+      )}
+
+      {/* Reschedule Modal */}
+      {showRescheduleModal && (
+        <RescheduleModal
+          booking={booking}
+          onClose={() => setShowRescheduleModal(false)}
+          onSuccess={(updated) => {
+            setBooking((prev) => ({ ...prev, ...updated }));
+            fetchBooking();
+          }}
+        />
+      )}
+
+      {/* Cancel Confirmation Dialog */}
       {showCancelDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="absolute inset-0 z-0" onClick={() => setShowCancelDialog(false)} />
-          
+
           <Card className="relative z-10 w-full max-w-md p-6 bg-card border-border shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-border/60">
               <h4 className="font-bold text-rose-400 flex items-center gap-2 text-sm">
@@ -295,12 +405,12 @@ export default function BookingDetailPage() {
                 <X size={18} />
               </button>
             </div>
-            
+
             <div className="flex flex-col gap-4 text-xs text-left">
               <p className="text-muted-foreground leading-relaxed">
                 Bạn có chắc chắn muốn hủy đặt bàn này không? Hành động này sẽ gửi yêu cầu hủy và không thể tự hoàn tác.
               </p>
-              
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-muted-foreground font-semibold">Lý do hủy đặt bàn (tùy chọn):</label>
                 <textarea

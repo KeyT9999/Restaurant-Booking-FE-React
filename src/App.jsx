@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthProvider';
-import Login           from './pages/auth/Login';
-import Register        from './pages/auth/Register';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import RegisterSuccess from './pages/auth/RegisterSuccess';
-import GoogleCallback  from './pages/auth/GoogleCallback';
-import VerifyEmail     from './pages/auth/VerifyEmail';
-import ForgotPassword  from './pages/auth/ForgotPassword';
-import ResetPassword   from './pages/auth/ResetPassword';
-import HomePage        from './pages/home/HomePage';
+import GoogleCallback from './pages/auth/GoogleCallback';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import HomePage from './pages/home/HomePage';
 import RestaurantsPage from './pages/restaurants/RestaurantsPage';
-import ProfilePage     from './pages/profile/ProfilePage';
-import ProtectedRoute  from './components/ProtectedRoute';
+import ProfilePage from './pages/profile/ProfilePage';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -66,18 +66,18 @@ function AppRoutes() {
   useWaitlistNotifications();
   return (
     <Routes>
-      <Route path="/"                        element={<HomePage />} />
-      <Route path="/restaurants"             element={<RestaurantsPage />} />
-      <Route path="/restaurants/:id"         element={<RestaurantDetailPage />} />
-      <Route path="/auth/login"              element={<Login />} />
-      <Route path="/auth/register"           element={<Register />} />
-      <Route path="/auth/register-success"   element={<RegisterSuccess />} />
-      <Route path="/auth/google/callback"    element={<GoogleCallback />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/restaurants" element={<RestaurantsPage />} />
+      <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/register" element={<Register />} />
+      <Route path="/auth/register-success" element={<RegisterSuccess />} />
+      <Route path="/auth/google/callback" element={<GoogleCallback />} />
       {/* Email verification */}
-      <Route path="/auth/verify-email"       element={<VerifyEmail />} />
+      <Route path="/auth/verify-email" element={<VerifyEmail />} />
       {/* Password reset */}
-      <Route path="/auth/forgot-password"    element={<ForgotPassword />} />
-      <Route path="/auth/reset-password"     element={<ResetPassword />} />
+      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+      <Route path="/auth/reset-password" element={<ResetPassword />} />
       {/* Protected routes */}
       <Route
         path="/profile"
@@ -187,6 +187,7 @@ function AppRoutes() {
                 <Route path="menu" element={<MenuPage />} />
                 <Route path="tables" element={<TablePage />} />
                 <Route path="bookings" element={<OwnerBookingsPage />} />
+                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
@@ -198,7 +199,7 @@ function AppRoutes() {
           </OwnerProtectedRoute>
         }
       />
-      
+
       {/* Admin routes */}
       <Route
         path="/admin/*"
@@ -236,7 +237,7 @@ function AppRoutes() {
       />
 
       {/* Redirects shorthand */}
-      <Route path="/login"    element={<Navigate to="/auth/login"    replace />} />
+      <Route path="/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/register" element={<Navigate to="/auth/register" replace />} />
     </Routes>
   );

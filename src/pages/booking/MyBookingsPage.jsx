@@ -6,11 +6,13 @@ import { AlertTriangle, X, Compass } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { useAuth } from '../../context/useAuth';
 import toast from 'react-hot-toast';
 import { ReviewFormModal } from '../../components/booking/ReviewFormModal';
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -166,6 +168,21 @@ export default function MyBookingsPage() {
             Xem, theo dõi trạng thái, chi tiết các đơn đặt bàn hoặc hủy đặt bàn trực tuyến của bạn.
           </p>
         </div>
+
+        {/* No-show warning badge */}
+        {user?.bookingBlockedUntil && new Date(user.bookingBlockedUntil) > new Date() ? (
+          <div className="mb-6 p-4 rounded-xl border border-rose-500/25 bg-rose-500/10 text-rose-100 flex items-center gap-3 text-sm text-left">
+            <span>🚫 Đã bị cấm đặt bàn đến {new Date(user.bookingBlockedUntil).toLocaleDateString('vi-VN')}</span>
+          </div>
+        ) : user?.noShowCounter >= 2 ? (
+          <div className="mb-6 p-4 rounded-xl border border-amber-500/25 bg-amber-500/10 text-amber-100 flex items-center gap-3 text-sm text-left">
+            <span>⚠️ Bạn đã có {user.noShowCounter}/3 lần vắng mặt. Thêm 1 lần nữa sẽ bị cấm đặt bàn 30 ngày.</span>
+          </div>
+        ) : user?.noShowCounter >= 1 ? (
+          <div className="mb-6 p-4 rounded-xl border border-blue-500/25 bg-blue-500/10 text-blue-100 flex items-center gap-3 text-sm text-left">
+            <span>ℹ️ Bạn đã có {user.noShowCounter}/3 lần vắng mặt.</span>
+          </div>
+        ) : null}
 
         {/* Tab Filters */}
         <div className="flex flex-wrap gap-1 bg-[#20242D] border border-border p-1 rounded-lg w-fit mb-8 justify-start text-xs font-semibold">
