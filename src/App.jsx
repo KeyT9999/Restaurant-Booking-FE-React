@@ -217,7 +217,6 @@ function AppRoutes() {
               <Route path="waitlists" element={<AdminWaitlists />} />
               <Route path="chat" element={<AdminChatPage />} />
               <Route path="revenue" element={<AdminRevenue />} />
-              <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
               <Route path="reviews" element={<AdminReviews />} />
