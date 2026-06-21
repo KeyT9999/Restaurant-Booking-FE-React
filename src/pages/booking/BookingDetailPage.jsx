@@ -6,8 +6,10 @@ import StatusTimeline from '../../components/booking/StatusTimeline';
 import ReviewForm from '../../components/review/ReviewForm';
 import RescheduleModal from '../../components/booking/RescheduleModal';
 import { ArrowLeft, Store, Calendar, Clock, Users, Tag, MessageSquare, AlertTriangle, X, Star, RefreshCw, QrCode } from 'lucide-react';
+import Header from '../../components/Header';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import toast from 'react-hot-toast';
-import './BookingDetailPage.css';
 
 const occasionLabels = {
   birthday: '🎂 Sinh nhật',
@@ -74,7 +76,7 @@ export default function BookingDetailPage() {
       if (res.success) {
         toast.success('Hủy đặt bàn thành công');
         setShowCancelDialog(false);
-        fetchBooking(); // refresh details
+        fetchBooking();
       } else {
         toast.error(res.message || 'Lỗi khi hủy đặt bàn');
       }
@@ -97,9 +99,12 @@ export default function BookingDetailPage() {
 
   if (loading) {
     return (
-      <div className="booking-detail-loading-container">
-        <div className="spinner"></div>
-        <p>Đang tải thông tin chi tiết đặt bàn...</p>
+      <div className="min-h-screen bg-background text-white flex flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center gap-3">
+          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground animate-pulse">Đang tải thông tin chi tiết đặt bàn...</p>
+        </div>
       </div>
     );
   }
@@ -114,234 +119,264 @@ export default function BookingDetailPage() {
   });
 
   return (
-    <div className="booking-detail-page-container">
-      {/* Header with Back button */}
-      <div className="detail-page-header">
-        <button className="btn-back" onClick={() => navigate('/my-bookings')}>
-          <ArrowLeft size={18} /> Quay lại danh sách
-        </button>
-        <div className="header-title-row">
-          <h2>Chi tiết đơn đặt bàn</h2>
-          <span className="booking-id-text">Mã số: #{booking.id.substring(18)}</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background text-white flex flex-col">
+      <Header />
 
-      <div className="detail-page-grid-layout">
-        {/* Left Column - Details */}
-        <div className="left-info-column">
-          {/* Status Panel */}
-          <div className="status-panel-card">
-            <span className="panel-label">Trạng thái đặt bàn hiện tại:</span>
-            <div className="badge-wrapper-row">
-              <StatusBadge status={booking.status} />
-            </div>
-            {booking.status === 'cancelled' && (
-              <div className="cancel-reason-notice-box">
-                <span className="notice-title">Lý do hủy đặt bàn:</span>
-                <p className="notice-body">{booking.cancellationReason || 'Không có lý do chi tiết'}</p>
-                <span className="notice-sub">Hủy bởi: {booking.cancelledBy === 'customer' ? 'Khách hàng' : booking.cancelledBy === 'restaurant' ? 'Nhà hàng' : 'Quản trị viên'}</span>
-              </div>
-            )}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
+        {/* Header Title with Back button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+          <div className="text-left">
+            <h2 className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Chi tiết đơn đặt bàn
+            </h2>
+            <span className="text-xs text-muted-foreground mt-1 block">
+              Mã đặt bàn: <strong className="font-mono text-white">#{booking.id.substring(18).toUpperCase()}</strong>
+            </span>
           </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/my-bookings')} className="border-border hover:bg-secondary text-xs font-semibold self-start sm:self-auto gap-1">
+            <ArrowLeft size={14} /> Quay lại danh sách
+          </Button>
+        </div>
 
-          {/* Restaurant Details */}
-          <div className="detail-section-card">
-            <h4 className="section-title">
-              <Store size={18} /> Thông tin nhà hàng
-            </h4>
-            <div className="restaurant-detail-box">
-              <div className="restaurant-meta-info">
-                <span className="res-name">{booking.restaurant?.name}</span>
-                <span className="res-address">
-                  {booking.restaurant?.address?.fullAddress || `${booking.restaurant?.address?.street}, ${booking.restaurant?.address?.ward}, ${booking.restaurant?.address?.district}, ${booking.restaurant?.address?.city}`}
-                </span>
+        {/* Page Grid: Left details, Right Timeline */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Left Column: Booking details */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+
+            {/* Status Panel Card */}
+            <Card className="p-5 bg-card border-border flex flex-col gap-3 text-left">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Trạng thái đặt bàn hiện tại</span>
+              <div className="mt-1">
+                <StatusBadge status={booking.status} />
+              </div>
+              {booking.status === 'cancelled' && (
+                <div className="mt-3 p-3.5 rounded-lg bg-rose-500/5 border border-rose-500/15 text-xs text-rose-400 leading-relaxed flex flex-col gap-1">
+                  <span className="font-bold">Lý do hủy đặt bàn:</span>
+                  <p className="text-white italic">&quot;{booking.cancellationReason || 'Không có lý do chi tiết'}&quot;</p>
+                  <span className="text-[10px] text-muted-foreground mt-1 capitalize">
+                    Yêu cầu hủy thực hiện bởi: {booking.cancelledBy === 'customer' ? 'Khách hàng' : booking.cancelledBy === 'restaurant' ? 'Nhà hàng' : 'Quản trị viên'}
+                  </span>
+                </div>
+              )}
+            </Card>
+
+            {/* Restaurant Detail Card */}
+            <Card className="p-5 bg-card border-border flex flex-col gap-3 text-left">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <Store size={16} className="text-primary" /> Thông tin nhà hàng
+              </h4>
+              <div className="text-xs text-muted-foreground flex flex-col gap-1.5 mt-1">
+                <span className="text-sm font-bold text-white block">{booking.restaurant?.name}</span>
+                <span>{booking.restaurant?.address}</span>
                 {booking.restaurant?.phoneNumber && (
-                  <span className="res-phone">Điện thoại liên hệ: <strong>{booking.restaurant.phoneNumber}</strong></span>
+                  <span className="mt-1 block">Điện thoại liên hệ: <strong className="text-white font-semibold">{booking.restaurant.phoneNumber}</strong></span>
                 )}
               </div>
-            </div>
-          </div>
+            </Card>
 
-          {/* Booking details */}
-          <div className="detail-section-card">
-            <h4 className="section-title">📅 Chi tiết đặt bàn</h4>
-            
-            <div className="details-vertical-list">
-              <div className="detail-row-item">
-                <div className="item-label">
-                  <Calendar size={16} /> Ngày dùng bữa:
+            {/* Booking Specifics */}
+            <Card className="p-5 bg-card border-border flex flex-col gap-4 text-left">
+              <h4 className="font-bold text-white text-sm border-b border-border/40 pb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                📅 Chi tiết cuộc hẹn đặt bàn
+              </h4>
+
+              <div className="flex flex-col gap-3.5 text-xs">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> Ngày dùng bữa:</span>
+                  <span className="font-semibold text-white">{formattedDate}</span>
                 </div>
-                <div className="item-val font-semibold">{formattedDate}</div>
-              </div>
 
-              <div className="detail-row-item">
-                <div className="item-label">
-                  <Clock size={16} /> Giờ dùng bữa:
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5"><Clock size={14} className="text-primary" /> Giờ dùng bữa:</span>
+                  <span className="font-bold text-primary">{booking.bookingTime}</span>
                 </div>
-                <div className="item-val font-bold text-amber">{booking.bookingTime}</div>
-              </div>
 
-              <div className="detail-row-item">
-                <div className="item-label">
-                  <Users size={16} /> Số lượng khách:
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5"><Users size={14} className="text-primary" /> Số lượng khách:</span>
+                  <span className="font-semibold text-white">{booking.numberOfGuests} người</span>
                 </div>
-                <div className="item-val">{booking.numberOfGuests} người</div>
-              </div>
 
-              <div className="detail-row-item">
-                <div className="item-label">🪑 Bàn được chọn:</div>
-                <div className="item-val font-semibold text-blue">
-                  {booking.tableNumbers && booking.tableNumbers.length > 0
-                    ? booking.tableNumbers.join(', ')
-                    : 'Nhà hàng tự động xếp bàn'}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-muted-foreground flex items-center gap-1.5">🪑 Bàn được chọn:</span>
+                  <span className="font-bold text-primary">
+                    {booking.tableNumbers && booking.tableNumbers.length > 0
+                      ? booking.tableNumbers.join(', ')
+                      : 'Nhà hàng tự động xếp chỗ'}
+                  </span>
                 </div>
-              </div>
 
-              {booking.occasion && (
-                <div className="detail-row-item">
-                  <div className="item-label">
-                    <Tag size={16} /> Dịp đặc biệt:
+                {booking.occasion && (
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-muted-foreground flex items-center gap-1.5"><Tag size={14} className="text-primary" /> Dịp đặc biệt:</span>
+                    <span className="font-semibold text-white">{occasionLabels[booking.occasion] || booking.occasion}</span>
                   </div>
-                  <div className="item-val">{occasionLabels[booking.occasion] || booking.occasion}</div>
-                </div>
-              )}
+                )}
 
-              {booking.specialRequests && (
-                <div className="detail-row-item vertical-item">
-                  <div className="item-label">
-                    <MessageSquare size={16} /> Yêu cầu đặc biệt:
+                {booking.specialRequests && (
+                  <div className="detail-row-item vertical-item text-left">
+                    <div className="item-label flex items-center gap-1.5 text-muted-foreground">
+                      <MessageSquare size={14} className="text-primary" /> Yêu cầu đặc biệt:
+                    </div>
+                    <div className="item-val block-text italic text-white mt-1">&quot;{booking.specialRequests}&quot;</div>
                   </div>
-                  <div className="item-val block-text italic">"{booking.specialRequests}"</div>
-                </div>
-              )}
+                )}
 
-              {booking.preOrderItems && booking.preOrderItems.length > 0 && (
-                <div className="detail-row-item vertical-item">
-                  <div className="item-label">🍽️ Món đặt trước:</div>
-                  <div className="item-val preorder-display">
-                    {booking.preOrderItems.map((item, idx) => (
-                      <div key={idx} className="preorder-display-row">
-                        <span>{item.nameSnapshot} x{item.quantity}</span>
-                        <span className="preorder-display-price">{(item.priceSnapshot * item.quantity).toLocaleString('vi-VN')}đ</span>
+                {booking.preOrderItems && booking.preOrderItems.length > 0 && (
+                  <div className="detail-row-item vertical-item text-left">
+                    <div className="item-label text-muted-foreground">🍽️ Món đặt trước:</div>
+                    <div className="item-val preorder-display mt-2 bg-secondary/25 border border-border/40 p-3 rounded-lg flex flex-col gap-2">
+                      {booking.preOrderItems.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs">
+                          <span>{item.nameSnapshot} x{item.quantity}</span>
+                          <span className="font-semibold">{(item.priceSnapshot * item.quantity).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                      ))}
+                      <div className="border-t border-border/40 pt-2 flex justify-between items-center font-bold">
+                        <span>Tổng:</span>
+                        <strong className="text-primary">{booking.preOrderItems.reduce((s, i) => s + i.priceSnapshot * i.quantity, 0).toLocaleString('vi-VN')}đ</strong>
                       </div>
-                    ))}
-                    <div className="preorder-display-total">
-                      <span>Tổng:</span>
-                      <strong>{booking.preOrderItems.reduce((s, i) => s + i.priceSnapshot * i.quantity, 0).toLocaleString('vi-VN')}đ</strong>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="detail-row-item">
-                <div className="item-label">💰 Tiền đặt cọc:</div>
-                <div className="item-val font-bold">
-                  {booking.depositAmount > 0
-                    ? `${new Intl.NumberFormat('vi-VN').format(booking.depositAmount)}đ`
-                    : '0đ (Đặt bàn miễn phí)'}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-muted-foreground">Tiền đặt cọc bàn:</span>
+                  <span className="font-bold text-white">
+                    {booking.depositAmount > 0
+                      ? `${new Intl.NumberFormat('vi-VN').format(booking.depositAmount)}đ`
+                      : '0đ (Đặt chỗ miễn phí)'}
+                  </span>
                 </div>
               </div>
-            </div>
-          </div>
+            </Card>
 
-          {/* Action buttons */}
-          <div className="booking-detail-actions-bar">
+            {/* Cancel Actions Button */}
             {canCancel() && (
-              <button className="btn btn-danger btn-cancel-large" onClick={handleCancelClick}>
-                Hủy đặt bàn này
-              </button>
+              <Button
+                variant="destructive"
+                onClick={handleCancelClick}
+                className="bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white h-11 w-full text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Hủy đơn đặt bàn này
+              </Button>
             )}
-            {['pending', 'confirmed'].includes(booking.status) && (
-              <>
-                <button
-                  className="btn btn-outline"
-                  onClick={() => navigate('/chat', { state: { restaurantId: booking.restaurantId, bookingId: booking._id } })}
-                >
-                  <MessageSquare size={16} /> Chat với nhà hàng
-                </button>
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setShowRescheduleModal(true)}
-                >
-                  <RefreshCw size={16} /> Đổi lịch
-                </button>
-                {booking.status === 'confirmed' && !booking.checkedInAt && (
-                  <button className="btn btn-outline" onClick={() => setShowQR(true)}>
-                    <QrCode size={16} /> QR Check-in
-                  </button>
+
+            {/* Review Section */}
+            {booking.status === 'completed' && !booking.reviewed && (
+              <div className="flex flex-col gap-3">
+                {showReviewForm ? (
+                  <ReviewForm
+                    bookingId={booking.id}
+                    onSuccess={() => {
+                      setShowReviewForm(false);
+                      fetchBooking();
+                    }}
+                    onCancel={() => setShowReviewForm(false)}
+                  />
+                ) : (
+                  <Button
+                    onClick={() => setShowReviewForm(true)}
+                    className="bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-white h-11 w-full text-xs font-bold uppercase tracking-wider gap-2"
+                  >
+                    <Star size={14} />
+                    Viết đánh giá cho nhà hàng
+                  </Button>
                 )}
-              </>
+              </div>
             )}
+
+            {booking.status === 'completed' && booking.reviewed && (
+              <div className="flex items-center gap-2 p-3.5 bg-emerald-500/5 border border-emerald-500/15 rounded-lg text-xs text-emerald-400">
+                <Star size={14} className="fill-emerald-400" />
+                <span className="font-semibold">Bạn đã đánh giá đơn đặt bàn này</span>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Timeline & Additional Actions */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <StatusTimeline
+              statusHistory={booking.statusHistory}
+              currentStatus={booking.status}
+            />
+
+            {/* Additional Actions Card */}
+            {['pending', 'confirmed'].includes(booking.status) && (
+              <Card className="p-5 bg-card border-border flex flex-col gap-3 text-left">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Thao tác nhanh</span>
+                <div className="flex flex-col gap-2 mt-1">
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                    onClick={() => navigate('/chat', { state: { restaurantId: booking.restaurantId, bookingId: booking._id } })}
+                  >
+                    <MessageSquare size={14} className="text-primary" /> Chat với nhà hàng
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                    onClick={() => setShowRescheduleModal(true)}
+                  >
+                    <RefreshCw size={14} className="text-primary" /> Đổi lịch dùng bữa
+                  </Button>
+                  
+                  {booking.status === 'confirmed' && !booking.checkedInAt && (
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs border-border text-white hover:bg-secondary h-10 gap-1.5"
+                      onClick={() => setShowQR(true)}
+                    >
+                      <QrCode size={14} className="text-primary" /> Mã QR check-in
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            )}
+
             {booking.checkedInAt && (
-              <span className="review-done-badge">✅ Đã check-in</span>
-            )}
-            {booking.status === 'completed' && !booking.reviewed && !reviewSubmitted && (
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowReviewForm(true)}
-              >
-                <Star size={16} /> Đánh giá ngay
-              </button>
-            )}
-            {booking.reviewed && (
-              <span className="review-done-badge">✅ Đã đánh giá</span>
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-emerald-400 text-sm font-bold flex items-center justify-center gap-1.5">
+                <span>✅ Đã check-in lúc {new Date(booking.checkedInAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
             )}
           </div>
-
-          {/* Review Form */}
-          {showReviewForm && (
-            <div className="booking-detail-review-section">
-              <ReviewForm
-                bookingId={booking._id}
-                restaurantId={booking.restaurantId}
-                onSuccess={() => {
-                  setShowReviewForm(false);
-                  setReviewSubmitted(true);
-                }}
-                onCancel={() => setShowReviewForm(false)}
-              />
-            </div>
-          )}
         </div>
+      </main>
 
-        {/* Right Column - Status History Timeline */}
-        <div className="right-timeline-column">
-          <StatusTimeline
-            statusHistory={booking.statusHistory}
-            currentStatus={booking.status}
-          />
-        </div>
-      </div>
-
-      {/* Cancel Dialog */}
+      {/* QR Code Modal */}
       {showQR && (
-        <div className="cancel-dialog-backdrop" onClick={() => setShowQR(false)}>
-          <div className="cancel-dialog-card" onClick={(e) => e.stopPropagation()}>
-            <div className="dialog-header">
-              <h4 className="flex items-center gap-2"><QrCode size={20} /> QR Check-in</h4>
-              <button className="close-dialog-btn" onClick={() => setShowQR(false)}><X size={18} /></button>
-            </div>
-            <div className="dialog-body" style={{ textAlign: 'center', padding: 'var(--spacing-24)' }}>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`bookeat://checkin?bookingId=${booking._id}`)}`}
-                alt="QR Check-in"
-                style={{ borderRadius: '8px', marginBottom: 'var(--spacing-16)' }}
-              />
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-faded-stone)' }}>
-                Đưa mã QR này cho nhà hàng để check-in nhanh
-              </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="absolute inset-0 z-0" onClick={() => setShowQR(false)} />
+          <Card className="relative z-10 w-full max-w-sm p-6 bg-card border-border shadow-2xl flex flex-col gap-4 text-center">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <h4 className="font-bold text-white flex items-center gap-2 text-sm">
+                <QrCode size={18} className="text-primary" /> Mã QR Check-in
+              </h4>
               <button
-                className="btn btn-primary"
                 onClick={() => setShowQR(false)}
-                style={{ marginTop: 'var(--spacing-12)' }}
+                className="p-1 rounded text-muted-foreground hover:text-white hover:bg-secondary transition focus:outline-none"
               >
-                Đóng
+                <X size={18} />
               </button>
             </div>
-          </div>
+            <div className="flex flex-col items-center gap-4 py-4">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`bookeat://checkin?bookingId=${booking._id}`)}`}
+                alt="QR Check-in"
+                className="rounded-lg border border-border bg-white p-2"
+              />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Đưa mã QR này cho nhân viên nhà hàng khi bạn đến để thực hiện check-in nhanh chóng.
+              </p>
+            </div>
+            <Button onClick={() => setShowQR(false)} className="bg-primary text-background font-bold text-xs h-10 w-full">
+              Đóng
+            </Button>
+          </Card>
         </div>
       )}
 
+      {/* Reschedule Modal */}
       {showRescheduleModal && (
         <RescheduleModal
           booking={booking}
@@ -353,48 +388,51 @@ export default function BookingDetailPage() {
         />
       )}
 
+      {/* Cancel Confirmation Dialog */}
       {showCancelDialog && (
-        <div className="cancel-dialog-backdrop" onClick={() => setShowCancelDialog(false)}>
-          <div
-            className="cancel-dialog-card"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cancel-detail-dialog-title"
-            onClick={(e) => e.stopPropagation()}
-          >            <div className="dialog-header">
-              <h4 className="text-danger flex items-center gap-2">
-                <AlertTriangle size={20} /> Xác nhận hủy đặt bàn
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="absolute inset-0 z-0" onClick={() => setShowCancelDialog(false)} />
+
+          <Card className="relative z-10 w-full max-w-md p-6 bg-card border-border shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <h4 className="font-bold text-rose-400 flex items-center gap-2 text-sm">
+                <AlertTriangle size={18} /> Xác nhận hủy đặt bàn
               </h4>
-              <button className="close-dialog-btn" onClick={() => setShowCancelDialog(false)}>
+              <button
+                onClick={() => setShowCancelDialog(false)}
+                className="p-1 rounded text-muted-foreground hover:text-white hover:bg-secondary transition focus:outline-none"
+              >
                 <X size={18} />
               </button>
             </div>
-            
-            <div className="dialog-body">
-              <p>Bạn có chắc chắn muốn hủy đặt bàn này không? Hành động này không thể hoàn tác.</p>
-              
-              <div className="form-group">
-                <label className="input-label">Lý do hủy đặt bàn (tùy chọn):</label>
+
+            <div className="flex flex-col gap-4 text-xs text-left">
+              <p className="text-muted-foreground leading-relaxed">
+                Bạn có chắc chắn muốn hủy đặt bàn này không? Hành động này sẽ gửi yêu cầu hủy và không thể tự hoàn tác.
+              </p>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-muted-foreground font-semibold">Lý do hủy đặt bàn (tùy chọn):</label>
                 <textarea
-                  className="form-control"
                   rows="3"
+                  maxLength="200"
                   placeholder="Nhập lý do hủy đặt bàn..."
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  maxLength="200"
-                ></textarea>
+                  className="w-full bg-secondary/40 border border-border rounded-lg p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed"
+                />
               </div>
             </div>
 
-            <div className="dialog-footer">
-              <button className="btn btn-outline" onClick={() => setShowCancelDialog(false)} disabled={isCancelling}>
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-border/40 text-xs">
+              <Button variant="outline" onClick={() => setShowCancelDialog(false)} disabled={isCancelling} className="border-border text-white hover:bg-secondary h-9 text-xs font-semibold">
                 Quay lại
-              </button>
-              <button className="btn btn-danger" onClick={handleConfirmCancel} disabled={isCancelling}>
+              </Button>
+              <Button onClick={handleConfirmCancel} disabled={isCancelling} className="bg-rose-500 hover:bg-rose-600 text-white h-9 text-xs font-bold px-4">
                 {isCancelling ? 'Đang hủy...' : 'Xác nhận hủy đặt bàn'}
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>

@@ -8,10 +8,10 @@ import CancelReasonModal from '../../components/owner/CancelReasonModal';
 import ChangeTableModal from '../../components/owner/ChangeTableModal';
 import CreateBookingModal from '../../components/owner/CreateBookingModal';
 import BulkCancelModal from '../../components/owner/BulkCancelModal';
-import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users, Download, Plus, AlertTriangle } from 'lucide-react';
+import { Search, RefreshCw, Clipboard, CheckCircle, XCircle, Users, Download, Plus, AlertTriangle, Calendar, Clock } from 'lucide-react';
 import axiosInstance from '../../api/axiosInstance';
 import toast from 'react-hot-toast';
-import './OwnerBookingsPage.css';
+import { Button } from '../../components/ui/button';
 
 export default function OwnerBookingsPage() {
   const { selectedRestaurantId, isRestaurantReady } = useRestaurantContext();
@@ -96,34 +96,81 @@ export default function OwnerBookingsPage() {
     }
   }, [selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page]);
 
+  // Main data load — only when restaurant or filter criteria really change
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (isRestaurantReady) {
-        fetchBookings();
-        fetchStats();
-        fetchRevenue();
-      } else {
-        setBookings([]);
-        setStats(null);
-        setRevenueStats(null);
-        setLoading(false);
+    if (!isRestaurantReady || !selectedRestaurantId) {
+      setBookings([]);
+      setStats(null);
+      setRevenueStats(null);
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [bookingRes, statsRes, revenueRes] = await Promise.all([
+          getRestaurantBookings({
+            restaurantId: selectedRestaurantId,
+            status: filterStatus || undefined,
+            search: searchQuery || undefined,
+            fromDate: fromDate || undefined,
+            toDate: toDate || undefined,
+            page,
+            limit: 10,
+          }),
+          getBookingStats({ restaurantId: selectedRestaurantId, period: 'all' }),
+          getRevenueStats({ restaurantId: selectedRestaurantId, period: revenuePeriod }),
+        ]);
+
+        if (cancelled) return;
+
+        if (bookingRes.success) {
+          setBookings(bookingRes.data.bookings || []);
+          setTotalPages(bookingRes.data.totalPages || 1);
+        }
+
+        if (statsRes.success) {
+          setStats(statsRes.data);
+        }
+
+        if (revenueRes.success) {
+          setRevenueStats(revenueRes.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error fetching bookings/stats/revenue:', err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }, 0);
+    };
 
-    return () => window.clearTimeout(timeoutId);
-  }, [isRestaurantReady, fetchBookings, fetchStats]);
+    // Debounce search input; immediate for other filter changes
+    const delay = searchQuery ? 400 : 0;
+    const timerId = window.setTimeout(load, delay);
 
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
+  }, [isRestaurantReady, selectedRestaurantId, filterStatus, searchQuery, fromDate, toDate, page, revenuePeriod]);
+
+  // Listen for real-time booking events (socket-dispatched custom events)
   useEffect(() => {
     const handleBookingEvent = (event) => {
       const eventRestaurantId = event.detail?.payload?.restaurantId?.toString?.() || event.detail?.payload?.restaurantId;
       if (eventRestaurantId && eventRestaurantId !== selectedRestaurantId) return;
       fetchBookings();
       fetchStats();
+      fetchRevenue();
     };
 
     window.addEventListener('bookeat:booking-event', handleBookingEvent);
     return () => window.removeEventListener('bookeat:booking-event', handleBookingEvent);
-  }, [fetchBookings, fetchStats, selectedRestaurantId]);
+  }, [fetchBookings, fetchStats, fetchRevenue, selectedRestaurantId]);
 
   // Handlers
   const handleConfirm = async (id) => {
@@ -133,6 +180,7 @@ export default function OwnerBookingsPage() {
         toast.success('Xác nhận đặt bàn thành công');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể xác nhận đặt bàn');
       }
@@ -149,6 +197,7 @@ export default function OwnerBookingsPage() {
         toast.success('Hoàn thành đặt bàn thành công');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể hoàn tất đặt bàn');
       }
@@ -165,6 +214,7 @@ export default function OwnerBookingsPage() {
         toast.success('Đã đánh dấu khách vắng mặt (no-show)');
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể đánh dấu đặt bàn');
       }
@@ -183,6 +233,7 @@ export default function OwnerBookingsPage() {
         setCancellingBooking(null);
         fetchBookings();
         fetchStats();
+        fetchRevenue();
       } else {
         toast.error(res.message || 'Không thể hủy đặt bàn');
       }
@@ -199,14 +250,18 @@ export default function OwnerBookingsPage() {
       pages.push(
         <button
           key={i}
-          className={`owner-pagination-btn ${page === i ? 'active' : ''}`}
+          className={`w-8 h-8 rounded-lg text-xs font-semibold border flex items-center justify-center transition-all ${
+            page === i
+              ? 'bg-primary text-black border-primary'
+              : 'border-border bg-card text-muted-foreground hover:text-white hover:bg-secondary/40'
+          }`}
           onClick={() => setPage(i)}
         >
           {i}
         </button>
       );
     }
-    return <div className="owner-bookings-pagination">{pages}</div>;
+    return <div className="flex justify-center items-center gap-1.5 mt-6">{pages}</div>;
   };
 
   const handleExportCSV = async () => {
@@ -239,75 +294,107 @@ export default function OwnerBookingsPage() {
   if (!isRestaurantReady) {
     return (
       <OwnerLayout title="Quản lý Đặt bàn" subtitle="Xem và duyệt đặt bàn từ khách hàng">
-        <div className="owner-bookings-empty-state">
-          <Clipboard size={48} />
-          <p>Vui lòng chọn hoặc thiết lập nhà hàng để xem đơn đặt bàn</p>
+        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border/40 bg-card/10 rounded-2xl text-center max-w-lg mx-auto my-10">
+          <Clipboard size={48} className="text-muted-foreground/60 mb-4 animate-pulse" />
+          <p className="text-sm text-muted-foreground">Vui lòng chọn hoặc thiết lập nhà hàng ở thanh bên để xem đơn đặt bàn.</p>
         </div>
       </OwnerLayout>
     );
   }
 
   return (
-    <OwnerLayout title="Quản lý Đặt bàn" subtitle="Theo dõi, duyệt và sắp xếp đặt bàn ăn">
+    <OwnerLayout title="Quản lý Đặt bàn" subtitle="Theo dõi, duyệt đặt bàn và sắp xếp chỗ ngồi cho thực khách">
       {/* Stats Cards */}
       {stats && (
-        <div className="owner-bookings-stats-grid">
-          <div className="stats-card">
-            <span className="stats-val">{stats.totalBookings}</span>
-            <span className="stats-label">Tổng đơn đặt bàn</span>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between hover:border-primary/30 transition-all text-left">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tổng đơn đặt bàn</span>
+            <div className="flex items-baseline justify-between mt-2">
+              <span className="text-2xl font-bold text-white">{stats.totalBookings}</span>
+              <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400"><Clipboard size={16} /></span>
+            </div>
           </div>
-          <div className="stats-card stats-card--yellow">
-            <span className="stats-val">{stats.pending}</span>
-            <span className="stats-label">Chờ xác nhận</span>
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all text-left">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Chờ xác nhận</span>
+            <div className="flex items-baseline justify-between mt-2">
+              <span className="text-2xl font-bold text-amber-500">{stats.pending}</span>
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+            </div>
           </div>
-          <div className="stats-card stats-card--blue">
-            <span className="stats-val">{stats.confirmed}</span>
-            <span className="stats-label">Đang chờ phục vụ</span>
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between hover:border-blue-500/30 transition-all text-left">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Chờ phục vụ</span>
+            <div className="flex items-baseline justify-between mt-2">
+              <span className="text-2xl font-bold text-sky-400">{stats.confirmed}</span>
+              <span className="w-2 h-2 rounded-full bg-sky-400" />
+            </div>
           </div>
-          <div className="stats-card stats-card--green">
-            <span className="stats-val">{stats.completed}</span>
-            <span className="stats-label">Dùng bữa hoàn tất</span>
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/30 transition-all text-left">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Đã hoàn thành</span>
+            <div className="flex items-baseline justify-between mt-2">
+              <span className="text-2xl font-bold text-emerald-500">{stats.completed}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            </div>
           </div>
         </div>
       )}
 
       {/* Revenue Stats */}
       {revenueStats && (
-        <div className="owner-revenue-section">
-          <div className="revenue-header">
-            <h3>Doanh thu đặt cọc</h3>
-            <div className="revenue-period-selector">
-              <button className={`period-btn ${revenuePeriod === 'today' ? 'active' : ''}`} onClick={() => setRevenuePeriod('today')}>Hôm nay</button>
-              <button className={`period-btn ${revenuePeriod === 'week' ? 'active' : ''}`} onClick={() => setRevenuePeriod('week')}>7 ngày</button>
-              <button className={`period-btn ${revenuePeriod === 'month' ? 'active' : ''}`} onClick={() => setRevenuePeriod('month')}>30 ngày</button>
-              <button className={`period-btn ${revenuePeriod === 'year' ? 'active' : ''}`} onClick={() => setRevenuePeriod('year')}>1 năm</button>
+        <div className="bg-card border border-border rounded-xl p-5 mb-6 text-left animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h3 className="font-serif text-lg font-bold text-white">Doanh thu đặt cọc</h3>
+            <div className="flex gap-1 bg-[#0F1115] border border-border p-1 rounded-lg text-xs font-semibold">
+              {[
+                { value: 'today', label: 'Hôm nay' },
+                { value: 'week', label: '7 ngày' },
+                { value: 'month', label: '30 ngày' },
+                { value: 'year', label: '1 năm' },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                    revenuePeriod === p.value
+                      ? 'bg-primary text-background font-bold'
+                      : 'text-muted-foreground hover:text-white'
+                  }`}
+                  onClick={() => setRevenuePeriod(p.value)}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
-          <div className="revenue-stats-grid">
-            <div className="revenue-card revenue-card--primary">
-              <span className="revenue-val">{revenueStats.totalDeposits?.toLocaleString('vi-VN')}đ</span>
-              <span className="revenue-label">Tổng tiền cọc</span>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-primary/25 transition-all">
+              <span className="text-2xl font-bold text-primary">{revenueStats.totalDeposits?.toLocaleString('vi-VN')}đ</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Tổng tiền cọc</span>
             </div>
-            <div className="revenue-card revenue-card--info">
-              <span className="revenue-val">{revenueStats.paidBookingCount}</span>
-              <span className="revenue-label">Đã đóng cọc ({revenueStats.paidRate}%)</span>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-sky-500/25 transition-all">
+              <span className="text-2xl font-bold text-sky-400">{revenueStats.paidBookingCount}</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Đã đóng cọc ({revenueStats.paidRate}%)</span>
             </div>
-            <div className="revenue-card revenue-card--accent">
-              <span className="revenue-val">{revenueStats.totalGuests}</span>
-              <span className="revenue-label">Khách đã dùng bữa</span>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/25 transition-all">
+              <span className="text-2xl font-bold text-emerald-400">{revenueStats.totalGuests}</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Khách đã dùng bữa</span>
             </div>
-            <div className="revenue-card revenue-card--muted">
-              <span className="revenue-val">{revenueStats.avgDepositPerPaid?.toLocaleString('vi-VN')}đ</span>
-              <span className="revenue-label">Cọc trung bình</span>
+            <div className="bg-[#0F1115]/40 border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:border-muted/25 transition-all">
+              <span className="text-2xl font-bold text-white">{revenueStats.avgDepositPerPaid?.toLocaleString('vi-VN')}đ</span>
+              <span className="text-xs text-muted-foreground mt-1 font-medium">Cọc trung bình</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Export & Filter toolbar */}
-      <div className="owner-bookings-toolbar">
-        <div className="toolbar-left-filters">
-          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
+      {/* Filter toolbar */}
+      <div className="bg-card border border-border rounded-xl p-4 mb-6 flex flex-col xl:flex-row gap-3 items-center justify-between">
+        <div className="flex flex-col lg:flex-row items-center gap-3 w-full xl:w-auto flex-1">
+          {/* Lọc trạng thái */}
+          <select 
+            value={filterStatus} 
+            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+            className="bg-[#0F1115] border border-border text-white text-xs rounded-lg px-3 py-2 focus:ring-primary focus:border-primary focus:outline-none h-9 w-full lg:w-[170px] cursor-pointer shrink-0"
+            aria-label="Lọc trạng thái"
+          >
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ xác nhận</option>
             <option value="confirmed">Đã xác nhận</option>
@@ -316,80 +403,107 @@ export default function OwnerBookingsPage() {
             <option value="no_show">Vắng mặt (No-show)</option>
           </select>
 
-          <div className="date-filters-group">
+          {/* Lọc khoảng ngày */}
+          <div className="flex items-center gap-2 w-full lg:w-auto shrink-0">
             <input
               type="date"
-              className="toolbar-date-input"
+              className="bg-[#0F1115] border border-border text-white text-xs rounded-lg px-3 py-2 focus:ring-primary focus:border-primary focus:outline-none h-9 w-full sm:w-[140px]"
               value={fromDate}
               onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
               placeholder="Từ ngày"
+              aria-label="Từ ngày"
             />
-            <span className="date-sep">to</span>
+            <span className="text-xs text-muted-foreground/60 shrink-0">đến</span>
             <input
               type="date"
-              className="toolbar-date-input"
+              className="bg-[#0F1115] border border-border text-white text-xs rounded-lg px-3 py-2 focus:ring-primary focus:border-primary focus:outline-none h-9 w-full sm:w-[140px]"
               value={toDate}
               onChange={(e) => { setToDate(e.target.value); setPage(1); }}
               placeholder="Đến ngày"
+              aria-label="Đến ngày"
             />
           </div>
 
-          <div className="search-input-wrapper">
-            <Search size={16} className="search-icon" />
+          {/* Tìm kiếm */}
+          <div className="relative w-full lg:max-w-xs text-left">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Tìm khách hàng (tên, SĐT)..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              className="bg-[#0F1115] border border-border text-white text-xs rounded-lg pl-9 pr-3 py-2 focus:ring-primary focus:border-primary focus:outline-none h-9 w-full"
+              aria-label="Tìm kiếm đặt bàn"
             />
           </div>
         </div>
 
-        <button className="btn-export" onClick={handleExportCSV} title="Xuất CSV">
-          <Download size={16} />
-          <span>Xuất CSV</span>
-        </button>
-        <button className="btn-create-booking" onClick={() => setShowCreateModal(true)} title="Tạo đặt bàn thủ công">
-          <Plus size={16} />
-          <span>Tạo đặt bàn</span>
-        </button>
-        <button className="btn-bulk-cancel" onClick={() => setShowBulkCancelModal(true)} title="Hủy hàng loạt">
-          <AlertTriangle size={16} />
-          <span>Hủy hàng loạt</span>
-        </button>
-        <button className="btn-refresh" onClick={() => { fetchBookings(); fetchStats(); fetchRevenue(); }} title="Làm mới">
-          <RefreshCw size={16} />
-        </button>
+        <div className="flex flex-wrap gap-2 w-full xl:w-auto justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <Download size={14} className="text-primary" /> Xuất CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreateModal(true)}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <Plus size={14} className="text-primary" /> Tạo đặt bàn
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowBulkCancelModal(true)}
+            className="border-border hover:bg-rose-500/10 text-rose-450 hover:text-rose-400 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <AlertTriangle size={14} /> Hủy hàng loạt
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { fetchBookings(); fetchStats(); fetchRevenue(); }}
+            className="border-border hover:bg-secondary/40 text-xs h-9 shrink-0 gap-1.5"
+          >
+            <RefreshCw size={14} /> Làm mới
+          </Button>
+        </div>
       </div>
 
       {/* Booking Table */}
-      <div className="owner-bookings-table-container">
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-lg">
         {loading ? (
-          <div className="owner-bookings-loading">
-            <div className="spinner"></div>
+          <div className="p-20 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
             <p>Đang tải danh sách đặt bàn...</p>
           </div>
         ) : bookings.length === 0 ? (
-          <div className="owner-bookings-empty-state">
-            <Clipboard size={48} />
-            <h3>Chưa có đơn đặt bàn nào</h3>
-            <p>Đơn đặt bàn của khách hàng cho ngày và bộ lọc đã chọn sẽ xuất hiện tại đây.</p>
+          <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border/40 bg-card/10 rounded-2xl text-center max-w-lg mx-auto my-10">
+            <Clipboard size={48} className="text-primary/70 mb-4 animate-pulse" />
+            <h3 className="font-serif text-lg font-bold text-white mb-2">Chưa có đơn đặt bàn nào</h3>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Đơn đặt bàn của khách hàng cho ngày và bộ lọc đã chọn sẽ xuất hiện tại đây.
+            </p>
           </div>
         ) : (
           <>
-            <div className="table-responsive">
-              <table className="owner-bookings-table">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr>
-                    <th>Khách hàng</th>
-                    <th>Thời gian</th>
-                    <th>Số khách</th>
-                    <th>Bàn Assigned</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
+                  <tr className="border-b border-border bg-[#0F1115]/50 text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                    <th className="p-4">Khách hàng</th>
+                    <th className="p-4">Thời gian</th>
+                    <th className="p-4">Số khách</th>
+                    <th className="p-4">Bàn gán</th>
+                    <th className="p-4">Trạng thái</th>
+                    <th className="p-4 text-right">Hành động</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border/60 text-sm">
                   {bookings.map((b) => {
                     const bDateStr = new Date(b.bookingDate).toLocaleDateString('vi-VN', {
                       day: '2-digit',
@@ -398,85 +512,106 @@ export default function OwnerBookingsPage() {
                     });
 
                     return (
-                      <tr key={b.id} className="booking-table-row" onClick={() => setSelectedBookingId(b.id)}>
-                        <td className="customer-cell" data-label="Khach hang" onClick={(e) => e.stopPropagation()}>
-                          <div className="cust-info">
-                            <span className="cust-name" onClick={() => setSelectedBookingId(b.id)} style={{ cursor: 'pointer' }}>{b.customerName}</span>
-                            <span className="cust-phone">{b.customerPhone}</span>
-                            <span className="cust-email">{b.customerEmail}</span>
+                      <tr 
+                        key={b.id} 
+                        className="hover:bg-secondary/10 transition-colors cursor-pointer" 
+                        onClick={() => setSelectedBookingId(b.id)}
+                      >
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex flex-col text-left">
+                            <span 
+                              className="font-bold text-white hover:text-primary transition-colors cursor-pointer" 
+                              onClick={() => setSelectedBookingId(b.id)}
+                            >
+                              {b.customerName}
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-0.5">{b.customerPhone}</span>
+                            <span className="text-[11px] text-muted-foreground/80">{b.customerEmail}</span>
                           </div>
                         </td>
-                        <td data-label="Thoi gian">
-                          <div className="time-info">
-                            <span className="time-val font-bold">{b.bookingTime}</span>
-                            <span className="date-val">{bDateStr}</span>
+                        <td className="p-4 text-left">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-white flex items-center gap-1">
+                              <Clock size={12} className="text-muted-foreground/70" />
+                              {b.bookingTime}
+                            </span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Calendar size={12} className="text-muted-foreground/60" />
+                              {bDateStr}
+                            </span>
                           </div>
                         </td>
-                        <td data-label="So khach">
-                          <div className="flex items-center gap-1">
-                            <Users size={14} className="text-gray-400" />
-                            <strong>{b.numberOfGuests}</strong> khách
+                        <td className="p-4 text-left">
+                          <div className="inline-flex items-center gap-1.5 text-white font-medium">
+                            <Users size={14} className="text-muted-foreground" />
+                            <span>{b.numberOfGuests}</span>
                           </div>
                         </td>
-                        <td data-label="Ban">
-                          <span className="table-numbers-badge">
+                        <td className="p-4 text-left">
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold text-primary bg-primary/5 rounded border border-primary/20">
                             {b.tableNumbers?.length > 0 ? b.tableNumbers.join(', ') : 'Chưa gán bàn'}
                           </span>
                         </td>
-                        <td data-label="Trang thai">
+                        <td className="p-4 text-left">
                           <StatusBadge status={b.status} />
                         </td>
-                        <td className="actions-cell" data-label="Hanh dong" onClick={(e) => e.stopPropagation()}>
-                          <div className="row-actions-wrapper">
+                        <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex justify-end items-center gap-1.5">
                             {b.status === 'pending' && (
                               <>
-                                <button
-                                  className="action-icon-btn btn-confirm"
+                                <Button
+                                  variant="default"
+                                  size="sm"
                                   onClick={() => handleConfirm(b.id)}
-                                  title="Xác nhận đặt bàn"
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8 px-2.5"
                                 >
-                                  <CheckCircle size={16} /> Duyệt
-                                </button>
-                                <button
-                                  className="action-icon-btn btn-cancel"
+                                  Duyệt
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
                                   onClick={() => setCancellingBooking({ id: b.id, name: b.customerName })}
-                                  title="Từ chối/Hủy"
+                                  className="text-xs h-8 px-2.5"
                                 >
-                                  <XCircle size={16} /> Từ chối
-                                </button>
+                                  Từ chối
+                                </Button>
                               </>
                             )}
 
                             {b.status === 'confirmed' && (
                               <>
-                                <button
-                                  className="action-icon-btn btn-confirm"
+                                <Button
+                                  variant="default"
+                                  size="sm"
                                   onClick={() => handleComplete(b.id)}
-                                  title="Hoàn tất dùng bữa"
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8 px-2.5"
                                 >
                                   Hoàn thành
-                                </button>
-                                <button
-                                  className="action-icon-btn btn-change-table"
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   onClick={() => setChangingTableBooking({ id: b.id, tables: b.tableNumbers })}
-                                  title="Đổi bàn"
+                                  className="border-border hover:bg-secondary/40 text-xs h-8 px-2.5"
                                 >
                                   Đổi bàn
-                                </button>
-                                <button
-                                  className="action-icon-btn btn-no-show"
+                                </Button>
+                                <Button
+                                  variant="default"
+                                  size="sm"
                                   onClick={() => handleNoShow(b.id)}
-                                  title="Đánh dấu khách không đến"
+                                  className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-8 px-2.5"
                                 >
                                   No-show
-                                </button>
-                                <button
-                                  className="action-icon-btn btn-cancel"
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
                                   onClick={() => setCancellingBooking({ id: b.id, name: b.customerName })}
-                                  title="Hủy đặt bàn"
+                                  className="text-xs h-8 px-2.5"
                                 >
                                   Hủy
-                                </button>
+                                </Button>
                               </>
                             )}
                           </div>
@@ -501,6 +636,7 @@ export default function OwnerBookingsPage() {
           onActionComplete={() => {
             fetchBookings();
             fetchStats();
+            fetchRevenue();
           }}
           onCancelClick={(id, name) => {
             setSelectedBookingId(null);

@@ -21,34 +21,34 @@ export default function useWaitlistNotifications() {
     switch (eventName) {
       case 'waitlist:created':
         if (isOwner || isAdmin) {
-          toast.success(`${customerName} vua tham gia danh sach cho.`, {
+          toast.success(`${customerName} vừa tham gia danh sách chờ.`, {
             id: getToastId('waitlist-created', payload),
           });
         } else if (isCustomer) {
-          toast.success('Yeu cau danh sach cho da duoc gui den nha hang.', {
+          toast.success('Yêu cầu danh sách chờ đã được gửi đến nhà hàng.', {
             id: getToastId('waitlist-created', payload),
           });
         }
         break;
       case 'waitlist:confirmed':
         if (isCustomer) {
-          toast.success('Nha hang da co ban trong va xac nhan yeu cau cua ban.', {
+          toast.success('Nhà hàng đã có bàn trống và xác nhận yêu cầu của bạn.', {
             id: getToastId('waitlist-confirmed', payload),
             duration: 6000,
           });
         } else {
-          toast.success(`Da xac nhan waitlist cua ${customerName}.`, {
+          toast.success(`Đã xác nhận danh sách chờ của ${customerName}.`, {
             id: getToastId('waitlist-confirmed', payload),
           });
         }
         break;
       case 'waitlist:cancelled':
-        toast.error(isCustomer ? 'Yeu cau danh sach cho da bi huy.' : `Waitlist cua ${customerName} da bi huy.`, {
+        toast.error(isCustomer ? 'Yêu cầu danh sách chờ đã bị hủy.' : `Danh sách chờ của ${customerName} đã bị hủy.`, {
           id: getToastId('waitlist-cancelled', payload),
         });
         break;
       case 'waitlist:expired':
-        toast.error(isCustomer ? 'Yeu cau danh sach cho da het thoi gian cho.' : `Waitlist cua ${customerName} da het han.`, {
+        toast.error(isCustomer ? 'Yêu cầu danh sách chờ đã hết thời gian chờ.' : `Danh sách chờ của ${customerName} đã hết hạn.`, {
           id: getToastId('waitlist-expired', payload),
         });
         break;

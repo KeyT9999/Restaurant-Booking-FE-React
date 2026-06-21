@@ -1,4 +1,5 @@
-import './StatusTimeline.css';
+import { cn } from '../ui/utils';
+import { Card } from '../ui/card';
 
 const statusLabels = {
   pending: 'Đặt bàn chờ duyệt',
@@ -17,9 +18,11 @@ export default function StatusTimeline({ statusHistory = [] }) {
   );
 
   return (
-    <div className="status-timeline" aria-label="Lịch sử trạng thái đặt bàn">
-      <h5 className="timeline-title">📊 Lịch sử trạng thái</h5>
-      <div className="timeline-container" role="list">
+    <Card className="p-5 bg-card border-border flex flex-col gap-4 text-left" aria-label="Lịch sử trạng thái đặt bàn">
+      <h5 className="font-bold text-white text-sm pb-3 border-b border-border/60" style={{ fontFamily: "'Playfair Display', serif" }}>
+        📊 Lịch sử trạng thái đơn
+      </h5>
+      <div className="flex flex-col relative pl-6 border-l border-border/60 ml-2 mt-2 gap-6" role="list">
         {sortedHistory.map((historyItem, idx) => {
           const isLast = idx === sortedHistory.length - 1;
           const dateStr = new Date(historyItem.changedAt).toLocaleString('vi-VN', {
@@ -33,32 +36,47 @@ export default function StatusTimeline({ statusHistory = [] }) {
           return (
             <div
               key={historyItem._id || idx}
-              className={`timeline-item ${isLast ? 'timeline-item-active' : ''}`}
+              className="relative flex flex-col gap-1.5 text-xs text-muted-foreground"
               role="listitem"
               aria-label={`${statusLabels[historyItem.status] || historyItem.status} - ${dateStr}`}
             >
-              <div className="timeline-marker" aria-hidden="true">
-                <div className={`timeline-dot ${historyItem.status}`}></div>
-                {!isLast && <div className="timeline-line"></div>}
+              {/* timeline dot indicator */}
+              <span className={cn(
+                "absolute -left-[30px] top-1 h-3.5 w-3.5 rounded-full border bg-card flex items-center justify-center",
+                isLast ? "border-primary" : "border-border"
+              )}>
+                <span className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  historyItem.status === 'confirmed' ? 'bg-emerald-400' :
+                  historyItem.status === 'pending' ? 'bg-amber-400' :
+                  historyItem.status === 'cancelled' ? 'bg-rose-400' :
+                  historyItem.status === 'completed' ? 'bg-zinc-400' : 'bg-primary'
+                )} />
+              </span>
+
+              <div className="flex justify-between items-center gap-2">
+                <span className={cn(
+                  "font-bold text-white",
+                  isLast && "text-primary"
+                )}>
+                  {statusLabels[historyItem.status] || historyItem.status}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{dateStr}</span>
               </div>
-              <div className="timeline-content">
-                <div className="timeline-header">
-                  <span className="timeline-status-label">
-                    {statusLabels[historyItem.status] || historyItem.status}
-                  </span>
-                  <span className="timeline-time">{dateStr}</span>
-                </div>
-                {historyItem.note && (
-                  <p className="timeline-note">{historyItem.note}</p>
-                )}
-                {historyItem.changedBy && historyItem.changedBy.fullName && (
-                  <span className="timeline-actor">Thực hiện bởi: {historyItem.changedBy.fullName}</span>
-                )}
-              </div>
+              {historyItem.note && (
+                <p className="text-xs text-muted-foreground/85 italic bg-secondary/20 p-2 border border-border/40 rounded mt-0.5 leading-relaxed">
+                  {historyItem.note}
+                </p>
+              )}
+              {historyItem.changedBy && historyItem.changedBy.fullName && (
+                <span className="text-[10px] text-muted-foreground/60">
+                  Thực hiện bởi: <strong className="text-muted-foreground">{historyItem.changedBy.fullName}</strong>
+                </span>
+              )}
             </div>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }

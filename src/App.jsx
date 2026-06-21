@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthProvider';
-import Login           from './pages/auth/Login';
-import Register        from './pages/auth/Register';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import RegisterSuccess from './pages/auth/RegisterSuccess';
-import GoogleCallback  from './pages/auth/GoogleCallback';
-import VerifyEmail     from './pages/auth/VerifyEmail';
-import ForgotPassword  from './pages/auth/ForgotPassword';
-import ResetPassword   from './pages/auth/ResetPassword';
-import HomePage        from './pages/home/HomePage';
+import GoogleCallback from './pages/auth/GoogleCallback';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import HomePage from './pages/home/HomePage';
 import RestaurantsPage from './pages/restaurants/RestaurantsPage';
-import ProfilePage     from './pages/profile/ProfilePage';
-import ProtectedRoute  from './components/ProtectedRoute';
+import ProfilePage from './pages/profile/ProfilePage';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -23,7 +23,11 @@ import AdminChatPage from './pages/admin/AdminChatPage';
 import OwnerProtectedRoute from './components/owner/OwnerProtectedRoute';
 import { ChatWidgetProvider } from './context/ChatWidgetProvider';
 import MiniChatWidget from './components/chat-widget/MiniChatWidget';
+import CustomerAIWidget from './components/ai-chat/CustomerAIWidget';
+import OwnerAIWidget from './components/ai-chat/OwnerAIWidget';
+import AdminAIWidget from './components/ai-chat/AdminAIWidget';
 import { RestaurantProvider } from './context/RestaurantProvider';
+import { NotificationProvider } from './context/NotificationProvider';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import OwnerChatPage from './pages/owner/OwnerChatPage';
 import OwnerRestaurants from './pages/owner/OwnerRestaurants';
@@ -44,39 +48,36 @@ import AdminRevenue from './pages/admin/AdminRevenue';
 import AdminRefunds from './pages/admin/AdminRefunds';
 import OwnerVouchers from './pages/owner/OwnerVouchers';
 import SavedVouchers from './pages/profile/SavedVouchers';
+import MyFavoritesPage from './pages/profile/MyFavoritesPage';
 import AdminVouchers from './pages/admin/AdminVouchers';
+import VoucherCenter from './pages/restaurants/VoucherCenter';
+import VoucherDetail from './pages/restaurants/VoucherDetail';
 import WaitlistFormPage from './pages/waitlist/WaitlistFormPage';
 import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
 import OwnerWaitlistPage from './pages/owner/OwnerWaitlistPage';
+import OwnerReviewsPage from './pages/owner/OwnerReviewsPage';
+import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
-import MyReviewsPage from './pages/review/MyReviewsPage';
-import OwnerReviewsPage from './pages/review/OwnerReviewsPage';
-import AdminReviewsPage from './pages/review/AdminReviewsPage';
-import NotificationsPage from './pages/notification/NotificationsPage';
-import MyFavoritesPage from './pages/favorite/MyFavoritesPage';
-import { NotificationProvider } from './context/NotificationProvider';
-import useBookingNotifications from './hooks/useBookingNotifications';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
 import './App.css';
 
 function AppRoutes() {
-  useBookingNotifications();
   useWaitlistNotifications();
   return (
     <Routes>
-      <Route path="/"                        element={<HomePage />} />
-      <Route path="/restaurants"             element={<RestaurantsPage />} />
-      <Route path="/restaurants/:id"         element={<RestaurantDetailPage />} />
-      <Route path="/auth/login"              element={<Login />} />
-      <Route path="/auth/register"           element={<Register />} />
-      <Route path="/auth/register-success"   element={<RegisterSuccess />} />
-      <Route path="/auth/google/callback"    element={<GoogleCallback />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/restaurants" element={<RestaurantsPage />} />
+      <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/register" element={<Register />} />
+      <Route path="/auth/register-success" element={<RegisterSuccess />} />
+      <Route path="/auth/google/callback" element={<GoogleCallback />} />
       {/* Email verification */}
-      <Route path="/auth/verify-email"       element={<VerifyEmail />} />
+      <Route path="/auth/verify-email" element={<VerifyEmail />} />
       {/* Password reset */}
-      <Route path="/auth/forgot-password"    element={<ForgotPassword />} />
-      <Route path="/auth/reset-password"     element={<ResetPassword />} />
+      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+      <Route path="/auth/reset-password" element={<ResetPassword />} />
       {/* Protected routes */}
       <Route
         path="/profile"
@@ -127,18 +128,18 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/my-reviews"
+        path="/vouchers"
         element={
           <ProtectedRoute>
-            <MyReviewsPage />
+            <VoucherCenter />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/notifications"
+        path="/vouchers/:id"
         element={
           <ProtectedRoute>
-            <NotificationsPage />
+            <VoucherDetail />
           </ProtectedRoute>
         }
       />
@@ -190,13 +191,15 @@ function AppRoutes() {
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
+                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
+              <OwnerAIWidget />
             </RestaurantProvider>
           </OwnerProtectedRoute>
         }
       />
-      
+
       {/* Admin routes */}
       <Route
         path="/admin/*"
@@ -217,8 +220,10 @@ function AppRoutes() {
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
+              <Route path="reviews" element={<AdminReviews />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
+            <AdminAIWidget />
           </AdminProtectedRoute>
         }
       />
@@ -233,7 +238,7 @@ function AppRoutes() {
       />
 
       {/* Redirects shorthand */}
-      <Route path="/login"    element={<Navigate to="/auth/login"    replace />} />
+      <Route path="/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/register" element={<Navigate to="/auth/register" replace />} />
     </Routes>
   );
@@ -242,12 +247,13 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <ChatWidgetProvider>
-        <NotificationProvider>
+      <NotificationProvider>
+        <ChatWidgetProvider>
           <AppRoutes />
           <MiniChatWidget />
-        </NotificationProvider>
-      </ChatWidgetProvider>
+        </ChatWidgetProvider>
+        <CustomerAIWidget />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

@@ -1,5 +1,5 @@
-import { Store, Calendar, Clock, Users, Tag, MessageSquare, Landmark } from 'lucide-react';
-import './BookingSummaryCard.css';
+import { Store, Calendar, Clock, Users } from 'lucide-react';
+import { Card } from '../ui/card';
 
 const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return '0đ';
@@ -38,123 +38,114 @@ export default function BookingSummaryCard({ bookingData, restaurant, selectedTa
       })
     : '';
 
-  // Calculate total deposit amount if tables have individual deposit policies
   const totalDeposit = selectedTables.reduce((sum, t) => sum + (t.depositAmount || 0), 0);
 
   return (
-    <div className="booking-summary-card">
-      <div className="summary-section-title">
-        <h4>📋 Tóm tắt chi tiết đặt bàn</h4>
+    <Card className="p-5 bg-card border-border flex flex-col gap-5">
+      <div className="pb-3 border-b border-border/60">
+        <h4 className="font-bold text-white text-sm flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+          📋 Tóm tắt chi tiết đặt bàn
+        </h4>
       </div>
 
-      <div className="summary-body">
+      <div className="flex flex-col gap-4 text-xs">
         {/* Restaurant Section */}
-        <div className="summary-item">
-          <Store size={18} className="summary-icon" />
-          <div className="summary-text">
-            <span className="summary-label">Nhà hàng</span>
-            <span className="summary-val font-bold">{restaurant?.name || 'Nhà hàng'}</span>
-            <span className="summary-subtext">
-              {restaurant?.address?.fullAddress || `${restaurant?.address?.street}, ${restaurant?.address?.ward}, ${restaurant?.address?.district}, ${restaurant?.address?.city}`}
+        <div className="flex gap-3">
+          <Store size={18} className="text-primary flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Nhà hàng</span>
+            <span className="font-bold text-white mt-0.5 block">{restaurant?.name || 'Nhà hàng'}</span>
+            <span className="text-[11px] text-muted-foreground leading-relaxed mt-0.5 block truncate">
+              {restaurant?.address}
             </span>
           </div>
         </div>
 
         {/* Date Section */}
-        <div className="summary-item">
-          <Calendar size={18} className="summary-icon" />
-          <div className="summary-text">
-            <span className="summary-label">Ngày đặt bàn</span>
-            <span className="summary-val">{formattedDate}</span>
+        <div className="flex gap-3">
+          <Calendar size={18} className="text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Ngày đặt bàn</span>
+            <span className="font-semibold text-white mt-0.5 block">{formattedDate}</span>
           </div>
         </div>
 
         {/* Time Section */}
-        <div className="summary-item">
-          <Clock size={18} className="summary-icon" />
-          <div className="summary-text">
-            <span className="summary-label">Giờ đặt bàn</span>
-            <span className="summary-val font-bold text-amber">{bookingTime}</span>
+        <div className="flex gap-3">
+          <Clock size={18} className="text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Giờ đặt bàn</span>
+            <span className="font-bold text-primary mt-0.5 block">{bookingTime}</span>
           </div>
         </div>
 
         {/* Guests Section */}
-        <div className="summary-item">
-          <Users size={18} className="summary-icon" />
-          <div className="summary-text">
-            <span className="summary-label">Số lượng khách</span>
-            <span className="summary-val">{numberOfGuests} người</span>
+        <div className="flex gap-3">
+          <Users size={18} className="text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Số lượng khách</span>
+            <span className="font-semibold text-white mt-0.5 block">{numberOfGuests} người</span>
           </div>
         </div>
 
         {/* Tables Section */}
         {selectedTables.length > 0 && (
-          <div className="summary-item">
-            <span className="summary-icon-char">🪑</span>
-            <div className="summary-text">
-              <span className="summary-label">Bàn đã chọn</span>
-              <span className="summary-val text-blue font-semibold">
-                {selectedTables.map(t => `${t.tableNumber} (${t.capacity} chỗ)`).join(', ')}
+          <div className="flex gap-3">
+            <span className="h-[18px] w-[18px] text-center text-sm flex-shrink-0">🪑</span>
+            <div>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Bàn đã chọn</span>
+              <span className="font-bold text-primary mt-0.5 block">
+                {selectedTables.map(t => `Bàn ${t.tableNumber} (${t.capacity} chỗ)`).join(', ')}
               </span>
             </div>
           </div>
         )}
 
-        <hr className="summary-divider" />
+        <div className="h-px bg-border/60 my-1" />
 
         {/* Customer Contact */}
-        <div className="contact-summary">
-          <h5>👤 Thông tin liên hệ</h5>
-          <div className="contact-summary-grid">
-            <div><span className="contact-label">Họ tên:</span> <span className="contact-val">{customerName}</span></div>
-            <div><span className="contact-label">Số ĐT:</span> <span className="contact-val">{customerPhone}</span></div>
-            <div><span className="contact-label">Email:</span> <span className="contact-val">{customerEmail}</span></div>
+        <div className="flex flex-col gap-2.5 bg-secondary/30 border border-border p-3.5 rounded-lg">
+          <h5 className="font-bold text-white text-[11px] uppercase tracking-wide">👤 Thông tin liên hệ</h5>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-muted-foreground">
+            <div>Họ tên: <strong className="text-white block sm:inline">{customerName}</strong></div>
+            <div>Số ĐT: <strong className="text-white block sm:inline">{customerPhone}</strong></div>
+            <div className="truncate">Email: <strong className="text-white block sm:inline truncate" title={customerEmail}>{customerEmail}</strong></div>
           </div>
         </div>
 
-        <hr className="summary-divider" />
+        {(occasion || specialRequests || voucherCode || totalDeposit > 0) && (
+          <div className="h-px bg-border/60 my-1" />
+        )}
 
-        {/* Additional information */}
+        {/* Additional details list */}
         {occasion && (
-          <div className="summary-item small-item">
-            <Tag size={16} className="summary-icon" />
-            <div className="summary-text horizontal">
-              <span className="summary-label">Dịp đặc biệt:</span>
-              <span className="summary-val font-medium">{occasionMap[occasion] || occasion}</span>
-            </div>
+          <div className="flex items-center justify-between text-xs py-0.5">
+            <span className="text-muted-foreground">Dịp đặc biệt:</span>
+            <span className="font-medium text-white">{occasionMap[occasion] || occasion}</span>
           </div>
         )}
 
         {specialRequests && (
-          <div className="summary-item small-item">
-            <MessageSquare size={16} className="summary-icon" />
-            <div className="summary-text">
-              <span className="summary-label">Yêu cầu đặc biệt:</span>
-              <span className="summary-val italic">"{specialRequests}"</span>
-            </div>
+          <div className="flex flex-col gap-1 text-xs py-0.5">
+            <span className="text-muted-foreground">Yêu cầu đặc biệt:</span>
+            <span className="text-white italic bg-secondary/30 p-2.5 border border-border rounded leading-relaxed">"{specialRequests}"</span>
           </div>
         )}
 
         {voucherCode && (
-          <div className="summary-item small-item">
-            <Tag size={16} className="summary-icon text-green" />
-            <div className="summary-text horizontal">
-              <span className="summary-label">Khuyến mãi ({voucherCode}):</span>
-              <span className="summary-val text-green font-bold">-{formatCurrency(discountAmount)}</span>
-            </div>
+          <div className="flex items-center justify-between text-xs py-0.5 text-emerald-400">
+            <span>Mã giảm giá ({voucherCode}):</span>
+            <span className="font-bold">-{formatCurrency(discountAmount)}</span>
           </div>
         )}
 
-        <div className="summary-item small-item last-item">
-          <Landmark size={16} className="summary-icon text-amber" />
-          <div className="summary-text horizontal">
-            <span className="summary-label">Yêu cầu đặt cọc:</span>
-            <span className="summary-val font-bold">
-              {totalDeposit > 0 ? formatCurrency(totalDeposit) : '0đ (Miễn phí đặt bàn)'}
-            </span>
-          </div>
+        <div className="flex items-center justify-between text-xs py-0.5">
+          <span className="text-muted-foreground">Yêu cầu đặt cọc:</span>
+          <span className="font-bold text-primary">
+            {totalDeposit > 0 ? formatCurrency(totalDeposit) : '0đ (Đặt chỗ miễn phí)'}
+          </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
