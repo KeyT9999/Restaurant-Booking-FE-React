@@ -183,7 +183,7 @@ describe('AdminAIWidget', () => {
     openWidget();
     sendDraft('Transactions today');
 
-    await waitFor(() => expect(screen.getByText('Admin AI: Too many AI requests. Please wait a moment before trying again.')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Admin AI: Bạn đang gửi quá nhiều yêu cầu. Vui lòng thử lại sau.')).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
 
     await waitFor(() => expect(screen.getByText('Retry ok.')).toBeTruthy());

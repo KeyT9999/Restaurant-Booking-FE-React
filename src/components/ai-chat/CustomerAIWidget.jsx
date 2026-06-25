@@ -75,6 +75,8 @@ export default function CustomerAIWidget() {
   const messagesEndRef = useRef(null);
   const activeAbortControllerRef = useRef(null);
   const stopRequestedRef = useRef(false);
+  const sendingRef = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   const isCustomerSurface = !pathname.startsWith('/owner') && !pathname.startsWith('/admin');
   const pageContext = useMemo(() => getPageContext(pathname), [pathname]);
@@ -111,6 +113,7 @@ export default function CustomerAIWidget() {
     let receivedResult = false;
 
     setSending(true);
+    sendingRef.current = true;
     setError(null);
 
     try {
@@ -217,35 +220,65 @@ export default function CustomerAIWidget() {
       const cancelled = stopRequestedRef.current || requestError?.code === 'AI_CANCELLED';
       const status = cancelled ? 'cancelled' : 'failed';
 
-      setMessages((current) => current.map((item) => (
-        item.id === assistantMessageId
-          ? { ...item, status, toolStatus: null }
-          : item
-      )));
+      let hasSuccessfulResults = false;
+      setMessages((current) => {
+        const msg = current.find((item) => item.id === assistantMessageId);
+        if (msg && msg.results && msg.results.length > 0) {
+          hasSuccessfulResults = true;
+        }
+        return current;
+      });
 
-      if (!cancelled) {
-        setError({
-          message: getAIWidgetErrorMessage(requestError, 'customer'),
-          retry: isNonRetryableAIError(requestError) ? null : {
-            message,
-            assistantMessageId,
-            userMessageId,
-            history,
-            context,
-          },
-        });
+      const isProviderRateLimit = requestError?.code === 'AI_PROVIDER_RATE_LIMITED' || requestError?.status === 429 || requestError?.errorCode === 'AI_PROVIDER_RATE_LIMITED';
+
+      if (hasSuccessfulResults && isProviderRateLimit) {
+        setMessages((current) => current.map((item) => (
+          item.id === assistantMessageId
+            ? {
+                ...item,
+                status: 'completed',
+                text: item.text
+                  ? `${item.text}\n\n⚠️ Đã có gợi ý bên dưới, phần diễn giải AI đang tạm thời bị giới hạn.`
+                  : '⚠️ Đã có gợi ý bên dưới, phần diễn giải AI đang tạm thời bị giới hạn.',
+                toolStatus: null,
+              }
+            : item
+        )));
+        setError(null);
+      } else {
+        setMessages((current) => current.map((item) => (
+          item.id === assistantMessageId
+            ? { ...item, status, toolStatus: null }
+            : item
+        )));
+
+        if (!cancelled) {
+          setError({
+            code: requestError?.code || (requestError?.status === 429 ? 'RATE_LIMITED' : 'AI_UNAVAILABLE'),
+            message: getAIWidgetErrorMessage(requestError, 'customer'),
+            retry: isNonRetryableAIError(requestError) ? null : {
+              message,
+              assistantMessageId,
+              userMessageId,
+              history,
+              context,
+            },
+          });
+        }
       }
     } finally {
       if (activeAbortControllerRef.current === abortController) {
         activeAbortControllerRef.current = null;
       }
+      sendingRef.current = false;
       setSending(false);
+      isSubmittingRef.current = false;
     }
   };
 
   const requestAssistant = (rawMessage) => {
     const message = rawMessage.trim();
-    if (!message || sending) return;
+    if (!message || sending || sendingRef.current || isSubmittingRef.current) return;
 
     if (message.length > MAX_MESSAGE_LENGTH) {
       setError({
@@ -255,6 +288,7 @@ export default function CustomerAIWidget() {
       return;
     }
 
+    isSubmittingRef.current = true;
     const history = buildRecentHistory(messages);
     const userMessage = createMessage('user', message);
     const assistantMessage = createMessage('assistant', '', 'streaming');
@@ -271,7 +305,8 @@ export default function CustomerAIWidget() {
   };
 
   const retryStream = () => {
-    if (!error?.retry || sending) return;
+    if (!error?.retry || sending || sendingRef.current || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     const retry = error.retry;
     setMessages((current) => current.map((item) => (
       item.id === retry.assistantMessageId
@@ -295,6 +330,7 @@ export default function CustomerAIWidget() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (sending || sendingRef.current || isSubmittingRef.current) return;
     requestAssistant(draft);
   };
 
@@ -459,8 +495,9 @@ export default function CustomerAIWidget() {
                     <button
                       type="button"
                       key={prompt}
-                      className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 disabled:cursor-not-allowed"
                       onClick={() => fillPrompt(prompt)}
+                      disabled={sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
                     >
                       {prompt}
                     </button>
@@ -488,7 +525,7 @@ export default function CustomerAIWidget() {
                     type="button"
                     className="mt-2 inline-flex items-center gap-1.5 rounded-md font-semibold text-foreground underline decoration-border underline-offset-4 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                     onClick={retryStream}
-                    disabled={sending}
+                    disabled={sending || isSubmittingRef.current}
                   >
                     <RefreshCw size={14} aria-hidden="true" />
                     Thử lại
@@ -511,11 +548,11 @@ export default function CustomerAIWidget() {
                   if (!error?.retry) setError(null);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Nhập câu hỏi..."
+                placeholder={error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED' ? 'Trợ lý đang bận, vui lòng thử lại sau.' : 'Nhập câu hỏi...'}
                 rows={1}
                 maxLength={MAX_MESSAGE_LENGTH}
                 className="min-h-10 max-h-28 flex-1 resize-none rounded-lg border border-input bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-                disabled={sending}
+                disabled={sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
               />
               {sending ? (
                 <button
@@ -530,7 +567,7 @@ export default function CustomerAIWidget() {
                 <button
                   type="submit"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={!draft.trim()}
+                  disabled={!draft.trim() || sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
                   aria-label="Gửi tin nhắn"
                 >
                   <Send size={17} aria-hidden="true" />

@@ -17,7 +17,7 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
     }
     setSubmitting(true);
     try {
-      const res = await rescheduleBooking(booking._id, { newDate, newTime });
+      const res = await rescheduleBooking(booking.id || booking._id, { newDate, newTime });
       if (res.success) {
         toast.success('Đổi lịch đặt bàn thành công');
         onSuccess?.(res.data);

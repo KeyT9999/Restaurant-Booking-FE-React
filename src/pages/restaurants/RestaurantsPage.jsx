@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
+import { getRestaurantRecommendations } from '../../api/recommendationApi';
 import { Search, Star, MapPin, Compass, RotateCcw, MessageSquare, Heart, Utensils } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { useChatWidget } from '../../context/useChatWidget';
@@ -9,6 +10,10 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
+import RecommendationEmptyState from '../../components/recommendations/RecommendationEmptyState';
+import RecommendationSection from '../../components/recommendations/RecommendationSection';
+import RecommendationSkeleton from '../../components/recommendations/RecommendationSkeleton';
+import RecommendedRestaurantCard from '../../components/recommendations/RecommendedRestaurantCard';
 import toast from 'react-hot-toast';
 import { getFavoriteIds, addFavorite, removeFavorite } from '../../api/favoriteApi';
 import { getRestaurantCardImage } from '../../utils/restaurantImages';
@@ -25,24 +30,41 @@ export default function RestaurantsPage() {
   const [cuisineTypes, setCuisineTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favoriteIds, setFavoriteIds] = useState([]);
+  const [recommendationState, setRecommendationState] = useState({
+    loading: true,
+    error: false,
+    data: null,
+  });
+  const [recommendationReloadKey, setRecommendationReloadKey] = useState(0);
 
-  // Tải danh sách ID yêu thích nếu đã đăng nhập và là customer
-  const loadFavoriteIds = async () => {
-    if (isAuthenticated && user?.role === 'customer') {
+  useEffect(() => {
+    let active = true;
+
+    const syncFavoriteIds = async () => {
+      if (!isAuthenticated || user?.role !== 'customer') {
+        await Promise.resolve();
+        if (active) {
+          setFavoriteIds([]);
+        }
+        return;
+      }
+
       try {
         const res = await getFavoriteIds();
-        if (res && res.success) {
+        if (active && res && res.success) {
           setFavoriteIds(res.data || []);
         }
       } catch (err) {
         console.error('Lỗi tải ID yêu thích:', err);
       }
-    }
-  };
+    };
 
-  useEffect(() => {
-    loadFavoriteIds();
-  }, [isAuthenticated, user]);
+    void syncFavoriteIds();
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, user?.role]);
 
   const handleToggleFavorite = async (restaurantId, e) => {
     e.preventDefault();
@@ -139,6 +161,60 @@ export default function RestaurantsPage() {
     return () => window.clearTimeout(timeoutId);
   }, [fetchRestaurants]);
 
+  useEffect(() => {
+    let active = true;
+    let timeoutId;
+    const params = { limit: 3 };
+
+    if (cuisineType) {
+      params.cuisine = cuisineType;
+    }
+
+    if (priceRange) {
+      params.priceRange = priceRange;
+    }
+
+    const loadRecommendations = async () => {
+      await Promise.resolve();
+      if (!active) return;
+
+      setRecommendationState((current) => ({
+        ...current,
+        loading: true,
+        error: false,
+      }));
+
+      timeoutId = window.setTimeout(async () => {
+        try {
+          const response = await getRestaurantRecommendations(params);
+          if (!active) return;
+
+          setRecommendationState({
+            loading: false,
+            error: false,
+            data: response,
+          });
+        } catch (err) {
+          if (!active) return;
+
+          console.error('Không thể tải gợi ý nhà hàng:', err?.message || err);
+          setRecommendationState({
+            loading: false,
+            error: true,
+            data: null,
+          });
+        }
+      }, 300);
+    };
+
+    void loadRecommendations();
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [cuisineType, isAuthenticated, priceRange, recommendationReloadKey, user?.role]);
+
   // Handle URL updates
   const updateURLParams = (newParams) => {
     const currentParams = Object.fromEntries(searchParams.entries());
@@ -212,6 +288,33 @@ export default function RestaurantsPage() {
       toast.error(err.message || 'Không thể mở chat với nhà hàng');
     }
   };
+
+  const recommendationData = recommendationState.data;
+  const isCustomer = isAuthenticated && user?.role === 'customer';
+  const hasPersonalizedRecommendations = (
+    recommendationData?.personalized === true
+    && recommendationData?.fallbackUsed !== true
+    && isCustomer
+  );
+  const recommendationTitle = hasPersonalizedRecommendations ? 'Nhà hàng phù hợp với bạn' : 'Gợi ý phổ biến';
+  const recommendationSubtitle = hasPersonalizedRecommendations
+    ? 'Dựa trên sở thích và hoạt động gần đây của bạn'
+    : 'Những nhà hàng được nhiều khách hàng quan tâm';
+  const recommendationNote = hasPersonalizedRecommendations
+    ? 'BookEat chỉ hiển thị lý do gợi ý ngắn gọn, không hiển thị lịch sử cá nhân chi tiết của bạn.'
+    : isCustomer
+      ? 'Bạn càng đặt bàn, đánh giá hoặc lưu yêu thích, gợi ý sẽ càng chính xác hơn.'
+      : !isAuthenticated
+        ? 'Đăng nhập để nhận gợi ý cá nhân hóa hơn'
+        : 'Những nhà hàng phổ biến để bạn bắt đầu khám phá nhanh hơn.';
+  const recommendationItems = recommendationData?.items || [];
+  const showRecommendationEmpty = (
+    !recommendationState.loading
+    && !recommendationState.error
+    && recommendationItems.length === 0
+  );
+  const recommendationLoginHref = `/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+  const retryRecommendations = () => setRecommendationReloadKey((current) => current + 1);
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
@@ -334,6 +437,60 @@ export default function RestaurantsPage() {
 
           {/* Right Grid Content */}
           <div className="lg:col-span-3 flex flex-col gap-6">
+            <div data-testid="restaurant-recommendations">
+              <RecommendationSection
+                title={recommendationTitle}
+                subtitle={recommendationSubtitle}
+                personalized={hasPersonalizedRecommendations}
+                note={recommendationNote}
+                action={!isAuthenticated ? (
+                  <Button asChild variant="outline" className="border-primary/30 bg-transparent text-primary hover:bg-primary/10 hover:text-primary">
+                    <Link to={recommendationLoginHref}>
+                      Đăng nhập để nhận gợi ý cá nhân hóa hơn
+                    </Link>
+                  </Button>
+                ) : null}
+              >
+                {recommendationState.loading ? (
+                  <RecommendationSkeleton
+                    count={3}
+                    testId="restaurant-recommendation-loading"
+                    variant="restaurant"
+                  />
+                ) : null}
+
+                {!recommendationState.loading && recommendationState.error ? (
+                  <RecommendationEmptyState
+                    variant="error"
+                    title="Chưa thể tải gợi ý lúc này."
+                    description="Danh sách nhà hàng chính vẫn sẵn sàng để bạn tiếp tục khám phá."
+                    onRetry={retryRecommendations}
+                  />
+                ) : null}
+
+                {showRecommendationEmpty ? (
+                  <RecommendationEmptyState
+                    title="Chưa có gợi ý phù hợp với bộ lọc hiện tại."
+                    description="Hãy thử nới lỏng bộ lọc ẩm thực hoặc khoảng giá để xem thêm nhà hàng phù hợp."
+                    loginCta={!isAuthenticated}
+                    loginHref={recommendationLoginHref}
+                  />
+                ) : null}
+
+                {!recommendationState.loading && !recommendationState.error && !showRecommendationEmpty ? (
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    {recommendationItems.map((restaurant) => (
+                      <RecommendedRestaurantCard
+                        key={restaurant.id}
+                        personalized={hasPersonalizedRecommendations}
+                        restaurant={restaurant}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </RecommendationSection>
+            </div>
+
             {/* Topbar statistics info */}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>

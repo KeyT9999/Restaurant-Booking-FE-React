@@ -48,11 +48,11 @@ export default function NotificationIcon({
   }, [open]);
 
   const handleToggle = () => {
-    setOpen((current) => {
-      const next = !current;
-      if (next) refreshNotifications();
-      return next;
-    });
+    const next = !open;
+    setOpen(next);
+    if (next) {
+      refreshNotifications().catch(() => {});
+    }
   };
 
   const handleOpenNotification = async (notification) => {

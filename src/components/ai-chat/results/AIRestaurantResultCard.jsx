@@ -1,6 +1,23 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, Star, Utensils } from 'lucide-react';
 
+const formatAddress = (address) => {
+  if (!address) return 'Chưa cập nhật';
+  if (typeof address === 'string') return address;
+  if (typeof address === 'object') {
+    if (address.fullAddress && typeof address.fullAddress === 'string') {
+      return address.fullAddress;
+    }
+    return [
+      address.street,
+      address.ward,
+      address.district,
+      address.city,
+    ].filter(Boolean).join(', ') || 'Chưa cập nhật';
+  }
+  return String(address);
+};
+
 const formatPrice = (value) => {
   if (!value) return 'Giá liên hệ';
   return `~ ${Number(value).toLocaleString('vi-VN')} đ`;
@@ -53,7 +70,7 @@ export function AIRestaurantResultCard({ restaurant }) {
         {restaurant.address && (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <MapPin size={13} className="shrink-0 text-primary" aria-hidden="true" />
-            <span className="truncate" title={restaurant.address}>{restaurant.address}</span>
+            <span className="truncate" title={formatAddress(restaurant.address)}>{formatAddress(restaurant.address)}</span>
           </p>
         )}
 

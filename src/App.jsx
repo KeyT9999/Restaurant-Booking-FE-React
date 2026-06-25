@@ -45,6 +45,7 @@ import OwnerBilling from './pages/owner/OwnerBilling';
 import PaymentSuccess from './pages/payment/PaymentSuccess';
 import PaymentCancel from './pages/payment/PaymentCancel';
 import AdminRevenue from './pages/admin/AdminRevenue';
+import AdminRecommendations from './pages/admin/AdminRecommendations';
 import AdminRefunds from './pages/admin/AdminRefunds';
 import OwnerVouchers from './pages/owner/OwnerVouchers';
 import SavedVouchers from './pages/profile/SavedVouchers';
@@ -217,6 +218,7 @@ function AppRoutes() {
               <Route path="waitlists" element={<AdminWaitlists />} />
               <Route path="chat" element={<AdminChatPage />} />
               <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="recommendations" element={<AdminRecommendations />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
               <Route path="reviews" element={<AdminReviews />} />
