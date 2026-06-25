@@ -70,6 +70,7 @@ export default function AdminAIWidget() {
   const messagesEndRef = useRef(null);
   const activeAbortControllerRef = useRef(null);
   const stopRequestedRef = useRef(false);
+  const sendingRef = useRef(false);
   const adminContext = useMemo(() => ({ mode: 'admin_assistant' }), []);
 
   useEffect(() => {
@@ -103,6 +104,7 @@ export default function AdminAIWidget() {
     let receivedResult = false;
 
     setSending(true);
+    sendingRef.current = true;
     setError(null);
 
     try {
@@ -214,6 +216,7 @@ export default function AdminAIWidget() {
 
       if (!cancelled) {
         setError({
+          code: requestError?.code || (requestError?.status === 429 ? 'RATE_LIMITED' : 'AI_UNAVAILABLE'),
           message: getAIWidgetErrorMessage(requestError, 'admin'),
           tone: 'error',
           retry: isNonRetryableAIError(requestError) ? null : {
@@ -229,13 +232,14 @@ export default function AdminAIWidget() {
       if (activeAbortControllerRef.current === abortController) {
         activeAbortControllerRef.current = null;
       }
+      sendingRef.current = false;
       setSending(false);
     }
   };
 
   const requestAssistant = (rawMessage) => {
     const message = rawMessage.trim();
-    if (!message || sending) return;
+    if (!message || sending || sendingRef.current) return;
 
     if (message.length > MAX_MESSAGE_LENGTH) {
       setError({
@@ -262,7 +266,7 @@ export default function AdminAIWidget() {
   };
 
   const retryStream = () => {
-    if (!error?.retry || sending) return;
+    if (!error?.retry || sending || sendingRef.current) return;
     const retry = error.retry;
     setMessages((current) => current.map((item) => (
       item.id === retry.assistantMessageId
@@ -405,8 +409,9 @@ export default function AdminAIWidget() {
                     <button
                       type="button"
                       key={prompt}
-                      className="max-w-full rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="max-w-full rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => fillPrompt(prompt)}
+                      disabled={sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
                     >
                       {prompt}
                     </button>
@@ -469,11 +474,11 @@ export default function AdminAIWidget() {
                   if (!error?.retry) setError(null);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about pending restaurants, refunds, revenue..."
+                placeholder={error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED' ? 'Assistant is busy, please try again later.' : 'Ask about pending restaurants, refunds, revenue...'}
                 rows={1}
                 maxLength={MAX_MESSAGE_LENGTH}
                 className="min-h-10 max-h-28 min-w-0 flex-1 resize-none rounded-lg border border-input bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-                disabled={sending}
+                disabled={sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
               />
               {sending ? (
                 <button
@@ -488,7 +493,7 @@ export default function AdminAIWidget() {
                 <button
                   type="submit"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={!draft.trim()}
+                  disabled={!draft.trim() || sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
                   aria-label="Send Admin AI message"
                 >
                   <Send size={17} aria-hidden="true" />

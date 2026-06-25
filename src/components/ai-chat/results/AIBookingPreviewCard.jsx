@@ -66,6 +66,23 @@ const OCCASION_LABELS = {
   other: 'Dịp đặc biệt',
 };
 
+const formatAddress = (address) => {
+  if (!address) return 'Chưa cập nhật';
+  if (typeof address === 'string') return address;
+  if (typeof address === 'object') {
+    if (address.fullAddress && typeof address.fullAddress === 'string') {
+      return address.fullAddress;
+    }
+    return [
+      address.street,
+      address.ward,
+      address.district,
+      address.city,
+    ].filter(Boolean).join(', ') || 'Chưa cập nhật';
+  }
+  return String(address);
+};
+
 const formatCurrency = (value) => (
   `${Math.max(0, Number(value) || 0).toLocaleString('vi-VN')} đ`
 );
@@ -243,7 +260,7 @@ export default function AIBookingPreviewCard({ payload, onEdit, onConfirmed }) {
         {preview.restaurant?.address && (
           <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
             <MapPin size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 break-words">{preview.restaurant.address}</span>
+            <span className="min-w-0 break-words">{formatAddress(preview.restaurant.address)}</span>
           </p>
         )}
       </div>

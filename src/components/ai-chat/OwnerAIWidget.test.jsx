@@ -235,7 +235,7 @@ describe('OwnerAIWidget', () => {
     openWidget();
     sendDraft('Tóm tắt booking');
 
-    await waitFor(() => expect(screen.getByText('Owner AI: This AI capability is temporarily disabled.')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Owner AI: Tính năng AI này hiện đang tạm dừng.')).toBeTruthy());
     expect(screen.queryByRole('button', { name: 'Thử lại' })).toBeNull();
   });
 

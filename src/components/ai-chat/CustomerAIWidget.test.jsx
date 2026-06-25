@@ -59,6 +59,52 @@ const restaurantListResult = {
   },
 };
 
+const personalizedRecommendationResult = {
+  type: 'personalized_recommendations',
+  version: 1,
+  payload: {
+    requestType: 'mixed',
+    algorithm: 'hybrid_v1',
+    personalized: true,
+    fallbackUsed: false,
+    sourceLabel: 'BookEat personalized recommendations',
+    message: 'Duoi day la mot so goi y nha hang va mon phu hop voi ban.',
+    items: [
+      {
+        id: '507f1f77bcf86cd799439301',
+        itemType: 'menu_item',
+        name: 'Bun bo dac biet',
+        restaurantName: 'Bun AI',
+        price: 89000,
+        priceRange: 'Binh dan',
+        cuisineTypes: ['Viet Nam'],
+        ratingAverage: 4.8,
+        score: 0.94,
+        reasons: ['Hop gu', 'Gia tot'],
+        metadata: {
+          restaurantId: '507f1f77bcf86cd799439011',
+          menuUrl: '/restaurants/507f1f77bcf86cd799439011#menu',
+          detailUrl: '/restaurants/507f1f77bcf86cd799439011',
+        },
+      },
+      {
+        id: '507f1f77bcf86cd799439302',
+        itemType: 'restaurant',
+        name: 'Pho BookEat',
+        priceRange: 'Tam trung',
+        cuisineTypes: ['Viet Nam'],
+        ratingAverage: 4.6,
+        score: 0.87,
+        reasons: ['Nhieu danh gia tot', 'Phu hop bua toi'],
+        metadata: {
+          restaurantId: '507f1f77bcf86cd799439011',
+          detailUrl: '/restaurants/507f1f77bcf86cd799439011',
+        },
+      },
+    ],
+  },
+};
+
 const availabilityResult = {
   type: 'availability_result',
   version: 1,
@@ -273,6 +319,37 @@ describe('CustomerAIWidget', () => {
     expect(streamAIMessage).toHaveBeenCalledWith(expect.objectContaining({
       pageContext: { route: '/restaurants' },
     }));
+  });
+
+  it('renders personalized recommendation cards for mixed AI results', async () => {
+    streamAIMessage.mockImplementation(async ({ onEvent }) => {
+      onEvent({ event: 'start', data: { sequence: 0 } });
+      onEvent({
+        event: 'tool_started',
+        data: { sequence: 1, tool: 'get_personalized_recommendations', label: 'Dang goi y cho ban...' },
+      });
+      onEvent({
+        event: 'tool_completed',
+        data: { sequence: 2, tool: 'get_personalized_recommendations', status: 'success' },
+      });
+      onEvent({ event: 'result', data: { sequence: 3, result: personalizedRecommendationResult } });
+      onEvent({ event: 'delta', data: { sequence: 4, text: 'Da tim thay goi y phu hop.' } });
+      onEvent({ event: 'completed', data: { sequence: 5, usage: {} } });
+      onEvent({ event: 'done', data: { sequence: 6 } });
+    });
+
+    renderWidget('/restaurants');
+    openWidget();
+    sendDraft('Goi y cho toi mot vai mon va nha hang hop gu');
+
+    expect(await screen.findByText('Bun bo dac biet')).toBeTruthy();
+    expect(screen.getByText('Pho BookEat')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Mo menu/i }).getAttribute('href')).toBe(
+      '/restaurants/507f1f77bcf86cd799439011#menu',
+    );
+    expect(screen.getByRole('link', { name: /Xem nha hang/i }).getAttribute('href')).toBe(
+      '/restaurants/507f1f77bcf86cd799439011',
+    );
   });
 
   it('renders availability result cards with suggested tables', async () => {
@@ -621,7 +698,7 @@ describe('CustomerAIWidget', () => {
     openWidget();
     sendDraft('Kiểm tra kết nối');
 
-    expect(await screen.findByText('BookEat: AI assistant is temporarily unavailable.')).toBeTruthy();
+    expect(await screen.findByText('BookEat: Trợ lý AI đang tạm thời không khả dụng. Vui lòng thử lại sau.')).toBeTruthy();
     expect(screen.getByText('Phần đầu')).toBeTruthy();
     expect(screen.getByText('Phản hồi bị gián đoạn')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
@@ -641,7 +718,7 @@ describe('CustomerAIWidget', () => {
     openWidget();
     sendDraft('AI disabled?');
 
-    expect(await screen.findByText('BookEat: AI assistant is temporarily disabled.')).toBeTruthy();
+    expect(await screen.findByText('BookEat: Trợ lý AI đang tạm thời bị tắt.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Thá»­ láº¡i' })).toBeNull();
   });
 

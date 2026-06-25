@@ -1,6 +1,23 @@
 import { Store, Calendar, Clock, Users } from 'lucide-react';
 import { Card } from '../ui/card';
 
+const formatAddress = (address) => {
+  if (!address) return 'Chưa cập nhật';
+  if (typeof address === 'string') return address;
+  if (typeof address === 'object') {
+    if (address.fullAddress && typeof address.fullAddress === 'string') {
+      return address.fullAddress;
+    }
+    return [
+      address.street,
+      address.ward,
+      address.district,
+      address.city,
+    ].filter(Boolean).join(', ') || 'Chưa cập nhật';
+  }
+  return String(address);
+};
+
 const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return '0đ';
   return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
@@ -56,7 +73,7 @@ export default function BookingSummaryCard({ bookingData, restaurant, selectedTa
             <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Nhà hàng</span>
             <span className="font-bold text-white mt-0.5 block">{restaurant?.name || 'Nhà hàng'}</span>
             <span className="text-[11px] text-muted-foreground leading-relaxed mt-0.5 block truncate">
-              {restaurant?.address}
+              {formatAddress(restaurant?.address)}
             </span>
           </div>
         </div>

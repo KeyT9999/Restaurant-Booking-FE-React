@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { getPublicRestaurants, getPublicCuisineTypes } from '../../api/restaurantApi';
 import { getHomepageVoucherCampaigns } from '../../api/voucherApi';
+import { getHomeRecommendations } from '../../api/recommendationApi';
 import { Search, MapPin, Users, Star, Heart, ChevronRight, Utensils, Sparkles, AlertTriangle, TicketPercent } from 'lucide-react';
 import { Section, PhaseLabel } from '../../components/bookeat/Section';
 import { Card } from '../../components/ui/card';
@@ -10,6 +11,12 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { getRestaurantCardImage } from '../../utils/restaurantImages';
 import SafeImage from '../../components/common/SafeImage';
+import { useAuth } from '../../context/useAuth';
+import RecommendationSection from '../../components/recommendations/RecommendationSection';
+import RecommendedRestaurantCard from '../../components/recommendations/RecommendedRestaurantCard';
+import RecommendedMenuItemCard from '../../components/recommendations/RecommendedMenuItemCard';
+import RecommendationSkeleton from '../../components/recommendations/RecommendationSkeleton';
+import RecommendationEmptyState from '../../components/recommendations/RecommendationEmptyState';
 
 const formatVoucherDiscount = (voucher) => {
   if (!voucher) return '';
@@ -19,6 +26,7 @@ const formatVoucherDiscount = (voucher) => {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
 
   // API Data states
   const [featuredRestaurants, setFeaturedRestaurants] = useState([]);
@@ -26,6 +34,12 @@ export default function HomePage() {
   const [voucherCampaigns, setVoucherCampaigns] = useState([]);
   const [cuisines, setCuisines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recommendationState, setRecommendationState] = useState({
+    loading: true,
+    error: false,
+    data: null,
+  });
+  const [recommendationReloadKey, setRecommendationReloadKey] = useState(0);
 
   // Search Fields states
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +81,45 @@ export default function HomePage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (authLoading) return undefined;
+
+    let active = true;
+
+    const loadRecommendations = async () => {
+      try {
+        setRecommendationState((current) => ({
+          ...current,
+          loading: true,
+          error: false,
+        }));
+
+        const response = await getHomeRecommendations({ limit: 3 });
+        if (!active) return;
+
+        setRecommendationState({
+          loading: false,
+          error: false,
+          data: response,
+        });
+      } catch (err) {
+        if (!active) return;
+        console.error('Failed to load recommendations:', err?.message || err);
+        setRecommendationState({
+          loading: false,
+          error: true,
+          data: null,
+        });
+      }
+    };
+
+    loadRecommendations();
+
+    return () => {
+      active = false;
+    };
+  }, [authLoading, isAuthenticated, recommendationReloadKey, user?.role]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -78,6 +131,38 @@ export default function HomePage() {
   const selectCuisineAndSearch = (cuisine) => {
     navigate(`/restaurants?cuisineType=${encodeURIComponent(cuisine)}`);
   };
+
+  const recommendationData = recommendationState.data;
+  const isCustomer = isAuthenticated && user?.role === 'customer';
+  const hasPersonalizedRecommendations = (
+    recommendationData?.personalized === true
+    && recommendationData?.fallbackUsed !== true
+    && isCustomer
+  );
+  const recommendationTitle = hasPersonalizedRecommendations ? 'Gợi ý cho bạn' : 'Gợi ý phổ biến';
+  const recommendationSubtitle = hasPersonalizedRecommendations
+    ? 'Dựa trên sở thích và hoạt động gần đây của bạn'
+    : 'Những lựa chọn phổ biến được nhiều khách hàng quan tâm';
+  const recommendationNote = hasPersonalizedRecommendations
+    ? 'BookEat chỉ hiển thị lý do gợi ý an toàn, không hiển thị lịch sử cá nhân chi tiết của bạn.'
+    : isCustomer
+      ? 'Bạn càng đặt bàn, đánh giá và lưu yêu thích, gợi ý sẽ càng chính xác hơn.'
+      : 'Đăng nhập để nhận gợi ý cá nhân hóa hơn.';
+  const restaurantRecommendations = hasPersonalizedRecommendations
+    ? recommendationData?.restaurantsForYou || []
+    : recommendationData?.restaurantsForYou?.length
+      ? recommendationData.restaurantsForYou
+      : recommendationData?.popularRestaurants || [];
+  const menuRecommendations = recommendationData?.menuItemsForYou || [];
+  const hasRestaurantRecommendations = restaurantRecommendations.length > 0;
+  const hasMenuRecommendations = menuRecommendations.length > 0;
+  const showRecommendationEmpty = (
+    !recommendationState.loading
+    && !recommendationState.error
+    && !hasRestaurantRecommendations
+    && !hasMenuRecommendations
+  );
+  const retryRecommendations = () => setRecommendationReloadKey((current) => current + 1);
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
@@ -199,6 +284,126 @@ export default function HomePage() {
 
       {/* Main Page Body */}
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-16 space-y-24 flex-1 w-full">
+        <div data-testid="home-recommendations">
+          <RecommendationSection
+            title={recommendationTitle}
+            subtitle={recommendationSubtitle}
+            personalized={hasPersonalizedRecommendations}
+            note={recommendationNote}
+            action={(
+              isAuthenticated ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/restaurants')}
+                  className="text-primary hover:text-[#D49653] hover:bg-[#20242D] focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-2 gap-1.5 text-xs font-semibold px-3 py-2 rounded-md transition-all"
+                >
+                  Khám phá nhà hàng <ChevronRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/auth/login?redirect=${encodeURIComponent('/')}`)}
+                  className="border-primary/30 bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  Đăng nhập để nhận gợi ý cá nhân hóa hơn
+                </Button>
+              )
+            )}
+          >
+            {recommendationState.loading ? (
+              <div className="space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Nhà hàng phù hợp
+                    </h3>
+                  </div>
+                  <RecommendationSkeleton testId="recommendation-loading" count={3} variant="restaurant" />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Món ăn gợi ý
+                    </h3>
+                  </div>
+                  <RecommendationSkeleton count={2} variant="menu" />
+                </div>
+              </div>
+            ) : null}
+
+            {!recommendationState.loading && recommendationState.error ? (
+              <RecommendationEmptyState
+                variant="error"
+                title="Chưa thể tải gợi ý lúc này."
+                description="Bạn vẫn có thể tiếp tục khám phá nhà hàng nổi bật và thử lại gợi ý sau."
+                onRetry={retryRecommendations}
+              />
+            ) : null}
+
+            {showRecommendationEmpty ? (
+              <RecommendationEmptyState
+                title="Chưa có đủ dữ liệu để cá nhân hóa."
+                description="Hãy đặt bàn hoặc lưu nhà hàng yêu thích để nhận gợi ý tốt hơn."
+                loginCta={!isAuthenticated}
+              />
+            ) : null}
+
+            {!recommendationState.loading && !recommendationState.error && !showRecommendationEmpty ? (
+              <div className="space-y-6">
+                {hasRestaurantRecommendations ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          {hasPersonalizedRecommendations ? 'Nhà hàng phù hợp với bạn' : 'Nhà hàng đang được quan tâm'}
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {hasPersonalizedRecommendations
+                            ? 'Ưu tiên nhà hàng có lý do phù hợp rõ ràng và dễ đặt bàn.'
+                            : 'Danh sách phổ biến để bạn bắt đầu khám phá nhanh hơn.'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                      {restaurantRecommendations.map((restaurant) => (
+                        <RecommendedRestaurantCard
+                          key={restaurant.id}
+                          personalized={hasPersonalizedRecommendations}
+                          restaurant={restaurant}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {hasMenuRecommendations ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          Món ăn gợi ý
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Những món nổi bật để bạn mở rộng bữa ăn mà vẫn giữ đúng gu thưởng thức.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                      {menuRecommendations.map((item) => (
+                        <RecommendedMenuItemCard
+                          key={item.id}
+                          item={item}
+                          personalized={hasPersonalizedRecommendations}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </RecommendationSection>
+        </div>
+
         {/* Featured Section */}
         <Section
           title="Nổi bật tuần này"
