@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBookingById, cancelBooking } from '../../api/bookingApi';
+import { createPayment } from '../../api/paymentApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
 import ReviewForm from '../../components/review/ReviewForm';
@@ -21,6 +22,7 @@ import {
   MapPin,
   Phone,
   TicketPercent,
+  Loader2,
 } from 'lucide-react';
 import Header from '../../components/Header';
 import { Button } from '../../components/ui/button';
@@ -70,6 +72,30 @@ export default function BookingDetailPage() {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [paying, setPaying] = useState(false);
+
+  const handlePayDeposit = async () => {
+    if (!booking) return;
+    setPaying(true);
+    try {
+      const res = await createPayment({
+        targetType: 'booking',
+        targetId: booking.id || booking._id,
+      });
+
+      if (res.success && res.data?.checkoutUrl) {
+        toast.success('Đang chuyển hướng sang cổng thanh toán PayOS...');
+        window.location.href = res.data.checkoutUrl;
+      } else {
+        toast.error(res.message || 'Không thể tạo link thanh toán.');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || err.message || 'Lỗi khi tạo link thanh toán.');
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const fetchBooking = useCallback(async () => {
     setLoading(true);
@@ -473,6 +499,21 @@ export default function BookingDetailPage() {
                       Thanh toán lúc: {depositPaidTime}
                     </span>
                   )}
+                  {!booking.depositPaid && booking.status === 'pending' && (
+                    <Button
+                      onClick={handlePayDeposit}
+                      disabled={paying}
+                      className="w-full mt-3 bg-primary hover:bg-primary/95 text-background font-bold text-xs py-2 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      {paying ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" /> Đang xử lý...
+                        </>
+                      ) : (
+                        'Thanh toán đặt cọc qua PayOS'
+                      )}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mt-1 text-xs text-emerald-400 font-semibold">
@@ -540,7 +581,7 @@ export default function BookingDetailPage() {
                   <div className="flex flex-col gap-2 mt-1">
                     {showReviewForm ? (
                       <ReviewForm
-                        bookingId={booking.id}
+                        bookingId={booking.id || booking._id}
                         onSuccess={() => {
                           setShowReviewForm(false);
                           fetchBooking();

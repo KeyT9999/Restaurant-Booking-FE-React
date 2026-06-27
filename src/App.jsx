@@ -58,6 +58,7 @@ import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
 import OwnerWaitlistPage from './pages/owner/OwnerWaitlistPage';
 import OwnerReviewsPage from './pages/owner/OwnerReviewsPage';
+import OwnerBlockedSlotsPage from './pages/owner/OwnerBlockedSlotsPage';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
@@ -190,9 +191,9 @@ function AppRoutes() {
                 <Route path="bookings" element={<OwnerBookingsPage />} />
                 <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
+                <Route path="blocked-slots" element={<OwnerBlockedSlotsPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
-                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
               <OwnerAIWidget />
