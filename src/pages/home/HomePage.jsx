@@ -13,6 +13,7 @@ import { getRestaurantCardImage } from '../../utils/restaurantImages';
 import SafeImage from '../../components/common/SafeImage';
 import { useAuth } from '../../context/useAuth';
 import RecommendationSection from '../../components/recommendations/RecommendationSection';
+import FoodRecommendationWidget from '../../components/ai-chat/FoodRecommendationWidget';
 import RecommendedRestaurantCard from '../../components/recommendations/RecommendedRestaurantCard';
 import RecommendedMenuItemCard from '../../components/recommendations/RecommendedMenuItemCard';
 import RecommendationSkeleton from '../../components/recommendations/RecommendationSkeleton';
@@ -403,6 +404,14 @@ export default function HomePage() {
             ) : null}
           </RecommendationSection>
         </div>
+
+        {/* AI Food Recommendation Section */}
+        <Section
+          title="Tư vấn dinh dưỡng AI"
+          subtitle="Hỏi đáp về chế độ ăn uống và nhận đề xuất món ăn đi kèm nhà hàng phù hợp nhất với thể trạng của bạn"
+        >
+          <FoodRecommendationWidget />
+        </Section>
 
         {/* Featured Section */}
         <Section
