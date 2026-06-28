@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "vitest run --environment jsdom src/api/aiApi.test.js src/api/recommendationApi.test.js src/api/adminRecommendationApi.test.js src/pages/home/HomePage.test.jsx src/pages/restaurants/RestaurantsPage.test.jsx src/pages/admin/AdminRecommendations.test.jsx src/components/ai-chat/CustomerAIWidget.test.jsx src/components/ai-chat/OwnerAIWidget.test.jsx src/components/ai-chat/AdminAIWidget.test.jsx src/components/owner/VoucherCampaignPanel.test.jsx src/components/monetization/BookingCommissionPanel.test.jsx && node --test src/components/chat-widget/chatWidget.utils.test.js src/components/chat-widget/chatReaction.utils.test.js src/components/chat-widget/chatImage.utils.test.js",
+    "test": "vitest run --environment jsdom src/api/aiApi.test.js src/api/recommendationApi.test.js src/api/adminRecommendationApi.test.js src/api/foodRecommendationApi.test.js src/pages/home/HomePage.test.jsx src/pages/restaurants/RestaurantsPage.test.jsx src/pages/admin/AdminRecommendations.test.jsx src/components/ai-chat/CustomerAIWidget.test.jsx src/components/ai-chat/OwnerAIWidget.test.jsx src/components/ai-chat/AdminAIWidget.test.jsx src/components/owner/VoucherCampaignPanel.test.jsx src/components/monetization/BookingCommissionPanel.test.jsx && node --test src/components/chat-widget/chatWidget.utils.test.js src/components/chat-widget/chatReaction.utils.test.js src/components/chat-widget/chatImage.utils.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
