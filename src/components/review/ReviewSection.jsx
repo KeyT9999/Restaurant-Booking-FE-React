@@ -105,7 +105,7 @@ export default function ReviewSection({ restaurantId }) {
       ) : (
         <div className="flex flex-col gap-4 text-left">
           {reviews.map((rev) => (
-            <Card key={rev._id} className="p-5 bg-card border-border flex flex-col gap-4">
+            <Card key={rev.id || rev._id} className="p-5 bg-card border-border flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="h-10 w-10 rounded-full bg-[#20242D] border border-border overflow-hidden shrink-0">
@@ -123,6 +123,11 @@ export default function ReviewSection({ restaurantId }) {
                     </span>
                     <span className="block text-[10px] text-[#A5ADBA]">
                       {new Date(rev.createdAt).toLocaleString('vi-VN')}
+                      {rev.isEdited && (
+                        <span className="text-[9px] text-[#D49653] italic ml-1.5 font-medium animate-pulse">
+                          (Đã chỉnh sửa)
+                        </span>
+                      )}
                     </span>
                   </div>
                 </div>
