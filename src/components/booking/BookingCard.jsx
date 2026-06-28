@@ -104,10 +104,15 @@ export default function BookingCard({ booking, onViewDetail, onCancel, onReview 
 
         {/* Buttons actions block */}
         <div className="mt-3.5 pt-3 border-t border-border/40 flex items-center gap-2 justify-end">
-          {status === 'completed' && reviewed && (
-            <span className="text-xs text-muted-foreground mr-auto font-medium">
-              ✓ Đã đánh giá
-            </span>
+          {status === 'completed' && reviewed && onReview && (
+            <Button
+              variant="outline"
+              onClick={() => onReview({ ...booking, restaurantName: restaurant?.name, isEdit: true })}
+              className="border-primary/40 text-primary hover:bg-primary/10 text-xs font-semibold h-8.5 px-3.5 mr-auto"
+              aria-label={`Sửa đánh giá cho nhà hàng ${restaurant?.name}`}
+            >
+              Sửa đánh giá
+            </Button>
           )}
           <Button
             variant="outline"

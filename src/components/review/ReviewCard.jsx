@@ -89,6 +89,11 @@ export default function ReviewCard({ review }) {
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {formatDate(review.createdAt)}
+              {review.isEdited && (
+                <span className="text-[9px] text-[#D49653] italic ml-1.5 font-medium">
+                  (Đã chỉnh sửa)
+                </span>
+              )}
             </p>
           </div>
         </div>
