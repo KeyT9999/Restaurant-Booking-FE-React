@@ -16,9 +16,13 @@ import {
   Calendar,
   ChevronRight,
   Loader2,
+  Coins,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { profileApi } from '../../api/profileApi';
+import { loyaltyApi } from '../../api/loyaltyApi';
+import toast from 'react-hot-toast';
 import Header from '../../components/Header';
 
 // ─────────────────────────────────────────────
@@ -610,6 +614,231 @@ function TabPassword({ isGoogleUser }) {
 }
 
 // ─────────────────────────────────────────────
+// Tab: BookEat Coins (Loyalty Points)
+// ─────────────────────────────────────────────
+
+function TabLoyalty() {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+
+  // Simulation states
+  const [simAmount, setSimAmount] = useState('5000');
+  const [simSource, setSimSource] = useState('completed');
+  const [simLoading, setSimLoading] = useState(false);
+
+  const fetchLoyaltyData = async () => {
+    setLoading(true);
+    try {
+      const data = await loyaltyApi.getLoyaltySummary();
+      setSummary(data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Không thể tải thông tin tích điểm');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLoyaltyData();
+  }, []);
+
+  const handleSimulate = async (e) => {
+    e.preventDefault();
+    const amount = parseInt(simAmount, 10);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Vui lòng nhập số xu hợp lệ');
+      return;
+    }
+    setSimLoading(true);
+    try {
+      const res = await loyaltyApi.simulateEarn({ amount, source: simSource });
+      if (res.success) {
+        toast.success(res.message || 'Giả lập tích xu thành công!');
+        fetchLoyaltyData();
+      } else {
+        toast.error(res.message || 'Giả lập thất bại');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi hệ thống');
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8 bg-card border border-border rounded-2xl shadow-lg flex flex-col items-center justify-center py-16 gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="text-xs text-muted-foreground">Đang tải thông tin ví xu...</span>
+      </div>
+    );
+  }
+
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
+  };
+
+  return (
+    <div className="flex flex-col gap-6 w-full text-left">
+      {/* ── Tổng quan ví xu ── */}
+      <div className="p-6 md:p-8 bg-card border border-border rounded-2xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-14 w-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+            <Coins size={28} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="font-serif text-xl text-white font-bold">Ví BookEat Coins</h2>
+              <button
+                type="button"
+                onClick={() => setShowHelp(!showHelp)}
+                className="text-muted-foreground hover:text-white transition-colors cursor-pointer focus:outline-none"
+                title="Cách sử dụng xu"
+              >
+                <HelpCircle size={16} />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Tích xu khi đặt cọc hoặc dùng bữa để nhận chiết khấu tiền mặt cọc.</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start sm:items-end gap-1 shrink-0">
+          <span className="text-2xl font-extrabold text-primary font-mono">
+            {new Intl.NumberFormat('vi-VN').format(summary?.loyaltyPoints || 0)} Xu
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            Tương đương ~ {formatCurrency(summary?.loyaltyPoints || 0)} cọc
+          </span>
+        </div>
+      </div>
+
+      {/* ── Bảng trợ giúp / Cách dùng xu ── */}
+      {showHelp && (
+        <div className="p-6 bg-[#20242D] border border-primary/20 rounded-2xl flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <HelpCircle size={14} className="text-primary" /> Hướng dẫn sử dụng BookEat Coins
+          </h3>
+          <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-2 leading-relaxed">
+            <li>
+              <strong>Quy ước tỷ lệ cọc:</strong> Mỗi 100.000đ tiền đặt cọc đã thanh toán sẽ tích lũy được <strong>1.000 Coins</strong> (tương đương 1 Coin = 1đ).
+            </li>
+            <li>
+              <strong>Cơ chế Khấu trừ (Redemption Cap):</strong> Khi đặt bàn lần sau, bạn có thể chọn trừ tối đa <strong>50% giá trị tiền đặt cọc</strong> của đơn đặt bàn đó bằng xu tích lũy trong ví.
+            </li>
+            <li>
+              <strong>Thanh toán tối thiểu:</strong> Số tiền mặt thực tế phải thanh toán sau khi trừ xu không được thấp hơn hạn mức tối thiểu của cổng thanh toán (ví dụ: tối thiểu 2.000đ). Nếu thấp hơn, hệ thống sẽ tự động bớt số xu áp dụng để bảo vệ tính thanh toán.
+            </li>
+            <li>
+              <strong>Thưởng đặt bàn không cọc:</strong> Khách đặt bàn không cọc khi dùng bữa thành công cũng được thưởng từ <strong>200 - 500 Coins</strong>.
+            </li>
+            <li>
+              <strong>Hạn sử dụng xu:</strong> Xu tích lũy sẽ tự động hết hạn và biến mất sau <strong>6 tháng</strong> kể từ ngày được tích lũy.
+            </li>
+          </ul>
+        </div>
+      )}
+
+      {/* ── Lịch sử giao dịch ── */}
+      <div className="p-6 md:p-8 bg-card border border-border rounded-2xl shadow-lg flex flex-col gap-5">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Lịch sử giao dịch xu</h3>
+
+        {(!summary?.history || summary.history.length === 0) ? (
+          <div className="text-center py-10 border border-dashed border-border/40 bg-card/10 rounded-xl flex flex-col items-center justify-center gap-3">
+            <Coins size={24} className="text-muted-foreground/60" />
+            <p className="text-xs text-muted-foreground">Chưa có giao dịch xu nào được ghi nhận.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/50 text-muted-foreground/80 font-semibold">
+                  <th className="py-2.5">Mô tả</th>
+                  <th className="py-2.5 text-center">Biến động</th>
+                  <th className="py-2.5 text-right">Thời gian</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {summary.history.map((tx) => (
+                  <tr key={tx._id || tx.id} className="hover:bg-secondary/10">
+                    <td className="py-3">
+                      <div className="font-medium text-white">{tx.description}</div>
+                      {tx.expiresAt && !tx.isExpired && tx.points > 0 && (
+                        <div className="text-[9px] text-muted-foreground mt-0.5">
+                          Hạn dùng: {new Date(tx.expiresAt).toLocaleDateString('vi-VN')}
+                        </div>
+                      )}
+                      {tx.isExpired && (
+                        <div className="text-[9px] text-rose-400 font-semibold mt-0.5">
+                          Đã hết hạn
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 text-center font-mono font-bold">
+                      <span className={tx.points > 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                        {tx.points > 0 ? `+${tx.points}` : tx.points}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right text-muted-foreground">
+                      {new Date(tx.createdAt).toLocaleString('vi-VN')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── Widget Giả lập tích xu (Hidden/Simulation Mode) ── */}
+      <div className="p-6 md:p-8 bg-card border border-border border-dashed rounded-2xl flex flex-col gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            🧪 Bảng thử nghiệm: Giả lập Tích xu
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-1">Dùng để kiểm tra nhanh luồng tích xu và biến động số dư ví BookEat Coins.</p>
+        </div>
+
+        <form onSubmit={handleSimulate} className="flex flex-col sm:flex-row gap-3 items-end">
+          <div className="flex flex-col gap-1.5 flex-1 w-full">
+            <label className="text-[10px] uppercase font-bold text-muted-foreground">Số xu tích lũy</label>
+            <input
+              type="number"
+              value={simAmount}
+              onChange={(e) => setSimAmount(e.target.value)}
+              placeholder="VD: 5000"
+              className="h-10 w-full rounded-xl border border-border bg-[#20242D] px-3.5 text-xs text-white placeholder-muted-foreground/50 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-1 w-full">
+            <label className="text-[10px] uppercase font-bold text-muted-foreground">Nguồn tích xu</label>
+            <select
+              value={simSource}
+              onChange={(e) => setSimSource(e.target.value)}
+              className="h-10 w-full rounded-xl border border-border bg-[#20242D] px-3 text-xs text-white focus:outline-none"
+            >
+              <option value="completed">Đơn hoàn tất (bữa ăn xong)</option>
+              <option value="deposit">Đặt cọc thành công</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={simLoading}
+            className="h-10 px-5 rounded-xl bg-[#D49653] hover:bg-[#D49653]/90 text-background text-xs font-bold shrink-0 disabled:opacity-50 flex items-center justify-center gap-1.5 w-full sm:w-auto cursor-pointer border-none"
+          >
+            {simLoading && <Loader2 size={12} className="animate-spin" />}
+            <span>Giả lập tích xu</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // Tab: Lịch sử đặt bàn (placeholder)
 // ─────────────────────────────────────────────
 
@@ -649,6 +878,7 @@ const TABS = [
   { id: 'info',     label: 'Thông tin',    icon: User },
   { id: 'password', label: 'Mật khẩu',     icon: Lock },
   { id: 'bookings', label: 'Đặt bàn',      icon: Calendar },
+  { id: 'loyalty',  label: 'BookEat Coins',icon: Coins },
 ];
 
 export default function ProfilePage() {
@@ -825,6 +1055,9 @@ export default function ProfilePage() {
             )}
             {activeTab === 'bookings' && (
               <TabBookings />
+            )}
+            {activeTab === 'loyalty' && (
+              <TabLoyalty />
             )}
           </section>
         </div>

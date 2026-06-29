@@ -125,6 +125,7 @@ function OwnerAIWidgetPanel({
   const messagesEndRef = useRef(null);
   const activeAbortControllerRef = useRef(null);
   const stopRequestedRef = useRef(false);
+  const sendingRef = useRef(false);
 
   const ownerContext = useMemo(() => (
     selectedRestaurantId ? { selectedRestaurantId } : null
@@ -158,6 +159,7 @@ function OwnerAIWidgetPanel({
     let receivedResult = false;
 
     setSending(true);
+    sendingRef.current = true;
     setError(null);
 
     try {
@@ -269,6 +271,7 @@ function OwnerAIWidgetPanel({
 
       if (!cancelled) {
         setError({
+          code: requestError?.code || (requestError?.status === 429 ? 'RATE_LIMITED' : 'AI_UNAVAILABLE'),
           message: getAIWidgetErrorMessage(requestError, 'owner'),
           tone: 'error',
           retry: isNonRetryableAIError(requestError) ? null : {
@@ -284,13 +287,14 @@ function OwnerAIWidgetPanel({
       if (activeAbortControllerRef.current === abortController) {
         activeAbortControllerRef.current = null;
       }
+      sendingRef.current = false;
       setSending(false);
     }
   };
 
   const requestAssistant = (rawMessage) => {
     const message = rawMessage.trim();
-    if (!message || sending) return;
+    if (!message || sending || sendingRef.current) return;
 
     if (restaurantLoading) {
       setError({ message: 'Đang tải danh sách nhà hàng. Vui lòng thử lại sau.', tone: 'error', retry: null });
@@ -327,7 +331,7 @@ function OwnerAIWidgetPanel({
   };
 
   const retryStream = () => {
-    if (!error?.retry || sending) return;
+    if (!error?.retry || sending || sendingRef.current) return;
     const retry = error.retry;
     setMessages((current) => current.map((item) => (
       item.id === retry.assistantMessageId
@@ -409,7 +413,7 @@ function OwnerAIWidgetPanel({
   };
 
   const requiredState = !restaurantLoading && !selectedRestaurantId;
-  const disabledInput = sending || restaurantLoading || requiredState;
+  const disabledInput = sending || restaurantLoading || requiredState || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED';
 
   return (
         <section
@@ -481,7 +485,7 @@ function OwnerAIWidgetPanel({
                       key={prompt}
                       className="max-w-full rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => fillPrompt(prompt)}
-                      disabled={restaurantLoading || requiredState}
+                      disabled={restaurantLoading || requiredState || sending || error?.code === 'RATE_LIMITED' || error?.code === 'AI_RATE_LIMITED'}
                     >
                       {prompt}
                     </button>
@@ -544,7 +548,7 @@ function OwnerAIWidgetPanel({
                   if (!error?.retry) setError(null);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder={requiredState ? 'Chọn nhà hàng trước...' : 'Hỏi về booking, bàn trống, doanh thu...'}
+                placeholder={requiredState ? 'Chọn nhà hàng trước...' : error?.code === 'RATE_LIMITED' ? 'Trợ lý đang bận, vui lòng thử lại sau.' : 'Hỏi về booking, bàn trống, doanh thu...'}
                 rows={1}
                 maxLength={MAX_MESSAGE_LENGTH}
                 className="min-h-10 max-h-28 min-w-0 flex-1 resize-none rounded-lg border border-input bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"

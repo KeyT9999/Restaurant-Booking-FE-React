@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Camera, X, Loader2 } from 'lucide-react';
 import {
@@ -13,7 +13,7 @@ import { RatingStars } from '../ui/RatingStars';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { uploadImage } from '../../api/uploadApi';
-import { createReview } from '../../api/reviewApi';
+import { createReview, updateReview, getMyReviews } from '../../api/reviewApi';
 
 export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
   const [rating, setRating] = useState(5);
@@ -21,7 +21,42 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [reviewId, setReviewId] = useState(null);
+  const [isLoadingReview, setIsLoadingReview] = useState(false);
   const fileInputRef = useRef(null);
+
+  const isEditMode = booking && (booking.reviewed || booking.isEdit);
+
+  useEffect(() => {
+    if (isOpen && isEditMode && booking) {
+      const fetchExistingReview = async () => {
+        setIsLoadingReview(true);
+        try {
+          const res = await getMyReviews();
+          if (res?.success && res.data) {
+            const bId = booking.id || booking._id;
+            const existing = res.data.find(
+              (r) => r.bookingId?.toString() === bId?.toString() || r.id === booking.reviewId
+            );
+            if (existing) {
+              setReviewId(existing.id || existing._id);
+              setRating(existing.rating);
+              setComment(existing.comment || '');
+              setImages(existing.images || []);
+            } else {
+              toast.error('Không tìm thấy đánh giá cũ để chỉnh sửa');
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching review:', err);
+          toast.error('Không thể tải thông tin đánh giá cũ');
+        } finally {
+          setIsLoadingReview(false);
+        }
+      };
+      fetchExistingReview();
+    }
+  }, [isOpen, isEditMode, booking]);
 
   if (!booking) return null;
 
@@ -102,19 +137,25 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
 
     try {
       const payload = {
-        bookingId: booking._id || booking.id,
         rating,
         comment: comment.trim(),
         images,
       };
 
-      const res = await createReview(payload);
+      let res;
+      if (isEditMode && reviewId) {
+        res = await updateReview(reviewId, payload);
+      } else {
+        payload.bookingId = booking._id || booking.id;
+        res = await createReview(payload);
+      }
+
       if (res?.success) {
-        toast.success('Gửi đánh giá nhà hàng thành công! Cảm ơn bạn.');
+        toast.success(isEditMode ? 'Cập nhật đánh giá thành công!' : 'Gửi đánh giá nhà hàng thành công! Cảm ơn bạn.');
         onSubmitSuccess?.();
         handleClose();
       } else {
-        toast.error(res?.message || 'Gửi đánh giá thất bại');
+        toast.error(res?.message || (isEditMode ? 'Cập nhật đánh giá thất bại' : 'Gửi đánh giá thất bại'));
       }
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -129,6 +170,7 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
     setRating(5);
     setComment('');
     setImages([]);
+    setReviewId(null);
     onClose();
   };
 
@@ -157,7 +199,13 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        {isLoadingReview ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-[#D49653]" />
+            <p className="text-xs text-[#A5ADBA]">Đang tải đánh giá cũ...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* Rating Section */}
           <div className="flex flex-col items-center justify-center space-y-2 py-2 bg-[#0F1115]/40 rounded-lg border border-[#2C313C]/50">
             <span className="text-xs text-[#A5ADBA] uppercase tracking-wider font-semibold">
@@ -275,6 +323,7 @@ export function ReviewFormModal({ isOpen, onClose, booking, onSubmitSuccess }) {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

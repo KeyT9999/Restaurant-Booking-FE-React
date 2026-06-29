@@ -85,7 +85,7 @@ export default function OwnerReviewsPage() {
         // Cập nhật reviews state cục bộ thay vì reload toàn bộ
         setReviews((prev) =>
           prev.map((rev) =>
-            rev._id === reviewId
+            (rev.id || rev._id) === reviewId
               ? {
                   ...rev,
                   ownerReply: {
@@ -169,11 +169,12 @@ export default function OwnerReviewsPage() {
           {!loading && !error && reviews.length > 0 && (
             <div className="flex flex-col gap-5 text-left">
               {reviews.map((rev) => {
-                const isReplying = replyingStates[rev._id] || false;
-                const replyText = replyInputs[rev._id] || '';
+                const reviewId = rev.id || rev._id;
+                const isReplying = replyingStates[reviewId] || false;
+                const replyText = replyInputs[reviewId] || '';
 
                 return (
-                  <Card key={rev._id} className="p-5 bg-card border-border flex flex-col gap-4">
+                  <Card key={reviewId} className="p-5 bg-card border-border flex flex-col gap-4">
                     {/* Header */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -190,9 +191,14 @@ export default function OwnerReviewsPage() {
                           <span className="block text-sm font-bold text-white truncate">
                             {rev.userId?.fullName || 'Khách hàng'}
                           </span>
-                          <span className="block text-[10px] text-[#A5ADBA]">
-                            {new Date(rev.createdAt).toLocaleString('vi-VN')}
-                          </span>
+                           <span className="block text-[10px] text-[#A5ADBA]">
+                             {new Date(rev.createdAt).toLocaleString('vi-VN')}
+                             {rev.isEdited && (
+                               <span className="text-[9px] text-[#D49653] italic ml-1.5 font-medium animate-pulse">
+                                 (Đã chỉnh sửa)
+                               </span>
+                             )}
+                           </span>
                         </div>
                       </div>
                       <RatingStars rating={rev.rating} size="sm" />
@@ -247,7 +253,7 @@ export default function OwnerReviewsPage() {
                         </div>
                         <Textarea
                           value={replyText}
-                          onChange={(e) => handleReplyChange(rev._id, e.target.value)}
+                          onChange={(e) => handleReplyChange(reviewId, e.target.value)}
                           placeholder="Viết phản hồi chi tiết của nhà hàng tới khách hàng tại đây..."
                           className="min-h-[70px] bg-[#0F1115] border-[#2C313C] focus:border-[#D49653] focus:ring-1 focus:ring-[#D49653] text-white text-xs rounded-lg resize-none p-2.5"
                           disabled={isReplying}
@@ -256,7 +262,7 @@ export default function OwnerReviewsPage() {
                           <Button
                             size="sm"
                             disabled={isReplying || replyText.trim().length < 5 || replyText.trim().length > 500}
-                            onClick={() => handleReplySubmit(rev._id)}
+                            onClick={() => handleReplySubmit(reviewId)}
                             className="bg-[#D49653] hover:bg-[#D49653]/90 text-[#0F1115] font-semibold text-xs h-8 px-4 border-none"
                           >
                             {isReplying ? (

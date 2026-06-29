@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   Menu,
   Shield,
+  Sparkles,
   Star
 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -32,10 +33,10 @@ const NAV_ITEMS = [
   { to: '/admin/waitlists', icon: ClipboardList, label: 'Waitlist' },
   { to: '/admin/vouchers', icon: Ticket, label: 'Mã ưu đãi' },
   { to: '/admin/revenue', icon: DollarSign, label: 'Doanh thu' },
+  { to: '/admin/recommendations', icon: Sparkles, label: 'Recommendation' },
   { to: '/admin/refunds', icon: RefreshCcw, label: 'Hoàn tiền' },
   { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
   { to: '/admin/chat', icon: MessageSquare, label: 'Tin nhắn' },
-  { to: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];
 
 export default function AdminLayout({ children, title, subtitle, action }) {

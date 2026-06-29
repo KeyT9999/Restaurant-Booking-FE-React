@@ -1,11 +1,13 @@
 const ERROR_COPY = {
-  AI_DISABLED: 'AI assistant is temporarily disabled.',
-  TOOL_DISABLED: 'This AI capability is temporarily disabled.',
-  RATE_LIMITED: 'Too many AI requests. Please wait a moment before trying again.',
-  BUDGET_LIMITED: 'AI assistant is paused because the operating budget limit was reached.',
-  AI_UNAVAILABLE: 'AI assistant is temporarily unavailable.',
-  AI_TIMEOUT: 'AI assistant took too long to respond. Please try again.',
-  AI_AUTH_ERROR: 'AI assistant is not configured correctly.',
+  AI_DISABLED: 'Trợ lý AI đang tạm thời bị tắt.',
+  TOOL_DISABLED: 'Tính năng AI này hiện đang tạm dừng.',
+  RATE_LIMITED: 'Bạn đang gửi quá nhiều yêu cầu. Vui lòng thử lại sau.',
+  AI_RATE_LIMITED: 'Bạn đang gửi quá nhiều yêu cầu. Vui lòng thử lại sau.',
+  AI_PROVIDER_RATE_LIMITED: 'Nhà cung cấp AI đang quá tải hoặc hết hạn mức tạm thời. Vui lòng thử lại sau.',
+  BUDGET_LIMITED: 'Trợ lý AI đang tạm dừng do vượt ngân sách vận hành.',
+  AI_UNAVAILABLE: 'Trợ lý AI đang tạm thời không khả dụng. Vui lòng thử lại sau.',
+  AI_TIMEOUT: 'Trợ lý phản hồi quá lâu. Vui lòng thử lại.',
+  AI_AUTH_ERROR: 'Cấu hình Trợ lý BookEat chưa hợp lệ.',
 };
 
 const AUDIENCE_PREFIX = {

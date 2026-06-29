@@ -4,6 +4,7 @@ import {
   Armchair,
   Building2,
   CalendarDays,
+  CalendarOff,
   ClipboardList,
   Globe2,
   LayoutGrid,
@@ -24,7 +25,7 @@ import { Input } from '../ui/input';
 import { cn } from '../ui/utils';
 import NotificationIcon from '../notifications/NotificationIcon';
 import RestaurantSwitcher from './RestaurantSwitcher';
-
+ 
 const NAV_ITEMS = [
   { to: '/owner/dashboard', icon: LayoutGrid, label: 'Bảng điều khiển', end: true },
   { to: '/owner/bookings', icon: CalendarDays, label: 'Quản lý đặt bàn' },
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: '/owner/menu', icon: Utensils, label: 'Thực đơn' },
   { to: '/owner/tables', icon: Armchair, label: 'Sơ đồ bàn' },
   { to: '/owner/waitlists', icon: ClipboardList, label: 'Danh sách chờ' },
+  { to: '/owner/blocked-slots', icon: CalendarOff, label: 'Chặn khung giờ đặt' },
   { to: '/owner/vouchers', icon: Ticket, label: 'Ưu đãi & Voucher' },
   { to: '/owner/reviews', icon: Star, label: 'Đánh giá' },
   { to: '/owner/billing', icon: Wallet, label: 'Tài chính & Ví' },

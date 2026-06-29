@@ -45,6 +45,7 @@ import OwnerBilling from './pages/owner/OwnerBilling';
 import PaymentSuccess from './pages/payment/PaymentSuccess';
 import PaymentCancel from './pages/payment/PaymentCancel';
 import AdminRevenue from './pages/admin/AdminRevenue';
+import AdminRecommendations from './pages/admin/AdminRecommendations';
 import AdminRefunds from './pages/admin/AdminRefunds';
 import OwnerVouchers from './pages/owner/OwnerVouchers';
 import SavedVouchers from './pages/profile/SavedVouchers';
@@ -57,6 +58,7 @@ import MyWaitlistsPage from './pages/waitlist/MyWaitlistsPage';
 import WaitlistDetailPage from './pages/waitlist/WaitlistDetailPage';
 import OwnerWaitlistPage from './pages/owner/OwnerWaitlistPage';
 import OwnerReviewsPage from './pages/owner/OwnerReviewsPage';
+import OwnerBlockedSlotsPage from './pages/owner/OwnerBlockedSlotsPage';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
@@ -200,9 +202,9 @@ function AppRoutes() {
                 <Route path="bookings" element={<OwnerBookingsPage />} />
                 <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="waitlists" element={<OwnerWaitlistPage />} />
+                <Route path="blocked-slots" element={<OwnerBlockedSlotsPage />} />
                 <Route path="billing" element={<OwnerBilling />} />
                 <Route path="vouchers" element={<OwnerVouchers />} />
-                <Route path="reviews" element={<OwnerReviewsPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
               <OwnerAIWidget />
@@ -228,6 +230,7 @@ function AppRoutes() {
               <Route path="waitlists" element={<AdminWaitlists />} />
               <Route path="chat" element={<AdminChatPage />} />
               <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="recommendations" element={<AdminRecommendations />} />
               <Route path="refunds" element={<AdminRefunds />} />
               <Route path="vouchers" element={<AdminVouchers />} />
               <Route path="reviews" element={<AdminReviews />} />

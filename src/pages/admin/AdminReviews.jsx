@@ -85,7 +85,7 @@ export default function AdminReviews() {
         // Cập nhật reviews state cục bộ
         setReviews((prev) =>
           prev.map((rev) =>
-            rev._id === reviewId ? { ...rev, status: newStatus, hideReason: newStatus === 'hidden' ? reason : null } : rev
+            (rev.id || rev._id) === reviewId ? { ...rev, status: newStatus, hideReason: newStatus === 'hidden' ? reason : null } : rev
           )
         );
       } else {
@@ -200,12 +200,17 @@ export default function AdminReviews() {
                 </TableHeader>
                 <TableBody>
                   {reviews.map((rev) => (
-                    <TableRow key={rev._id} className="border-border hover:bg-secondary/15">
+                    <TableRow key={rev.id || rev._id} className="border-border hover:bg-secondary/15">
                       <TableCell className="align-top py-4">
                         <span className="block font-bold text-white text-xs">{rev.userId?.fullName || 'N/A'}</span>
                         <span className="block text-[10px] text-muted-foreground truncate mt-0.5">{rev.userId?.email || ''}</span>
                         <span className="block text-[9px] text-muted-foreground/80 mt-1">
                           {new Date(rev.createdAt).toLocaleString('vi-VN')}
+                          {rev.isEdited && (
+                            <span className="text-[9px] text-[#D49653] italic ml-1.5 font-medium block">
+                              (Đã chỉnh sửa)
+                            </span>
+                          )}
                         </span>
                       </TableCell>
                       <TableCell className="align-top font-semibold text-white py-4 text-xs">
@@ -266,8 +271,8 @@ export default function AdminReviews() {
                               size="sm"
                               variant="destructive"
                               className="bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs h-7.5 px-2.5"
-                              disabled={actionLoadingId === rev._id}
-                              onClick={() => handleUpdateStatus(rev._id, 'hidden')}
+                              disabled={actionLoadingId === (rev.id || rev._id)}
+                              onClick={() => handleUpdateStatus(rev.id || rev._id, 'hidden')}
                             >
                               <EyeOff className="w-3.5 h-3.5 mr-1" /> Ẩn review
                             </Button>
@@ -275,8 +280,8 @@ export default function AdminReviews() {
                             <Button
                               size="sm"
                               className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white text-xs h-7.5 px-2.5"
-                              disabled={actionLoadingId === rev._id}
-                              onClick={() => handleUpdateStatus(rev._id, 'approved')}
+                              disabled={actionLoadingId === (rev.id || rev._id)}
+                              onClick={() => handleUpdateStatus(rev.id || rev._id, 'approved')}
                             >
                               <CheckCircle className="w-3.5 h-3.5 mr-1" /> Duyệt
                             </Button>
@@ -292,7 +297,7 @@ export default function AdminReviews() {
             {/* Mobile Cards Stack View */}
             <div className="flex flex-col gap-4 md:hidden">
               {reviews.map((rev) => (
-                <Card key={rev._id} className="p-4 bg-card border-border flex flex-col gap-3.5">
+                <Card key={rev.id || rev._id} className="p-4 bg-card border-border flex flex-col gap-3.5">
                   <div className="flex justify-between items-start">
                     <div>
                       <strong className="block text-white text-xs">{rev.userId?.fullName || 'Khách hàng'}</strong>
@@ -344,6 +349,11 @@ export default function AdminReviews() {
                   <div className="flex justify-between items-center border-t border-border/40 pt-3 mt-1 text-xs">
                     <span className="text-[9px] text-muted-foreground">
                       {new Date(rev.createdAt).toLocaleString('vi-VN')}
+                      {rev.isEdited && (
+                        <span className="text-[9px] text-[#D49653] italic ml-1.5 font-medium">
+                          (Đã chỉnh sửa)
+                        </span>
+                      )}
                     </span>
                     <div>
                       {rev.status === 'approved' ? (
@@ -351,8 +361,8 @@ export default function AdminReviews() {
                           size="sm"
                           variant="destructive"
                           className="bg-rose-500/10 text-rose-400 text-[10px] h-7 px-3"
-                          disabled={actionLoadingId === rev._id}
-                          onClick={() => handleUpdateStatus(rev._id, 'hidden')}
+                          disabled={actionLoadingId === (rev.id || rev._id)}
+                          onClick={() => handleUpdateStatus(rev.id || rev._id, 'hidden')}
                         >
                           Ẩn
                         </Button>
@@ -360,8 +370,8 @@ export default function AdminReviews() {
                         <Button
                           size="sm"
                           className="bg-emerald-500/10 text-emerald-400 text-[10px] h-7 px-3"
-                          disabled={actionLoadingId === rev._id}
-                          onClick={() => handleUpdateStatus(rev._id, 'approved')}
+                          disabled={actionLoadingId === (rev.id || rev._id)}
+                          onClick={() => handleUpdateStatus(rev.id || rev._id, 'approved')}
                         >
                           Duyệt
                         </Button>

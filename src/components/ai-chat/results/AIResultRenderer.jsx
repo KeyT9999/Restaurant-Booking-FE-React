@@ -7,6 +7,7 @@ import AIKnowledgeAnswer from './AIKnowledgeAnswer';
 import AIAvailabilityResultCard from './AIAvailabilityResultCard';
 import AIVoucherResultCard from './AIVoucherResultCard';
 import AIBookingPreviewCard from './AIBookingPreviewCard';
+import AIPersonalizedRecommendationCard from './AIPersonalizedRecommendationCard';
 import {
   AIOwnerBookingSearchCard,
   AIOwnerBookingSummaryCard,
@@ -31,6 +32,7 @@ const RESULT_RENDERERS = {
   'menu_list@1': AIMenuResultList,
   'policy_answer@1': AIPolicyAnswer,
   'knowledge_answer@1': AIKnowledgeAnswer,
+  'personalized_recommendations@1': AIPersonalizedRecommendationCard,
   'availability_result@1': AIAvailabilityResultCard,
   'voucher_result@1': AIVoucherResultCard,
   'booking_preview@1': AIBookingPreviewCard,
