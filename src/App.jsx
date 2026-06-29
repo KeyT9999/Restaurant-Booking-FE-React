@@ -61,6 +61,7 @@ import AdminReviews from './pages/admin/AdminReviews';
 import AdminWaitlists from './pages/admin/AdminWaitlists';
 import useWaitlistNotifications from './hooks/useWaitlistNotifications';
 import NotificationsPage from './pages/notifications/NotificationsPage';
+import RecommendationPage from './pages/recommendation/RecommendationPage';
 import './App.css';
 
 function AppRoutes() {
@@ -120,6 +121,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/recommendations" element={<RecommendationPage />} />
       <Route
         path="/my-waitlists"
         element={

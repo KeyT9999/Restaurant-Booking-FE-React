@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Utensils, LogOut, ChevronDown, User, Calendar, Shield, Menu, X, Heart } from 'lucide-react';
+import { Utensils, LogOut, ChevronDown, User, Calendar, Shield, Menu, X, Heart, Navigation } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from './ui/utils';
@@ -21,9 +21,11 @@ export default function Header() {
     const items = [{ to: '/', label: 'Trang chủ' }];
     if (!isAuthenticated) {
       items.push({ to: '/restaurants', label: 'Nhà hàng' });
+      items.push({ to: '/recommendations', label: 'Gần tôi' });
     } else if (user?.role === 'customer') {
       items.push(
         { to: '/restaurants', label: 'Khám phá' },
+        { to: '/recommendations', label: 'Gần tôi' },
         { to: '/my-favorites', label: 'Yêu thích' },
         { to: '/my-bookings', label: 'Đặt bàn' },
         { to: '/my-waitlists', label: 'Waitlist' },
@@ -32,6 +34,7 @@ export default function Header() {
       );
     } else {
       items.push({ to: '/restaurants', label: 'Khám phá' });
+      items.push({ to: '/recommendations', label: 'Gần tôi' });
     }
     return items;
   };
@@ -87,6 +90,15 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => navigate('/recommendations')}
+                className="text-primary hover:text-primary/80 hover:bg-primary/10 text-xs font-semibold gap-1.5 h-8"
+              >
+                <Navigation className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Gần tôi</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate('/auth/login')}
                 className="text-muted-foreground hover:text-white hover:bg-[#20242D]/40 text-xs font-semibold px-2.5 h-8"
                 id="header-btn-login"
@@ -132,6 +144,17 @@ export default function Header() {
                   Quản lý nhà hàng
                 </Button>
               )}
+
+              {/* Quick Access: Nearby Restaurants Button */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate('/recommendations')}
+                className="hidden md:inline-flex border-primary/30 hover:border-primary/50 hover:bg-primary/10 text-primary text-xs font-semibold gap-1.5"
+              >
+                <Navigation className="h-3.5 w-3.5" />
+                Gần tôi
+              </Button>
 
               {/* User Avatar Menu */}
               <div className="relative">
@@ -223,6 +246,15 @@ export default function Header() {
       {/* Mobile Menu Panel */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-[#0F1115]/95 backdrop-blur-md px-6 py-4 flex flex-col gap-2 animate-in slide-in-from-top duration-200">
+          {/* Quick Action: Nearby Restaurants */}
+          <button
+            onClick={() => { setMobileMenuOpen(false); navigate('/recommendations'); }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 rounded-lg text-xs font-semibold transition-colors text-primary hover:bg-primary/10"
+          >
+            <Navigation className="h-4 w-4" />
+            Gần tôi
+          </button>
+          <div className="h-px bg-border" />
           {getMenuItems().map((item) => (
             <NavLink
               key={item.to}
