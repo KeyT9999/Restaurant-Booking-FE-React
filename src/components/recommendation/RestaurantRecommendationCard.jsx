@@ -31,9 +31,12 @@ const RestaurantRecommendationCard = ({ restaurant, index }) => {
     isOpen,
     googleMapsLink,
     photo,
+    image,
     score,
     reason,
   } = restaurant;
+
+  const displayImage = photo || image;
 
   const handleOpenMaps = (e) => {
     e.stopPropagation();
@@ -46,9 +49,9 @@ const RestaurantRecommendationCard = ({ restaurant, index }) => {
     <Card className="group overflow-hidden bg-card border-border hover:border-primary/50 transition-all duration-300 cursor-pointer flex flex-col">
       {/* Image Section */}
       <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
-        {photo ? (
+        {displayImage ? (
           <SafeImage
-            src={photo}
+            src={displayImage}
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
             fallback={
