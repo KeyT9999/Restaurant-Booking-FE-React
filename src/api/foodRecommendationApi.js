@@ -8,10 +8,8 @@ import axiosInstance from './axiosInstance';
  * @param {Object} [payload.context] - Optional context filters (e.g. goal, dietaryRestrictions, maxBudget).
  * @returns {Promise<Object>} The API response containing nutritionAdvice, suggestedDishes, and matching restaurants.
  */
-export const getFoodRecommendation = async ({ question, context }) => {
-  const response = await axiosInstance.post('/openai/food-recommendation', {
+export const getFoodRecommendation = ({ question, context }) =>
+  axiosInstance.post('/openai/food-recommendation', {
     question,
     context
   });
-  return response.data;
-};

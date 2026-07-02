@@ -52,6 +52,10 @@ const RATING_OPTIONS = [
 export default function RecommendationPage() {
   const { location, error: locationError, loading: locationLoading, permissionStatus, requestLocation, hasLocation } = useGeolocation();
 
+  const [manualLocation, setManualLocation] = useState(null);
+  const activeLocation = manualLocation || location;
+  const hasActiveLocation = !!activeLocation;
+
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -101,23 +105,34 @@ export default function RecommendationPage() {
   }, [filters]);
 
   useEffect(() => {
-    if (hasLocation && location) {
-      fetchRecommendations(location.latitude, location.longitude);
+    if (hasActiveLocation && activeLocation) {
+      fetchRecommendations(activeLocation.latitude, activeLocation.longitude);
     }
-  }, [hasLocation, location, filters, fetchRecommendations]);
+  }, [hasActiveLocation, activeLocation, filters, fetchRecommendations]);
 
   const handleRequestPermission = async () => {
     try {
       const position = await requestLocation();
+      setManualLocation(null); // Clear manual fallback if GPS succeeds
       fetchRecommendations(position.latitude, position.longitude);
     } catch (err) {
       console.error('Location request error:', err);
     }
   };
 
+  const handleUseDefaultLocation = () => {
+    const defaultLoc = {
+      latitude: 16.0130,
+      longitude: 108.0700,
+      accuracy: 0,
+      address: 'Khu đô thị FPT, Ngũ Hành Sơn, Đà Nẵng'
+    };
+    setManualLocation(defaultLoc);
+  };
+
   const handleRefresh = () => {
-    if (location) {
-      fetchRecommendations(location.latitude, location.longitude);
+    if (activeLocation) {
+      fetchRecommendations(activeLocation.latitude, activeLocation.longitude);
     }
   };
 
@@ -126,11 +141,12 @@ export default function RecommendationPage() {
   };
 
   const renderContent = () => {
-    if (!hasLocation && !locationLoading) {
+    if (!hasActiveLocation && !locationLoading) {
       return (
         <div className="flex items-center justify-center min-h-[60vh]">
           <LocationPermissionPrompt
             onRequestPermission={handleRequestPermission}
+            onUseDefaultLocation={handleUseDefaultLocation}
             error={locationError}
             loading={locationLoading}
             permissionStatus={permissionStatus}
@@ -253,11 +269,11 @@ export default function RecommendationPage() {
             </p>
 
             {/* Location Info */}
-            {hasLocation && location && (
+            {hasActiveLocation && activeLocation && (
               <div className="mt-4 flex items-center gap-2 text-sm text-primary">
                 <MapPin className="h-4 w-4" />
                 <span>
-                  {location.address || `Vị trí của bạn: ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`}
+                  {activeLocation.address || `Vị trí của bạn: ${activeLocation.latitude.toFixed(4)}, ${activeLocation.longitude.toFixed(4)}`}
                 </span>
               </div>
             )}
@@ -339,7 +355,7 @@ export default function RecommendationPage() {
               {/* Refresh Button */}
               <Button
                 onClick={handleRefresh}
-                disabled={!hasLocation || loading}
+                disabled={!hasActiveLocation || loading}
                 variant="outline"
                 size="sm"
                 className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5"

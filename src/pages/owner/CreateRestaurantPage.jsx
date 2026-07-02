@@ -122,6 +122,9 @@ const INITIAL_DATA = {
   amenities: [],
   policyRules: [],
   bookingNotes: '',
+  businessLicense: { number: '', imageUrl: '' },
+  taxCode: '',
+  bankInfo: { bankName: '', accountNumber: '', accountHolder: '', branch: '' },
 };
 
 export default function CreateRestaurantPage() {
@@ -225,6 +228,46 @@ export default function CreateRestaurantPage() {
 
       if (payload.operatingHours && Object.keys(payload.operatingHours).length === 0) {
         delete payload.operatingHours;
+      }
+
+      // Clean up Legal and Financial details
+      if (!payload.taxCode || !payload.taxCode.trim()) {
+        delete payload.taxCode;
+      } else {
+        payload.taxCode = payload.taxCode.trim();
+      }
+
+      if (payload.businessLicense) {
+        const { number, imageUrl } = payload.businessLicense;
+        const cleanedNumber = number ? number.trim() : '';
+        const cleanedImageUrl = imageUrl ? imageUrl.trim() : '';
+        if (!cleanedNumber && !cleanedImageUrl) {
+          delete payload.businessLicense;
+        } else {
+          payload.businessLicense = {
+            number: cleanedNumber || null,
+            imageUrl: cleanedImageUrl || null,
+          };
+        }
+      }
+
+      if (payload.bankInfo) {
+        const { bankName, accountNumber, accountHolder, branch } = payload.bankInfo;
+        const cleanedBankName = bankName ? bankName.trim() : '';
+        const cleanedAccountNumber = accountNumber ? accountNumber.trim() : '';
+        const cleanedAccountHolder = accountHolder ? accountHolder.trim() : '';
+        const cleanedBranch = branch ? branch.trim() : '';
+
+        if (!cleanedBankName && !cleanedAccountNumber && !cleanedAccountHolder && !cleanedBranch) {
+          delete payload.bankInfo;
+        } else {
+          payload.bankInfo = {
+            bankName: cleanedBankName || null,
+            accountNumber: cleanedAccountNumber || null,
+            accountHolder: cleanedAccountHolder || null,
+            branch: cleanedBranch || null,
+          };
+        }
       }
 
       const response = await createRestaurant(payload);

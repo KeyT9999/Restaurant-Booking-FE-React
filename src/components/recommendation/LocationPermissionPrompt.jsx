@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 
 const LocationPermissionPrompt = ({ 
   onRequestPermission, 
+  onUseDefaultLocation,
   error, 
   loading,
   permissionStatus 
@@ -22,8 +23,7 @@ const LocationPermissionPrompt = ({
         </h3>
         
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-          Bạn đã từ chối quyền truy cập vị trí. Để sử dụng tính năng này, 
-          vui lòng bật định vị trong cài đặt trình duyệt.
+          Bạn đã từ chối quyền truy cập vị trí. Bạn có thể sử dụng vị trí mặc định (Đà Nẵng) hoặc bật định vị trong cài đặt trình duyệt để tiếp tục.
         </p>
         
         <div className="bg-muted/30 rounded-lg p-4 text-left mb-6">
@@ -36,13 +36,23 @@ const LocationPermissionPrompt = ({
           </ul>
         </div>
         
-        <Button
-          onClick={() => window.open('https://support.google.com/chrome/answer/142065', '_blank')}
-          variant="outline"
-          className="border-primary/30 text-primary hover:bg-primary/10"
-        >
-          Tìm hiểu thêm
-        </Button>
+        <div className="flex flex-col gap-3">
+          {onUseDefaultLocation && (
+            <Button
+              onClick={onUseDefaultLocation}
+              className="bg-primary hover:bg-[#E0A968] text-background font-semibold w-full"
+            >
+              Sử dụng vị trí mặc định (Đà Nẵng)
+            </Button>
+          )}
+          <Button
+            onClick={() => window.open('https://support.google.com/chrome/answer/142065', '_blank')}
+            variant="outline"
+            className="border-primary/30 text-primary hover:bg-primary/10 w-full"
+          >
+            Tìm hiểu thêm
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -68,23 +78,36 @@ const LocationPermissionPrompt = ({
         </div>
       )}
       
-      <Button
-        onClick={onRequestPermission}
-        disabled={loading}
-        className="bg-primary hover:bg-[#E0A968] text-background font-semibold gap-2"
-      >
-        {loading ? (
-          <>
-            <RefreshCw className="h-4 w-4 animate-spin" />
-            Đang lấy vị trí...
-          </>
-        ) : (
-          <>
-            <MapPin className="h-4 w-4" />
-            Cho phép truy cập vị trí
-          </>
+      <div className="flex flex-col gap-3 justify-center items-center w-full">
+        <Button
+          onClick={onRequestPermission}
+          disabled={loading}
+          className="bg-primary hover:bg-[#E0A968] text-background font-semibold gap-2 w-full max-w-xs"
+        >
+          {loading ? (
+            <>
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Đang lấy vị trí...
+            </>
+          ) : (
+            <>
+              <MapPin className="h-4 w-4" />
+              Cho phép truy cập vị trí
+            </>
+          )}
+        </Button>
+
+        {onUseDefaultLocation && (
+          <Button
+            onClick={onUseDefaultLocation}
+            disabled={loading}
+            variant="outline"
+            className="border-primary/30 text-primary hover:bg-primary/10 w-full max-w-xs"
+          >
+            Sử dụng vị trí mặc định (Đà Nẵng)
+          </Button>
         )}
-      </Button>
+      </div>
       
       <p className="mt-4 text-xs text-muted-foreground">
         Vị trí của bạn sẽ không được lưu trữ

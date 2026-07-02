@@ -59,15 +59,17 @@ export default function VoucherCenter() {
     if (!matchesSearch) return false;
 
     // Tab filter match
-    if (activeTab === 'percentage') return v.discountType === 'percentage';
-    if (activeTab === 'fixed') return v.discountType === 'fixed_amount';
-    if (activeTab === 'new_user') return v.customerSegments.includes('new_user');
-    if (activeTab === 'vip') return v.customerSegments.includes('vip');
+    if (activeTab === 'loyalty') return v.type === 'loyalty';
+    if (activeTab === 'percentage') return v.discountType === 'percentage' && v.type !== 'loyalty';
+    if (activeTab === 'fixed') return v.discountType === 'fixed_amount' && v.type !== 'loyalty';
+    if (activeTab === 'new_user') return v.customerSegments.includes('new_user') && v.type !== 'loyalty';
+    if (activeTab === 'vip') return v.customerSegments.includes('vip') && v.type !== 'loyalty';
     return true; // 'all'
   });
 
   const tabs = [
     { key: 'all', label: 'Tất Cả Ưu Đãi' },
+    { key: 'loyalty', label: 'Đổi Xu Tích Điểm' },
     { key: 'percentage', label: 'Giảm Phần Trăm' },
     { key: 'fixed', label: 'Giảm Tiền Mặt' },
     { key: 'new_user', label: 'Dành Cho Bạn Mới' },
