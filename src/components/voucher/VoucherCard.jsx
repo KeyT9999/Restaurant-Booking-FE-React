@@ -59,6 +59,12 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
         </div>
 
         <div className="mt-4 flex flex-col gap-1 border-t border-border/40 pt-3 text-[10px] text-muted-foreground">
+          {voucher?.type === 'loyalty' && voucher?.pointsCost > 0 && (
+            <div className="flex justify-between gap-3 text-amber-500 font-bold border-b border-border/20 pb-1.5 mb-1.5">
+              <span>Giá đổi xu:</span>
+              <span className="flex items-center gap-1">🪙 {voucher.pointsCost.toLocaleString()} xu</span>
+            </div>
+          )}
           <div className="flex justify-between gap-3">
             <span>Đơn tối thiểu:</span>
             <span className="font-semibold text-white">{formatCurrency(minOrderAmount)}</span>
@@ -98,8 +104,10 @@ export default function VoucherCard({ voucher, onAction, actionText, disabled, i
             {isSaved && !isApplyAction ? (
               <>
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Đã lưu</span>
+                <span>{voucher?.type === 'loyalty' ? 'Đã đổi' : 'Đã lưu'}</span>
               </>
+            ) : voucher?.type === 'loyalty' && voucher?.pointsCost > 0 ? (
+              `Đổi ${voucher.pointsCost.toLocaleString()} xu`
             ) : (
               actionText || 'Lưu mã'
             )}

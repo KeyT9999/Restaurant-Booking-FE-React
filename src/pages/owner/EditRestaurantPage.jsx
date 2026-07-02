@@ -122,6 +122,9 @@ const INITIAL_DATA = {
   bookingNotes: '',
   hasMenu: false,
   hasTableLayout: false,
+  businessLicense: { number: '', imageUrl: '' },
+  taxCode: '',
+  bankInfo: { bankName: '', accountNumber: '', accountHolder: '', branch: '' },
 };
 
 export default function EditRestaurantPage() {
@@ -175,6 +178,17 @@ export default function EditRestaurantPage() {
           bookingNotes: r.bookingNotes || '',
           hasMenu: r.hasMenu ?? false,
           hasTableLayout: r.hasTableLayout ?? false,
+          businessLicense: {
+            number: r.businessLicense?.number || '',
+            imageUrl: r.businessLicense?.imageUrl || '',
+          },
+          taxCode: r.taxCode || '',
+          bankInfo: {
+            bankName: r.bankInfo?.bankName || '',
+            accountNumber: r.bankInfo?.accountNumber || '',
+            accountHolder: r.bankInfo?.accountHolder || '',
+            branch: r.bankInfo?.branch || '',
+          },
         });
         
         // Mark all steps as complete initially since it is editing existing valid data
@@ -258,6 +272,38 @@ export default function EditRestaurantPage() {
         if (Array.isArray(payload[key])) {
           payload[key] = payload[key].map(s => s.trim()).filter(Boolean);
         }
+      }
+
+      // Clean up Legal and Financial details
+      if (!payload.taxCode || !payload.taxCode.trim()) {
+        payload.taxCode = '';
+      } else {
+        payload.taxCode = payload.taxCode.trim();
+      }
+
+      if (payload.businessLicense) {
+        const { number, imageUrl } = payload.businessLicense;
+        const cleanedNumber = number ? number.trim() : '';
+        const cleanedImageUrl = imageUrl ? imageUrl.trim() : '';
+        payload.businessLicense = {
+          number: cleanedNumber || '',
+          imageUrl: cleanedImageUrl || '',
+        };
+      }
+
+      if (payload.bankInfo) {
+        const { bankName, accountNumber, accountHolder, branch } = payload.bankInfo;
+        const cleanedBankName = bankName ? bankName.trim() : '';
+        const cleanedAccountNumber = accountNumber ? accountNumber.trim() : '';
+        const cleanedAccountHolder = accountHolder ? accountHolder.trim() : '';
+        const cleanedBranch = branch ? branch.trim() : '';
+
+        payload.bankInfo = {
+          bankName: cleanedBankName || '',
+          accountNumber: cleanedAccountNumber || '',
+          accountHolder: cleanedAccountHolder || '',
+          branch: cleanedBranch || '',
+        };
       }
 
       const response = await updateRestaurant(id, payload);

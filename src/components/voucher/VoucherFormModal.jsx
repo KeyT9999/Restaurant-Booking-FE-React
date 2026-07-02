@@ -15,6 +15,8 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
     endDate: '',
     globalUsageLimit: '',
     perCustomerLimit: '1',
+    type: 'platform',
+    pointsCost: '0',
   });
 
   const [errors, setErrors] = useState({});
@@ -33,6 +35,8 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
         endDate: voucher.endDate ? new Date(voucher.endDate).toISOString().split('T')[0] : '',
         globalUsageLimit: voucher.globalUsageLimit || '',
         perCustomerLimit: voucher.perCustomerLimit || '1',
+        type: voucher.type || 'platform',
+        pointsCost: voucher.pointsCost || '0',
       });
     } else {
       setFormData({
@@ -47,6 +51,8 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
         endDate: '',
         globalUsageLimit: '',
         perCustomerLimit: '1',
+        type: 'platform',
+        pointsCost: '0',
       });
     }
     setErrors({});
@@ -70,6 +76,10 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
       }
     } else if (name === 'minOrderAmount' && Number(value) < 0) {
       err = 'Số tiền đơn tối thiểu không thể âm';
+    } else if (name === 'pointsCost') {
+      if (data.type === 'loyalty' && (!value || Number(value) < 0)) {
+        err = 'Giá xu đổi phải lớn hơn hoặc bằng 0';
+      }
     } else if (name === 'endDate') {
       if (value && data.startDate && new Date(value) < new Date(data.startDate)) {
         err = 'Ngày kết thúc không thể trước ngày bắt đầu';
@@ -106,6 +116,9 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
     if (Number(formData.minOrderAmount) < 0) {
       tempErrors.minOrderAmount = 'Số tiền đơn tối thiểu không thể âm';
     }
+    if (formData.type === 'loyalty' && (!formData.pointsCost || Number(formData.pointsCost) < 0)) {
+      tempErrors.pointsCost = 'Giá xu đổi phải lớn hơn hoặc bằng 0';
+    }
     if (formData.endDate && formData.startDate && new Date(formData.endDate) < new Date(formData.startDate)) {
       tempErrors.endDate = 'Ngày kết thúc không thể trước ngày bắt đầu';
     }
@@ -127,6 +140,7 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
       perCustomerLimit: Number(formData.perCustomerLimit),
       startDate: formData.startDate || null,
       endDate: formData.endDate || null,
+      pointsCost: formData.type === 'loyalty' ? Number(formData.pointsCost) : 0,
     };
 
     onSubmit(dataToSend);
@@ -142,6 +156,8 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
     minOrderAmount: Number(formData.minOrderAmount) || 0,
     maxDiscountAmount: formData.maxDiscountAmount ? Number(formData.maxDiscountAmount) : null,
     endDate: formData.endDate || null,
+    type: formData.type,
+    pointsCost: formData.type === 'loyalty' ? Number(formData.pointsCost) : 0,
   };
 
   return (
@@ -205,6 +221,40 @@ const VoucherFormModal = ({ isOpen, onClose, onSubmit, voucher }) => {
                 }`}
               />
               {errors.code && <span className="text-xs text-destructive font-medium mt-0.5">{errors.code}</span>}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Voucher Type */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Loại Voucher <span className="text-primary">*</span></label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  disabled={!!voucher}
+                  className="flex h-11 w-full rounded-xl border border-border bg-[#20242D] px-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                >
+                  <option value="platform">Voucher hệ thống (platform)</option>
+                  <option value="loyalty">Voucher đổi điểm (loyalty)</option>
+                </select>
+              </div>
+
+              {/* Points Cost */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Chi phí đổi xu (Coins)</label>
+                <input
+                  type="number"
+                  name="pointsCost"
+                  value={formData.pointsCost}
+                  onChange={handleChange}
+                  disabled={formData.type !== 'loyalty'}
+                  placeholder="Ví dụ: 10000"
+                  className={`flex h-11 w-full rounded-xl border bg-[#20242D] px-4 py-2 text-sm text-white placeholder-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all ${
+                    errors.pointsCost ? 'border-destructive' : 'border-border'
+                  }`}
+                />
+                {errors.pointsCost && <span className="text-xs text-destructive font-medium mt-0.5">{errors.pointsCost}</span>}
+              </div>
             </div>
 
             {/* Description */}

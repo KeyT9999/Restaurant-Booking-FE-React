@@ -256,7 +256,24 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
   const [uploadError, setUploadError] = useState('');
 
   const handleChange = (field, value) => {
-    onChange({ ...data, [field]: value });
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      onChange({
+        ...data,
+        [parent]: {
+          ...(data[parent] || {}),
+          [child]: value
+        }
+      });
+    } else {
+      onChange({ ...data, [field]: value });
+    }
+  };
+
+  const handleLicenseUpload = async (e) => {
+    setUploading(true);
+    await handleSingleImageUpload('businessLicense.imageUrl', 'bookeat/restaurants/licenses', e);
+    setUploading(false);
   };
 
   const uploadFile = async (file, folder) => {
@@ -612,6 +629,96 @@ export default function AdditionalInfoStep({ data, onChange, errors }) {
           onChange={(e) => handleChange('bookingNotes', e.target.value)}
           rows={3}
         />
+      </div>
+
+      {/* 📜 Thông tin pháp lý & Tài khoản nhận tiền */}
+      <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-border/40 pb-2 mt-6">
+        📜 Thông tin pháp lý & Tài khoản nhận tiền
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="legal-tax-code">Mã số thuế</label>
+          <input
+            id="legal-tax-code"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: 0123456789"
+            value={data.taxCode || ''}
+            onChange={(e) => handleChange('taxCode', e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="legal-license-number">Số giấy phép kinh doanh</label>
+          <input
+            id="legal-license-number"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: GP-123456"
+            value={data.businessLicense?.number || ''}
+            onChange={(e) => handleChange('businessLicense.number', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="my-2">
+        <SingleImageUploader
+          id="legal-license-image"
+          label="Ảnh chụp giấy phép kinh doanh"
+          description="Ảnh chụp hoặc bản quét Giấy phép đăng ký kinh doanh chính thức của nhà hàng."
+          recommendation="Hỗ trợ JPG, PNG dưới 5MB."
+          value={data.businessLicense?.imageUrl || ''}
+          uploading={uploading || uploadingTarget === 'businessLicense.imageUrl'}
+          onUpload={handleLicenseUpload}
+          onRemove={() => handleChange('businessLicense.imageUrl', '')}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="bank-name">Tên ngân hàng</label>
+          <input
+            id="bank-name"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: Vietcombank"
+            value={data.bankInfo?.bankName || ''}
+            onChange={(e) => handleChange('bankInfo.bankName', e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="bank-account">Số tài khoản</label>
+          <input
+            id="bank-account"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: 1012345678"
+            value={data.bankInfo?.accountNumber || ''}
+            onChange={(e) => handleChange('bankInfo.accountNumber', e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="bank-holder">Tên chủ tài khoản</label>
+          <input
+            id="bank-holder"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: NGUYEN VAN A"
+            value={data.bankInfo?.accountHolder || ''}
+            onChange={(e) => handleChange('bankInfo.accountHolder', e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="bank-branch">Chi nhánh</label>
+          <input
+            id="bank-branch"
+            type="text"
+            className="bg-[#0F1115] border border-border text-white text-sm rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all"
+            placeholder="VD: Chi nhánh Đà Nẵng"
+            value={data.bankInfo?.branch || ''}
+            onChange={(e) => handleChange('bankInfo.branch', e.target.value)}
+          />
+        </div>
       </div>
 
       {/* Cấu hình hoàn thiện */}

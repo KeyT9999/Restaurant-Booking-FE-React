@@ -198,6 +198,29 @@ export default function ConfirmStep({ data, onEdit, onSubmit, isSubmitting, isEd
         <InfoRow label="Thiết lập Sơ đồ bàn" value={data.hasTableLayout ? '✅ Đã hoàn thành' : '❌ Chưa hoàn thành'} />
       </SectionCard>
 
+      {/* Section 6: Legal & Finance */}
+      <SectionCard title="📜 Thông tin pháp lý & Ngân hàng" stepNum={5} onEdit={onEdit}>
+        <InfoRow label="Mã số thuế" value={data.taxCode} />
+        <InfoRow label="Số GPKD" value={data.businessLicense?.number} />
+        {data.businessLicense?.imageUrl ? (
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-1 sm:gap-4 pb-2 border-b border-border/20">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Ảnh GPKD</span>
+            <span className="sm:col-span-3">
+              <SafeImage
+                src={data.businessLicense.imageUrl}
+                alt="Giấy phép kinh doanh"
+                className="h-20 w-40 rounded-lg border border-border/80 object-cover shadow"
+                fallback={<span className="text-xs text-muted-foreground">Ảnh GPKD không tải được</span>}
+              />
+            </span>
+          </div>
+        ) : null}
+        <InfoRow label="Ngân hàng" value={data.bankInfo?.bankName} />
+        <InfoRow label="Số tài khoản" value={data.bankInfo?.accountNumber} />
+        <InfoRow label="Chủ tài khoản" value={data.bankInfo?.accountHolder} />
+        <InfoRow label="Chi nhánh" value={data.bankInfo?.branch} />
+      </SectionCard>
+
       {/* Confirmation checkbox */}
       <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-6">
         <label className="flex items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">

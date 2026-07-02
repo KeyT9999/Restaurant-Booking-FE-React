@@ -99,13 +99,14 @@ export const useGeolocation = () => {
         },
         (error) => {
           switch (error.code) {
-            case error.PERMISSION_DENIED:
+            case 1: // PERMISSION_DENIED
+              setPermissionStatus('denied');
               reject(new Error('Bạn đã từ chối quyền truy cập vị trí.'));
               break;
-            case error.POSITION_UNAVAILABLE:
+            case 2: // POSITION_UNAVAILABLE
               reject(new Error('Không thể xác định vị trí của bạn.'));
               break;
-            case error.TIMEOUT:
+            case 3: // TIMEOUT
               reject(new Error('Yêu cầu vị trí đã hết thời gian.'));
               break;
             default:
@@ -115,7 +116,7 @@ export const useGeolocation = () => {
         GEOLOCATION_OPTIONS
       );
     });
-  }, []);
+  }, [setPermissionStatus]);
 
   const requestLocation = useCallback(async () => {
     setLoading(true);
