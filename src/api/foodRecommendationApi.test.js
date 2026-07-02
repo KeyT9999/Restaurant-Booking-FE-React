@@ -23,7 +23,7 @@ describe('foodRecommendationApi', () => {
         restaurants: []
       }
     };
-    axiosInstance.post.mockResolvedValue({ data: mockResponse });
+    axiosInstance.post.mockResolvedValue(mockResponse);
 
     const payload = { question: 'Tôi tập gym nên ăn gì?', context: { goal: 'muscle_gain' } };
     const response = await getFoodRecommendation(payload);
