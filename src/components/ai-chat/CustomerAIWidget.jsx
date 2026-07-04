@@ -156,7 +156,6 @@ export default function CustomerAIWidget() {
 
           if (event === 'tool_completed') {
             const failed = data.status && data.status !== 'success';
-            const authRequired = data.errorCode === 'AUTH_REQUIRED';
             setMessages((current) => current.map((item) => (
               item.id === assistantMessageId
                 ? {
@@ -170,19 +169,6 @@ export default function CustomerAIWidget() {
                 }
                 : item
             )));
-
-            if (failed && !authRequired) {
-              setError({
-                message: getToolErrorMessage(data),
-                retry: {
-                  message,
-                  assistantMessageId,
-                  userMessageId,
-                  history,
-                  context,
-                },
-              });
-            }
           }
 
           if (event === 'result' && data.result) {

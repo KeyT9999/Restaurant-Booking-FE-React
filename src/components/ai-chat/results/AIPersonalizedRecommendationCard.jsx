@@ -129,9 +129,29 @@ export default function AIPersonalizedRecommendationCard({ payload }) {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
-        Chua co goi y ca nhan hoa phu hop luc nay.
-      </div>
+      <section className="space-y-3">
+        <div className="rounded-xl border border-primary/15 bg-primary/5 p-3">
+          <div className="space-y-1">
+            <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              <Sparkles size={13} aria-hidden="true" />
+              {payload?.sourceLabel || 'BookEat personalized recommendations'}
+            </p>
+            <p className="text-sm font-medium text-foreground">
+              {payload?.message || 'Chua co goi y ca nhan hoa phu hop luc nay.'}
+            </p>
+          </div>
+
+          {payload?.fallbackUsed ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              BookEat se uu tien goi y pho bien hoac theo ngu canh hien tai khi chua du du lieu ca nhan hoa.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
+          Chua tim thay lua chon phu hop ngay luc nay. Ban co the thu them mon, khu vuc hoac muc gia cu the hon.
+        </div>
+      </section>
     );
   }
 
