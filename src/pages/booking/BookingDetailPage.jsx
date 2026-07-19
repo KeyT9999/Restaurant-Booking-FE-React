@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBookingById, cancelBooking } from '../../api/bookingApi';
+import { getBookingById, getCancellationPreview, cancelBooking } from '../../api/bookingApi';
 import { createPayment } from '../../api/paymentApi';
+import { getMyWallet } from '../../api/walletApi';
 import StatusBadge from '../../components/booking/StatusBadge';
 import StatusTimeline from '../../components/booking/StatusTimeline';
 import ReviewForm from '../../components/review/ReviewForm';
 import RescheduleModal from '../../components/booking/RescheduleModal';
+import CancellationModal from '../../components/booking/CancellationModal';
 import {
   ArrowLeft,
   Store,
@@ -68,11 +70,16 @@ export default function BookingDetailPage() {
   // Cancel dialog state
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [cancellationPreview, setCancellationPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWalletBalance, setUseWalletBalance] = useState(false);
 
   const handlePayDeposit = async () => {
     if (!booking) return;
@@ -81,11 +88,16 @@ export default function BookingDetailPage() {
       const res = await createPayment({
         targetType: 'booking',
         targetId: booking.id || booking._id,
+        useWalletBalance,
       });
 
       if (res.success && res.data?.checkoutUrl) {
         toast.success('Đang chuyển hướng sang cổng thanh toán PayOS...');
-        window.location.href = res.data.checkoutUrl;
+        window.location.assign(res.data.checkoutUrl);
+      } else if (res.success && res.data?.status === 'paid') {
+        toast.success(`Thanh toán bằng Ví BookEat thành công. Số dư còn lại: ${new Intl.NumberFormat('vi-VN').format(res.data.walletBalance || 0)}đ.`);
+        setWalletBalance(res.data.walletBalance || 0);
+        fetchBooking();
       } else {
         toast.error(res.message || 'Không thể tạo link thanh toán.');
       }
@@ -124,9 +136,26 @@ export default function BookingDetailPage() {
     return () => window.clearTimeout(timeoutId);
   }, [fetchBooking]);
 
-  const handleCancelClick = () => {
+  useEffect(() => {
+    getMyWallet()
+      .then((response) => setWalletBalance(response.data.wallet.balance || 0))
+      .catch(() => setWalletBalance(0));
+  }, []);
+
+  const handleCancelClick = async () => {
     setShowCancelDialog(true);
     setCancelReason('');
+    setPolicyAccepted(false);
+    setCancellationPreview(null);
+    setPreviewLoading(true);
+    try {
+      const res = await getCancellationPreview(id);
+      if (res.success) setCancellationPreview(res.data);
+    } catch (err) {
+      toast.error(err.message || 'Không thể tải chính sách hủy lúc này');
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const handleConfirmCancel = async () => {
@@ -134,7 +163,11 @@ export default function BookingDetailPage() {
     try {
       const res = await cancelBooking(id, cancelReason);
       if (res.success) {
-        toast.success('Hủy đặt bàn thành công');
+        const result = res.data;
+        toast.success(
+          `Hủy thành công. ${new Intl.NumberFormat('vi-VN').format(result.refundAmount)}đ đã vào Ví BookEat. Số dư ví: ${new Intl.NumberFormat('vi-VN').format(result.walletBalance)}đ.`,
+          { duration: 7000 }
+        );
         setShowCancelDialog(false);
         fetchBooking();
       } else {
@@ -148,14 +181,7 @@ export default function BookingDetailPage() {
     }
   };
 
-  const canCancel = () => {
-    if (!booking) return false;
-    const now = new Date();
-    const bDate = new Date(booking.bookingDate);
-    const [h, m] = booking.bookingTime.split(':').map(Number);
-    bDate.setHours(h, m, 0, 0);
-    return ['pending', 'confirmed'].includes(booking.status) && bDate > now;
-  };
+  const canCancel = () => booking && ['pending', 'confirmed'].includes(booking.status);
 
   if (loading) {
     return (
@@ -500,19 +526,21 @@ export default function BookingDetailPage() {
                     </span>
                   )}
                   {!booking.depositPaid && booking.status === 'pending' && (
-                    <Button
-                      onClick={handlePayDeposit}
-                      disabled={paying}
-                      className="w-full mt-3 bg-primary hover:bg-primary/95 text-background font-bold text-xs py-2 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      {paying ? (
-                        <>
-                          <Loader2 size={13} className="animate-spin" /> Đang xử lý...
-                        </>
-                      ) : (
-                        'Thanh toán đặt cọc qua PayOS'
+                    <div className="mt-3 space-y-3">
+                      {walletBalance > 0 && (
+                        <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+                          <input type="checkbox" checked={useWalletBalance} onChange={(event) => setUseWalletBalance(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#D49653]" />
+                          <span>Dùng tối đa <strong className="text-primary">{formatPrice(walletBalance)}</strong> từ Ví BookEat. Phần còn thiếu sẽ thanh toán qua PayOS.</span>
+                        </label>
                       )}
-                    </Button>
+                      <Button
+                        onClick={handlePayDeposit}
+                        disabled={paying}
+                        className="w-full bg-primary hover:bg-primary/95 text-background font-bold text-xs py-2 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        {paying ? <><Loader2 size={13} className="animate-spin" /> Đang xử lý...</> : useWalletBalance ? 'Thanh toán bằng Ví BookEat + PayOS' : 'Thanh toán đặt cọc qua PayOS'}
+                      </Button>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -532,6 +560,29 @@ export default function BookingDetailPage() {
                     Hủy bởi: {booking.cancelledBy === 'customer' ? 'Khách hàng' : booking.cancelledBy === 'restaurant' ? 'Nhà hàng' : 'Quản trị viên'}
                   </span>
                 </div>
+              </Card>
+            )}
+
+            {booking.status === 'cancelled' && booking.refundStatus && (
+              <Card className="border-emerald-500/20 bg-emerald-500/5 p-5 text-left">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Kết quả hoàn tiền</p>
+                <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                  <div className="flex justify-between"><span>Tiền cọc thực trả</span><strong className="text-white">{formatPrice(booking.cancellationPaidAmount || 0)}</strong></div>
+                  <div className="flex justify-between"><span>Phí hủy</span><strong className="text-rose-300">{formatPrice(booking.cancellationFeeAmount || 0)}</strong></div>
+                  <div className="flex justify-between border-t border-border pt-2"><span>Đã hoàn vào Ví BookEat</span><strong className="text-emerald-400">{formatPrice(booking.refundAmount || 0)}</strong></div>
+                </div>
+              </Card>
+            )}
+
+            {['pending', 'confirmed'].includes(booking.status) && (
+              <Card className="border-primary/20 bg-primary/5 p-5 text-left">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Chính sách hủy bàn</p>
+                <ul className="mt-3 space-y-2 text-xs leading-relaxed text-muted-foreground">
+                  <li>• Trước giờ đặt từ 2 giờ: hoàn 100% tiền cọc vào Ví BookEat.</li>
+                  <li>• Dưới 2 giờ: phí hủy 30%, hoàn 70% vào Ví BookEat.</li>
+                  <li>• Tại hoặc sau giờ đặt: không thể hủy và không hoàn cọc.</li>
+                </ul>
+                <p className="mt-3 border-t border-primary/15 pt-3 text-[11px] text-muted-foreground">Tiền hoàn dùng cho booking sau, không tự động hoàn về ngân hàng. Khoản chính xác được tính bằng thời gian máy chủ khi bạn mở xác nhận.</p>
               </Card>
             )}
 
@@ -656,53 +707,20 @@ export default function BookingDetailPage() {
         />
       )}
 
-      {/* Cancel Confirmation Dialog */}
-      {showCancelDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="absolute inset-0 z-0" onClick={() => setShowCancelDialog(false)} />
+      <CancellationModal
+        open={showCancelDialog}
+        preview={cancellationPreview}
+        loading={previewLoading}
+        reason={cancelReason}
+        onReasonChange={setCancelReason}
+        accepted={policyAccepted}
+        onAcceptedChange={setPolicyAccepted}
+        submitting={isCancelling}
+        onClose={() => !isCancelling && setShowCancelDialog(false)}
+        onConfirm={handleConfirmCancel}
+        booking={booking}
+      />
 
-          <Card className="relative z-10 w-full max-w-md p-6 bg-card border-border shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
-              <h4 className="font-bold text-rose-400 flex items-center gap-2 text-sm">
-                <AlertTriangle size={18} /> Xác nhận hủy đặt bàn
-              </h4>
-              <button
-                onClick={() => setShowCancelDialog(false)}
-                className="p-1 rounded text-muted-foreground hover:text-white hover:bg-secondary transition focus:outline-none"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4 text-xs text-left">
-              <p className="text-muted-foreground leading-relaxed">
-                Bạn có chắc chắn muốn hủy đặt bàn này không? Hành động này sẽ gửi yêu cầu hủy và không thể tự hoàn tác.
-              </p>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-muted-foreground font-semibold">Lý do hủy đặt bàn (tùy chọn):</label>
-                <textarea
-                  rows="3"
-                  maxLength="200"
-                  placeholder="Nhập lý do hủy đặt bàn..."
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  className="w-full bg-secondary/40 border border-border rounded-lg p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-border/40 text-xs">
-              <Button variant="outline" onClick={() => setShowCancelDialog(false)} disabled={isCancelling} className="border-border text-white hover:bg-secondary h-9 text-xs font-semibold">
-                Quay lại
-              </Button>
-              <Button onClick={handleConfirmCancel} disabled={isCancelling} className="bg-rose-500 hover:bg-rose-600 text-white h-9 text-xs font-bold px-4">
-                {isCancelling ? 'Đang hủy...' : 'Xác nhận hủy đặt bàn'}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

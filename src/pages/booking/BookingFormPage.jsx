@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 import { checkAvailability, createBooking } from '../../api/bookingApi';
 import { getPublicRestaurantDetail } from '../../api/restaurantApi';
 import { createPayment } from '../../api/paymentApi';
+import { getMyWallet } from '../../api/walletApi';
 import ApplyVoucher from '../../components/booking/ApplyVoucher';
 import PreOrderSelector from '../../components/booking/PreOrderSelector';
 import Header from '../../components/Header';
@@ -180,10 +181,23 @@ export default function BookingFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [redirectingToPayment, setRedirectingToPayment] = useState(false);
   const [preOrderItems, setPreOrderItems] = useState([]);
+  const [cancellationPolicyAccepted, setCancellationPolicyAccepted] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWalletBalance, setUseWalletBalance] = useState(false);
+
+  useEffect(() => {
+    getMyWallet()
+      .then((response) => setWalletBalance(response.data.wallet.balance || 0))
+      .catch(() => setWalletBalance(0));
+  }, []);
 
   const restaurantAddress = useMemo(() => formatAddress(restaurant?.address), [restaurant?.address]);
   const selectedCapacity = useMemo(() => getSelectedCapacity(selectedTables), [selectedTables]);
-  const depositAmount = useMemo(() => getDepositAmount(selectedTables), [selectedTables]);
+  const depositAmount = useMemo(() => {
+    const tableDeposit = getDepositAmount(selectedTables);
+    const foodTotal = preOrderItems.reduce((sum, item) => sum + (item.priceSnapshot || 0) * item.quantity, 0);
+    return tableDeposit + Math.round(0.1 * foodTotal);
+  }, [selectedTables, preOrderItems]);
   const restaurantImage = restaurant?.coverImage || restaurant?.image || restaurant?.logo || FALLBACK_RESTAURANT_IMAGE;
   const cuisineText = Array.isArray(restaurant?.cuisineTypes)
     ? restaurant.cuisineTypes.join(', ')
@@ -384,6 +398,10 @@ export default function BookingFormPage() {
   };
 
   const handleSubmitBooking = async () => {
+    if (!cancellationPolicyAccepted) {
+      toast.error('Vui lòng đọc và xác nhận chính sách hủy bàn.');
+      return;
+    }
     if (!validateStepOne() || !validateContactInfo()) {
       toast.error('Vui lòng kiểm tra lại thông tin đặt bàn.');
       return;
@@ -422,11 +440,17 @@ export default function BookingFormPage() {
           const paymentRes = await createPayment({
             targetType: 'booking',
             targetId: booking.id,
+            useWalletBalance,
           });
 
           if (paymentRes.success && paymentRes.data?.checkoutUrl) {
             sessionStorage.setItem('lastBooking', JSON.stringify(booking));
             window.location.href = paymentRes.data.checkoutUrl;
+            return;
+          }
+          if (paymentRes.success && paymentRes.data?.status === 'paid') {
+            toast.success('Đặt bàn và thanh toán tiền cọc bằng Ví BookEat thành công.');
+            setRedirectingToPayment(false);
             return;
           }
         } catch (paymentErr) {
@@ -980,6 +1004,7 @@ export default function BookingFormPage() {
                     occasion={occasion}
                     appliedVoucher={appliedVoucher}
                     discountAmount={discountAmount}
+                    depositAmount={depositAmount}
                   />
                 </div>
 
@@ -991,13 +1016,33 @@ export default function BookingFormPage() {
                   />
                 </div>
 
+                <div className="mt-4 space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-left">
+                  <p className="text-sm font-bold text-white">Chính sách hủy bàn</p>
+                  <ul className="space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+                    <li>• Hủy trước giờ đặt từ 2 giờ: hoàn 100% tiền cọc vào Ví BookEat.</li>
+                    <li>• Hủy trước dưới 2 giờ: phí 30%, hoàn 70% vào Ví BookEat.</li>
+                    <li>• Tại hoặc sau giờ đặt: không thể hủy và không hoàn tiền cọc.</li>
+                  </ul>
+                  <p className="text-xs text-muted-foreground">Tiền hoàn dùng cho booking sau, không tự động hoàn về tài khoản ngân hàng.</p>
+                  <label className="flex cursor-pointer items-start gap-2.5 border-t border-primary/15 pt-3 text-xs text-muted-foreground">
+                    <input type="checkbox" checked={cancellationPolicyAccepted} onChange={(event) => setCancellationPolicyAccepted(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#D49653]" />
+                    <span>Tôi đã đọc và đồng ý với chính sách hủy bàn.</span>
+                  </label>
+                  {walletBalance > 0 && (
+                    <label className="flex cursor-pointer items-start gap-2.5 border-t border-primary/15 pt-3 text-xs text-muted-foreground">
+                      <input type="checkbox" checked={useWalletBalance} onChange={(event) => setUseWalletBalance(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#D49653]" />
+                      <span>Dùng tối đa <strong className="text-primary">{formatCurrency(walletBalance)}</strong> từ Ví BookEat; phần thiếu thanh toán qua PayOS.</span>
+                    </label>
+                  )}
+                </div>
+
                 <StepActions>
                   <Button variant="outline" onClick={() => setCurrentStep(3)} disabled={isSubmitting} className="border-border text-white hover:bg-secondary h-11">
                     <ArrowLeft size={16} /> Quay lại
                   </Button>
                   <Button
                     onClick={handleSubmitBooking}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !cancellationPolicyAccepted}
                     className="bg-primary hover:bg-primary/95 text-background font-bold h-11 px-6"
                   >
                     {isSubmitting ? (
@@ -1243,6 +1288,7 @@ function SummaryPanel({
   occasion,
   appliedVoucher,
   discountAmount,
+  depositAmount,
 }) {
   const formattedDate = bookingDate
     ? new Date(`${bookingDate}T00:00:00`).toLocaleDateString('vi-VN', {
@@ -1252,8 +1298,6 @@ function SummaryPanel({
         year: 'numeric',
       })
     : 'Chưa chọn ngày';
-
-  const depositAmount = getDepositAmount(selectedTables);
 
   return (
     <section className="rounded-xl border border-border bg-secondary/20 p-5 text-left">

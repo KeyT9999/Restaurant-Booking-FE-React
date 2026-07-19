@@ -28,6 +28,7 @@ export default function Header() {
         { to: '/recommendations', label: 'Gần tôi' },
         { to: '/my-favorites', label: 'Yêu thích' },
         { to: '/my-bookings', label: 'Đặt bàn' },
+        { to: '/wallet', label: 'Ví BookEat' },
         { to: '/my-waitlists', label: 'Waitlist' },
         { to: '/my-vouchers', label: 'Mã ưu đãi' },
         { to: '/chat', label: 'Tin nhắn' }
