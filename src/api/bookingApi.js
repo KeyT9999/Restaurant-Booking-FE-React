@@ -16,8 +16,11 @@ export const getBookingById = (id) =>
 export const updateBooking = (id, data) =>
   axiosInstance.put(`/bookings/${id}`, data);
 
+export const getCancellationPreview = (id) =>
+  axiosInstance.get(`/bookings/${id}/cancellation-preview`);
+
 export const cancelBooking = (id, reason) =>
-  axiosInstance.delete(`/bookings/${id}/cancel`, { data: { reason } });
+  axiosInstance.post(`/bookings/${id}/cancel`, { reason });
 
 export const rescheduleBooking = (id, data) =>
   axiosInstance.put(`/bookings/${id}/reschedule`, data);

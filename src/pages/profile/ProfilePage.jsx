@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Loader2,
   Coins,
+  WalletCards,
   HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
@@ -622,11 +623,6 @@ function TabLoyalty() {
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
 
-  // Simulation states
-  const [simAmount, setSimAmount] = useState('5000');
-  const [simSource, setSimSource] = useState('completed');
-  const [simLoading, setSimLoading] = useState(false);
-
   const fetchLoyaltyData = async () => {
     setLoading(true);
     try {
@@ -643,29 +639,6 @@ function TabLoyalty() {
   useEffect(() => {
     fetchLoyaltyData();
   }, []);
-
-  const handleSimulate = async (e) => {
-    e.preventDefault();
-    const amount = parseInt(simAmount, 10);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error('Vui lòng nhập số xu hợp lệ');
-      return;
-    }
-    setSimLoading(true);
-    try {
-      const res = await loyaltyApi.simulateEarn({ amount, source: simSource });
-      if (res.success) {
-        toast.success(res.message || 'Giả lập tích xu thành công!');
-        fetchLoyaltyData();
-      } else {
-        toast.error(res.message || 'Giả lập thất bại');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Lỗi hệ thống');
-    } finally {
-      setSimLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -791,49 +764,6 @@ function TabLoyalty() {
         )}
       </div>
 
-      {/* ── Widget Giả lập tích xu (Hidden/Simulation Mode) ── */}
-      <div className="p-6 md:p-8 bg-card border border-border border-dashed rounded-2xl flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            🧪 Bảng thử nghiệm: Giả lập Tích xu
-          </h3>
-          <p className="text-[11px] text-muted-foreground mt-1">Dùng để kiểm tra nhanh luồng tích xu và biến động số dư ví BookEat Coins.</p>
-        </div>
-
-        <form onSubmit={handleSimulate} className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex flex-col gap-1.5 flex-1 w-full">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground">Số xu tích lũy</label>
-            <input
-              type="number"
-              value={simAmount}
-              onChange={(e) => setSimAmount(e.target.value)}
-              placeholder="VD: 5000"
-              className="h-10 w-full rounded-xl border border-border bg-[#20242D] px-3.5 text-xs text-white placeholder-muted-foreground/50 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5 flex-1 w-full">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground">Nguồn tích xu</label>
-            <select
-              value={simSource}
-              onChange={(e) => setSimSource(e.target.value)}
-              className="h-10 w-full rounded-xl border border-border bg-[#20242D] px-3 text-xs text-white focus:outline-none"
-            >
-              <option value="completed">Đơn hoàn tất (bữa ăn xong)</option>
-              <option value="deposit">Đặt cọc thành công</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            disabled={simLoading}
-            className="h-10 px-5 rounded-xl bg-[#D49653] hover:bg-[#D49653]/90 text-background text-xs font-bold shrink-0 disabled:opacity-50 flex items-center justify-center gap-1.5 w-full sm:w-auto cursor-pointer border-none"
-          >
-            {simLoading && <Loader2 size={12} className="animate-spin" />}
-            <span>Giả lập tích xu</span>
-          </button>
-        </form>
-      </div>
     </div>
   );
 }
@@ -1017,6 +947,18 @@ export default function ProfilePage() {
                   </span>
                 )}
               </div>
+
+              {user?.role === 'customer' && (
+                <Link
+                  to="/wallet"
+                  id="btn-profile-wallet"
+                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                >
+                  <WalletCards size={17} aria-hidden="true" />
+                  <span>Xem Ví BookEat</span>
+                  <ChevronRight size={15} aria-hidden="true" />
+                </Link>
+              )}
             </div>
 
             {/* Tab nav */}

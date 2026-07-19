@@ -40,6 +40,7 @@ import CustomerChatPage from './pages/chat/CustomerChatPage';
 import BookingFormPage from './pages/booking/BookingFormPage';
 import MyBookingsPage from './pages/booking/MyBookingsPage';
 import BookingDetailPage from './pages/booking/BookingDetailPage';
+import WalletPage from './pages/wallet/WalletPage';
 import OwnerBookingsPage from './pages/owner/OwnerBookingsPage';
 import OwnerBilling from './pages/owner/OwnerBilling';
 import PaymentSuccess from './pages/payment/PaymentSuccess';
@@ -112,6 +113,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MyBookingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute>
+            <WalletPage />
           </ProtectedRoute>
         }
       />
