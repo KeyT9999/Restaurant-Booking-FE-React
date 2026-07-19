@@ -59,6 +59,9 @@ export const getBookingDetail = (id) =>
 export const confirmBooking = (id) =>
   axiosInstance.put(`/owner/bookings/${id}/confirm`);
 
+export const ownerCheckIn = (id) =>
+  axiosInstance.put(`/owner/bookings/${id}/checkin`);
+
 export const ownerCancelBooking = (id, reason) =>
   axiosInstance.put(`/owner/bookings/${id}/cancel`, { reason });
 

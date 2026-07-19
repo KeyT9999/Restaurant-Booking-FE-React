@@ -115,6 +115,17 @@ export default function BookingDetailPage() {
       const res = await getBookingById(id);
       if (res.success) {
         setBooking(res.data);
+        if (['pending', 'confirmed'].includes(res.data.status)) {
+          try {
+            const previewResponse = await getCancellationPreview(id);
+            setCancellationPreview(previewResponse.success ? previewResponse.data : null);
+          } catch {
+            // Fail closed: Backend preview is the source of truth for cancellation permission.
+            setCancellationPreview(null);
+          }
+        } else {
+          setCancellationPreview(null);
+        }
       } else {
         toast.error(res.message || 'Lỗi khi tải thông tin chi tiết đặt bàn');
         navigate('/my-bookings');
@@ -181,7 +192,11 @@ export default function BookingDetailPage() {
     }
   };
 
-  const canCancel = () => booking && ['pending', 'confirmed'].includes(booking.status);
+  const canCancel = () => (
+    booking
+    && ['pending', 'confirmed'].includes(booking.status)
+    && cancellationPreview?.canCancel === true
+  );
 
   if (loading) {
     return (

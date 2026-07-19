@@ -13,11 +13,11 @@ const STATUS_CONFIGS = {
   },
   expired: {
     label: 'Hết hạn',
-    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+    classes: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
   },
   disabled: {
     label: 'Đã hủy',
-    classes: 'bg-destructive/10 border-destructive/20 text-destructive',
+    classes: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
   },
   paused: {
     label: 'Tạm dừng',
@@ -32,10 +32,12 @@ const VoucherStatusBadge = ({ status }) => {
   };
 
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${config.classes}`}>
-      {config.label}
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-xs font-medium select-none shadow-sm backdrop-blur-[2px] transition-colors duration-200 ${config.classes}`}>
+      <span>{config.label}</span>
     </span>
   );
 };
 
 export default VoucherStatusBadge;
+
+
