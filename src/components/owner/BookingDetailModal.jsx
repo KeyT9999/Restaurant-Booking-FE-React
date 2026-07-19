@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getBookingDetail, confirmBooking, completeBooking, markNoShow, addInternalNote, deleteInternalNote } from '../../api/bookingApi';
+import { getBookingDetail, confirmBooking, ownerCheckIn, completeBooking, markNoShow, addInternalNote, deleteInternalNote } from '../../api/bookingApi';
 import StatusBadge from '../booking/StatusBadge';
 import StatusTimeline from '../booking/StatusTimeline';
 import { X, User, Phone, Mail, Calendar, Clock, Users, ShieldAlert, Tag, MessageSquare, Clipboard, Trash2 } from 'lucide-react';
@@ -122,6 +122,19 @@ export default function BookingDetailModal({
       }
     } catch (err) {
       toast.error(err.message || 'Lỗi khi xác nhận đặt bàn');
+    }
+  };
+
+  const handleCheckIn = async () => {
+    try {
+      const res = await ownerCheckIn(bookingId);
+      if (res.success) {
+        toast.success('Xác nhận khách đã đến (Check-in) thành công');
+        fetchDetail();
+        if (onActionComplete) onActionComplete();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi khi check-in đặt bàn');
     }
   };
 
@@ -391,13 +404,32 @@ export default function BookingDetailModal({
 
                       {booking.status === 'confirmed' && (
                         <>
-                          <Button 
-                            variant="default"
-                            onClick={handleComplete}
-                            className="w-full bg-emerald-650 hover:bg-emerald-550 text-white font-semibold text-xs h-10"
-                          >
-                            ✓ Hoàn thành dùng bữa
-                          </Button>
+                          {!booking.checkedInAt ? (
+                            <>
+                              <Button 
+                                variant="default"
+                                onClick={handleCheckIn}
+                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs h-10"
+                              >
+                                📍 Xác nhận Khách đã đến (Check-in)
+                              </Button>
+                              <Button 
+                                variant="default"
+                                disabled
+                                className="w-full bg-emerald-600/20 text-white/40 font-semibold text-xs h-10 cursor-not-allowed border border-emerald-500/10"
+                              >
+                                ✓ Hoàn thành dùng bữa (Yêu cầu Check-in)
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              variant="default"
+                              onClick={handleComplete}
+                              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs h-10"
+                            >
+                              ✓ Hoàn thành dùng bữa
+                            </Button>
+                          )}
                           <Button 
                             variant="outline"
                             onClick={() => onChangeTableClick(booking.id, booking.tableNumbers)}
@@ -405,13 +437,15 @@ export default function BookingDetailModal({
                           >
                             🪑 Đổi bàn phục vụ
                           </Button>
-                          <Button 
-                            variant="default"
-                            onClick={handleNoShow}
-                            className="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs h-10"
-                          >
-                            👤 Đánh dấu Khách vắng mặt (No-show)
-                          </Button>
+                          {!booking.checkedInAt && (
+                            <Button 
+                              variant="default"
+                              onClick={handleNoShow}
+                              className="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs h-10"
+                            >
+                              👤 Đánh dấu Khách vắng mặt (No-show)
+                            </Button>
+                          )}
                           <Button 
                             variant="destructive"
                             onClick={() => onCancelClick(booking.id, booking.customerName)}
