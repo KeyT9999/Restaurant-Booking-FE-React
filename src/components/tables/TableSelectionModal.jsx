@@ -46,6 +46,14 @@ export default function TableSelectionModal({
     return tables.filter((table) => table.zone === zoneFilter);
   }, [tables, zoneFilter]);
 
+  const hasSingleFittingTable = useMemo(() => {
+    return tables.some(
+      (table) =>
+        Number(table.capacity || 0) >= numberOfGuests &&
+        Number(table.capacity || 0) <= numberOfGuests + 2
+    );
+  }, [tables, numberOfGuests]);
+
   if (!isOpen) return null;
 
   const totalCapacity = selected.reduce((sum, table) => sum + Number(table.capacity || 0), 0);
@@ -54,8 +62,22 @@ export default function TableSelectionModal({
   const handleTableSelect = (table) => {
     const tableId = getTableId(table);
     setSelected((current) => {
-      if (current.some((item) => getTableId(item) === tableId)) {
+      const exists = current.some((item) => getTableId(item) === tableId);
+      if (exists) {
         return current.filter((item) => getTableId(item) !== tableId);
+      }
+      if (totalCapacity >= numberOfGuests) {
+        return current;
+      }
+      if (Number(table.capacity || 0) >= numberOfGuests && current.length > 0) {
+        return current;
+      }
+      if (hasSingleFittingTable && Number(table.capacity || 0) < numberOfGuests) {
+        return current;
+      }
+      const newTotalCapacity = totalCapacity + Number(table.capacity || 0);
+      if (newTotalCapacity > numberOfGuests + 2) {
+        return current;
       }
       return [...current, table];
     });
@@ -147,6 +169,13 @@ export default function TableSelectionModal({
                 const tableId = getTableId(table);
                 const isSelected = selected.some((item) => getTableId(item) === tableId);
                 const isSuggested = suggestedTables.some((item) => item.tableNumber === table.tableNumber);
+                const isTableCapacitySufficient = Number(table.capacity || 0) >= numberOfGuests;
+                const isDisabled = !isSelected && (
+                   totalCapacity >= numberOfGuests ||
+                   (isTableCapacitySufficient && selected.length > 0) ||
+                   (hasSingleFittingTable && Number(table.capacity || 0) < numberOfGuests) ||
+                   (totalCapacity + Number(table.capacity || 0)) > (numberOfGuests + 2)
+                 );
 
                 return (
                   <BookingTableCard
@@ -154,6 +183,7 @@ export default function TableSelectionModal({
                     table={table}
                     isSelected={isSelected}
                     isSuggested={isSuggested}
+                    isDisabled={isDisabled}
                     onSelect={handleTableSelect}
                   />
                 );
@@ -174,12 +204,12 @@ export default function TableSelectionModal({
             type="button"
             className={cn(
               'rounded-lg px-5 py-2.5 text-sm font-bold transition',
-              selected.length > 0 && !capacityMet
+              (selected.length > 0 && !capacityMet) || totalCapacity > numberOfGuests + 2
                 ? 'cursor-not-allowed bg-muted text-muted-foreground'
                 : 'bg-primary text-background hover:bg-primary/95'
             )}
             onClick={handleConfirm}
-            disabled={selected.length > 0 && !capacityMet}
+            disabled={(selected.length > 0 && !capacityMet) || totalCapacity > numberOfGuests + 2}
           >
             Xác nhận chọn {selected.length} bàn
           </button>

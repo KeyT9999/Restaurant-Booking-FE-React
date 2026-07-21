@@ -11,22 +11,26 @@ export default function BookingTableCard({
   isSelected,
   isSuggested,
   onSelect,
+  isDisabled,
 }) {
   const { tableNumber, capacity, zone, depositAmount, note } = table;
 
   return (
     <button
       type="button"
-      onClick={() => onSelect?.(table)}
+      onClick={() => !isDisabled && onSelect?.(table)}
+      disabled={isDisabled}
       aria-pressed={isSelected}
       aria-label={`Chọn bàn ${tableNumber}, sức chứa ${capacity} chỗ${zone ? `, khu vực ${zone}` : ''}`}
       className={cn(
-        'relative w-full rounded-xl border bg-card/70 p-4 text-left transition-all hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40',
-        isSelected
-          ? 'border-primary bg-primary/10 ring-1 ring-primary'
-          : isSuggested
-            ? 'border-amber-500/35 bg-amber-500/10'
-            : 'border-border'
+        'relative w-full rounded-xl border bg-card/70 p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary/40',
+        isDisabled
+          ? 'opacity-40 cursor-not-allowed border-border'
+          : isSelected
+            ? 'border-primary bg-primary/10 ring-1 ring-primary'
+            : isSuggested
+              ? 'border-amber-500/35 bg-amber-500/10 hover:border-primary/50'
+              : 'border-border hover:border-primary/50'
       )}
     >
       {isSuggested && (
@@ -71,12 +75,14 @@ export default function BookingTableCard({
       <div
         className={cn(
           'mt-4 rounded-md py-2 text-center text-xs font-bold uppercase tracking-wide transition-colors',
-          isSelected
-            ? 'bg-primary text-background'
-            : 'bg-secondary text-muted-foreground group-hover:text-white'
+          isDisabled
+            ? 'bg-secondary text-muted-foreground/50'
+            : isSelected
+              ? 'bg-primary text-background'
+              : 'bg-secondary text-muted-foreground group-hover:text-white'
         )}
       >
-        {isSelected ? 'Đã chọn' : 'Chọn bàn này'}
+        {isDisabled ? 'Không phù hợp' : isSelected ? 'Đã chọn' : 'Chọn bàn này'}
       </div>
     </button>
   );

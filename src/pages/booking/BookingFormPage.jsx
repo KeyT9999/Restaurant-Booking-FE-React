@@ -156,6 +156,19 @@ export default function BookingFormPage() {
   const [bookingDate, setBookingDate] = useState(() => getTodayString());
   const [bookingTime, setBookingTime] = useState('');
   const [numberOfGuests, setNumberOfGuests] = useState(2);
+
+  const handleGuestInputChange = (event) => {
+    const val = event.target.value.replace(/[^0-9]/g, '');
+    setNumberOfGuests(val === '' ? '' : parseInt(val, 10));
+  };
+
+  const handleGuestInputBlur = () => {
+    if (numberOfGuests === '' || numberOfGuests < 1) {
+      setNumberOfGuests(2);
+    } else if (numberOfGuests > 100) {
+      setNumberOfGuests(100);
+    }
+  };
   const [minBookableTime] = useState(() => {
     const now = new Date();
     return new Date(now.getTime() + MIN_BOOKING_ADVANCE_MINUTES * 60 * 1000);
@@ -167,6 +180,7 @@ export default function BookingFormPage() {
   const [selectedTables, setSelectedTables] = useState([]);
   const [checkingTables, setCheckingTables] = useState(false);
   const [tablesUnavailable, setTablesUnavailable] = useState(false);
+  const [insufficientTotalCapacity, setInsufficientTotalCapacity] = useState(false);
 
   const [customerName, setCustomerName] = useState(user?.fullName || user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phoneNumber || user?.phone || '');
@@ -329,6 +343,7 @@ export default function BookingFormPage() {
     setFieldErrors({});
     setCheckingTables(true);
     setTablesUnavailable(false);
+    setInsufficientTotalCapacity(false);
 
     try {
       const res = await checkAvailability({
@@ -350,10 +365,15 @@ export default function BookingFormPage() {
       setSuggestedTables(nextSuggestedTables);
       setSelectedTables(nextSuggestedTables);
       setTablesUnavailable(!availability.available);
+      setInsufficientTotalCapacity(!!availability.insufficientTotalCapacity);
       setCurrentStep(2);
 
       if (!availability.available) {
-        toast('Khung giờ này đã hết bàn phù hợp. Bạn có thể tham gia danh sách chờ.');
+        if (availability.insufficientTotalCapacity) {
+          toast.error('Hiện tại số lượng bàn không đủ, vui lòng liên hệ nhà hàng.');
+        } else {
+          toast('Khung giờ này đã hết bàn phù hợp. Bạn có thể tham gia danh sách chờ.');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -720,17 +740,28 @@ export default function BookingFormPage() {
                           type="button"
                           aria-label="Giảm số khách"
                           disabled={numberOfGuests <= 1}
-                          onClick={() => setNumberOfGuests((value) => Math.max(1, value - 1))}
+                          onClick={() => setNumberOfGuests((value) => Math.max(1, (Number(value) || 2) - 1))}
                           className="h-9 w-9 rounded-md text-muted-foreground hover:bg-secondary hover:text-white disabled:opacity-40 disabled:hover:bg-transparent"
                         >
                           <Minus size={15} className="mx-auto" />
                         </button>
-                        <span className="min-w-24 text-center text-sm font-bold text-white">{numberOfGuests} khách</span>
+                        <label className="flex items-center justify-center min-w-24 px-2 cursor-text">
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={numberOfGuests}
+                            onChange={handleGuestInputChange}
+                            onBlur={handleGuestInputBlur}
+                            className="w-12 bg-transparent text-center text-sm font-bold text-white border-none outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                          />
+                          <span className="text-sm font-bold text-white pl-1 select-none">khách</span>
+                        </label>
                         <button
                           type="button"
                           aria-label="Tăng số khách"
                           disabled={numberOfGuests >= 100}
-                          onClick={() => setNumberOfGuests((value) => Math.min(100, value + 1))}
+                          onClick={() => setNumberOfGuests((value) => Math.min(100, (Number(value) || 2) + 1))}
                           className="h-9 w-9 rounded-md text-muted-foreground hover:bg-secondary hover:text-white disabled:opacity-40 disabled:hover:bg-transparent"
                         >
                           <Plus size={15} className="mx-auto" />
@@ -774,17 +805,26 @@ export default function BookingFormPage() {
 
                 <div className="grid gap-5">
                   {tablesUnavailable && (
-                    <InfoPanel
-                      tone="warning"
-                      icon={AlertTriangle}
-                      title="Khung giờ này đã hết bàn phù hợp"
-                      description="Bạn có thể tham gia danh sách chờ để nhà hàng liên hệ khi có bàn trống."
-                      action={
-                        <Button onClick={goToWaitlist} className="bg-primary text-background hover:bg-primary/95">
-                          Tham gia danh sách chờ
-                        </Button>
-                      }
-                    />
+                    insufficientTotalCapacity ? (
+                      <InfoPanel
+                        tone="warning"
+                        icon={AlertTriangle}
+                        title="Hiện tại số bàn không đủ"
+                        description="Hiện tại số lượng bàn của nhà hàng không đủ phục vụ số khách này, vui lòng liên hệ nhà hàng."
+                      />
+                    ) : (
+                      <InfoPanel
+                        tone="warning"
+                        icon={AlertTriangle}
+                        title="Khung giờ này đã hết bàn phù hợp"
+                        description="Bạn có thể tham gia danh sách chờ để nhà hàng liên hệ khi có bàn trống."
+                        action={
+                          <Button onClick={goToWaitlist} className="bg-primary text-background hover:bg-primary/95">
+                            Tham gia danh sách chờ
+                          </Button>
+                        }
+                      />
+                    )
                   )}
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-5 text-left">

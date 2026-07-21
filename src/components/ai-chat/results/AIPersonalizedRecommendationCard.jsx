@@ -8,20 +8,20 @@ const formatMoney = (value) => {
 
 const formatScore = (value) => {
   if (typeof value !== 'number' || Number.isNaN(value)) return null;
-  return `${Math.round(value * 100)}% hop gu`;
+  return `${Math.round(value * 100)}% hợp gu`;
 };
 
 const getPrimaryLink = (item) => {
   if (item?.itemType === 'menu_item') {
     return {
       href: item?.metadata?.menuUrl || item?.metadata?.detailUrl || '#',
-      label: 'Mo menu',
+      label: 'Mở menu',
     };
   }
 
   return {
     href: item?.metadata?.detailUrl || '#',
-    label: 'Xem nha hang',
+    label: 'Xem nhà hàng',
   };
 };
 
@@ -55,7 +55,7 @@ function RecommendationItemCard({ item }) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/80">
-                {item?.itemType === 'menu_item' ? 'Mon goi y' : 'Nha hang goi y'}
+                {item?.itemType === 'menu_item' ? 'Món gợi ý' : 'Nhà hàng gợi ý'}
               </p>
               <h4 className="truncate text-sm font-semibold text-foreground" title={item?.name}>
                 {item?.name}
@@ -137,19 +137,19 @@ export default function AIPersonalizedRecommendationCard({ payload }) {
               {payload?.sourceLabel || 'BookEat personalized recommendations'}
             </p>
             <p className="text-sm font-medium text-foreground">
-              {payload?.message || 'Chua co goi y ca nhan hoa phu hop luc nay.'}
+              {payload?.message || 'Chưa có gợi ý cá nhân hóa phù hợp lúc này.'}
             </p>
           </div>
 
           {payload?.fallbackUsed ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              BookEat se uu tien goi y pho bien hoac theo ngu canh hien tai khi chua du du lieu ca nhan hoa.
+              BookEat sẽ ưu tiên gợi ý phổ biến hoặc theo ngữ cảnh hiện tại khi chưa đủ dữ liệu cá nhân hóa.
             </p>
           ) : null}
         </div>
 
         <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
-          Chua tim thay lua chon phu hop ngay luc nay. Ban co the thu them mon, khu vuc hoac muc gia cu the hon.
+          Chưa tìm thấy lựa chọn phù hợp ngay lúc này. Bạn có thể thử thêm món, khu vực hoặc mức giá cụ thể hơn.
         </div>
       </section>
     );
@@ -165,17 +165,17 @@ export default function AIPersonalizedRecommendationCard({ payload }) {
               {payload?.sourceLabel || 'BookEat personalized recommendations'}
             </p>
             <p className="text-sm font-medium text-foreground">
-              {payload?.message || 'Duoi day la mot so goi y danh cho ban.'}
+              {payload?.message || 'Dưới đây là một số gợi ý dành cho bạn.'}
             </p>
           </div>
           <span className="shrink-0 rounded-full border border-primary/20 bg-background/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-            {items.length} goi y
+            {items.length} gợi ý
           </span>
         </div>
 
         {payload?.fallbackUsed ? (
           <p className="mt-2 text-xs text-muted-foreground">
-            Dang dung goi y pho bien hoac ngu canh hien tai vi chua du du lieu ca nhan hoa.
+            Đang dùng gợi ý phổ biến hoặc ngữ cảnh hiện tại vì chưa đủ dữ liệu cá nhân hóa.
           </p>
         ) : null}
       </div>

@@ -68,7 +68,7 @@ const personalizedRecommendationResult = {
     personalized: true,
     fallbackUsed: false,
     sourceLabel: 'BookEat personalized recommendations',
-    message: 'Duoi day la mot so goi y nha hang va mon phu hop voi ban.',
+    message: 'Dưới đây là một số gợi ý nhà hàng và món phù hợp với bạn.',
     items: [
       {
         id: '507f1f77bcf86cd799439301',
@@ -344,10 +344,10 @@ describe('CustomerAIWidget', () => {
 
     expect(await screen.findByText('Bun bo dac biet')).toBeTruthy();
     expect(screen.getByText('Pho BookEat')).toBeTruthy();
-    expect(screen.getByRole('link', { name: /Mo menu/i }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /Mở menu/i }).getAttribute('href')).toBe(
       '/restaurants/507f1f77bcf86cd799439011#menu',
     );
-    expect(screen.getByRole('link', { name: /Xem nha hang/i }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /Xem nhà hàng/i }).getAttribute('href')).toBe(
       '/restaurants/507f1f77bcf86cd799439011',
     );
   });
